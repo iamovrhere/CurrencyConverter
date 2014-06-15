@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2014 Jason J.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<resources>
+    <!-- The resources defining the supported currency symbols, short codes, 
+    and names. 
+    
+    As of writing, supported currencies are:
+    -USD
+    -CAD
+    -GBP
+    -EUR
+    -JPY
+    -->
+    <eat-comment />
+    
+    <!-- Short codes first. -->
+    <eat-comment />
+    <!-- The code for USD -->
+    <string name="com_ovrhere_currConv_USD_code" >USD</string>
+    <!-- The code for CAD -->
+    <string name="com_ovrhere_currConv_CAD_code" >CAD</string>    
+    <!-- The code for EUR -->
+    <string name="com_ovrhere_currConv_EUR_code" >EUR</string>
+    <!-- The code for GBP -->
+    <string name="com_ovrhere_currConv_GBP_code" >GBP</string>
+    <!-- The code for JPY -->
+    <string name="com_ovrhere_currConv_JPY_code" >JPY</string>
+    
+    <!-- Symbols next. -->
+    <eat-comment />    
+    <!-- The symbol for USD -->
+    <string name="com_ovrhere_currConv_USD_symbol" >$</string>
+    <!-- The symbol for CAD -->
+    <string name="com_ovrhere_currConv_CAD_symbol" >$</string>    
+    <!-- The symbol for EUR -->
+    <string name="com_ovrhere_currConv_EUR_symbol" >€</string>
+    <!-- The symbol for GBP -->
+    <string name="com_ovrhere_currConv_GBP_symbol" >£</string>
+    <!-- The symbol for JPY -->
+    <string name="com_ovrhere_currConv_JPY_symbol" >¥</string>
+    
+    <!-- Long names. -->
+    <eat-comment />    
+    <!-- The name for USD -->
+    <string name="com_ovrhere_currConv_USD_name" 
+        >United States Dollar</string>
+    <!-- The name for CAD -->
+    <string name="com_ovrhere_currConv_CAD_name" 
+        >Canadian Dollar</string>    
+    <!-- The name for EUR -->
+    <string name="com_ovrhere_currConv_EUR_name" 
+        >Euro</string>
+    <!-- The name for GBP -->
+    <string name="com_ovrhere_currConv_GBP_name" 
+        >Great British Pound</string>
+    <!-- The name for JPY -->
+    <string name="com_ovrhere_currConv_JPY_name" 
+        >Japanese Yen</string>
+    
+</resources>
