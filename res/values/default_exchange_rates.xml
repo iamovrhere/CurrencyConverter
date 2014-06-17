@@ -20,24 +20,24 @@
     for simplicity. -->
     <eat-comment />
     
-    <!-- The currency update time (GMT) for default values.
-    Should be of the form "yyyy-mm-dd hh-mm-ss GMT" -->
+    <!-- The currency update time (UTC/GMT) for default values.
+    Should be of the form "yyyy-mm-dd hh:mm:ss.SSS+0000" -->
     <item name="com_ovrhere_currConv_defRate_updateTime" 
-       format="string" type="string" >2014-06-15 20:11:53 GMT</item>
+       format="string" type="string" >2014-06-15 20:11:53.000+0000</item>
         
     <!-- The rate of USD to USD (obviously fixed at 1.00. -->
      <item name="com_ovrhere_currConv_defRate_USD" 
-         format="float" type="integer">1.0000</item>     
+         format="float" type="string">1.0000</item>     
      <!-- The rate of USD to CAD. -->
      <item name="com_ovrhere_currConv_defRate_CAD" 
-         format="float" type="integer">1.0856</item>     
+         format="float" type="string">1.0856</item>     
      <!-- The rate of USD to EUR. -->
      <item name="com_ovrhere_currConv_defRate_EUR" 
-         format="float" type="integer">0.7388</item>
+         format="float" type="string">0.7388</item>
      <!-- The rate of USD to GBP. -->
      <item name="com_ovrhere_currConv_defRate_GBP" 
-         format="float" type="integer">0.5892</item>
+         format="float" type="string">0.5892</item>
      <!-- The rate of USD to JPY. -->
      <item name="com_ovrhere_currConv_defRate_JPY" 
-         format="float" type="integer">102.0600</item>
+         format="float" type="string">102.0600</item>
 </resources>
