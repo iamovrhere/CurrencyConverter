@@ -18,14 +18,17 @@ package com.ovrhere.android.currencyconverter.dao;
 import java.text.ParseException;
 import java.util.Date;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
 /**
  * The data access object for currency data records. 
  * 
  * @author Jason J.
- * @version 0.1.0-20140616
+ * @version 0.2.0-20140620
  */
-public class CurrencyData {
+public class CurrencyData implements Parcelable {
 	/** The record id. */
 	protected int _id = -1;
 	/** The 1 character currency symbol. Default is null. */
@@ -49,9 +52,16 @@ public class CurrencyData {
 	
 	@Override
 	public String toString() {
+		//useful in debugging.
 		return super.toString() + 
 				"[code: "+currencyCode+", name: "+currencyName+"]";
 	}
+	
+	/** @param drawableId The flag image resource id for the currency. */
+	public void setFlagResource(int drawableId) {
+		this.flagImageResourceId = drawableId;
+	}
+	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Start accessors
@@ -187,4 +197,70 @@ public class CurrencyData {
 			return currencyData;
 		}
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Parcellable details
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public int describeContents() {
+        return 0;
+    }
+
+	@Override
+    public void writeToParcel(Parcel out, int flags) {
+        //all ints
+		out.writeIntArray(new int[]{_id, flagImageResourceId});
+		//all floats
+		out.writeFloat(rateFromUSD);
+		//all strings
+		out.writeStringArray(new String[]{
+				currencyCode,
+				currencyName,
+				currencySymbol,
+				modifiedTimestamp
+		});
+		//modifiedDate will be rebuilt.
+    }
+	
+	/** Constructor for use with parcellable #CREATOR. 
+	 * Coupled to {@link #writeToParcel(Parcel, int)}. */
+	private CurrencyData(Parcel in){
+		int[] ints = new int[2];
+		String[] strings = new String[4];
+		
+		//reset ints
+		in.readIntArray(ints);
+		_id = ints[0];
+		flagImageResourceId = ints[1];
+		
+		//reset floats
+		rateFromUSD = in.readFloat();
+		
+		//reset strings, etc
+		in.readStringArray(strings);
+		currencyCode = strings[0];
+		currencyName = strings[1];
+		currencySymbol = strings[2];
+		try {
+			if (strings[3] != null){
+				modifiedDate = Timestamp.parse(strings[3]);
+				modifiedTimestamp = strings[3];
+			}
+		} catch (ParseException e) {
+			//should never throw.
+		}
+	}
+
+    /** Creator used with parcellable interface. */
+	public static final Parcelable.Creator<CurrencyData> CREATOR
+		    	= new Parcelable.Creator<CurrencyData>() {
+		@Override
+		public CurrencyData createFromParcel(Parcel in) {
+		    return new CurrencyData(in);
+		}
+		@Override
+		public CurrencyData[] newArray(int size) {
+		    	return new CurrencyData[size];
+			}
+		};
 }
