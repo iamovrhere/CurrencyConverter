@@ -34,7 +34,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * <p>It is suggested but not required to implement the 
  * {@link #onUpgrade(SQLiteDatabase, int, int)} function. </p>
  * @author Jason J.
- * @version 0.1.0-20140416
+ * @version 0.2.0-20140901
  * @see DatabaseSchema
  */
 public class DatabaseOpenHelper extends SQLiteOpenHelper {
@@ -99,7 +99,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
      * helper.
      * 
      * @return A {@link DatabaseOpenHelper} for reading 
-     * (will throw UnsupportedOperationException for {@link #getWritableDatabase()}).
+     * (will throw UnsupportedOperationException for {@link #getWritableDatabaseOrThrow()}).
      */
     public static DatabaseOpenHelper getReadHelper(Context context, 
     		DatabaseSchema databaseSchema){
@@ -141,7 +141,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
      * @param context The context to get the database with.
      * @param databaseSchema The schema to create the database from.
      * @param readOnly (Optional) If <code>true</code>, the helper created cannot call
-     * {@link #getWritableDatabase()}. Default value is <code>false</code>.
+     * {@link #getWritableDatabaseOrThrow()}. Default value is <code>false</code>.
      */
     protected DatabaseOpenHelper(Context context, DatabaseSchema databaseSchema, 
 			boolean readOnly) {
@@ -165,8 +165,10 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     		}
 			if(--openReferenceCount <= 0){
 	    		this.close();
+	    		DatabaseOpenHelper writeHelper = 
+	    				writeHelperInstances.get(dbSchema.getName());
 	    		//if this is currently the same instance of our writeHelper.
-	    		if (writeHelperInstances.get(dbSchema.getName()).equals(this)){
+	    		if ( writeHelper != null && writeHelper.equals(this)){
 	    			writeHelperInstances.remove(dbSchema.getName());
 	    			//remove it.
 	    			return true;
@@ -193,8 +195,12 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 		//not needed atm
 	}
 	
-	@Override
-	public SQLiteDatabase getWritableDatabase() {
+	/** Calls {@link #getWritableDatabase()} but throws if this database was 
+	 * meant to be a read-only. 
+	 * @return A writable database.	 
+	 * @throws UnsupportedOperationException If this was intended to be a 
+	 * read-only database. */
+	public SQLiteDatabase getWritableDatabaseOrThrow() {
 		if (readOnlyHelper){
 			throw new UnsupportedOperationException(DETAILED_EXCEPTION_READ_ONLY);
 		}

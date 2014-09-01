@@ -23,7 +23,7 @@ import android.database.sqlite.SQLiteDatabase;
  * Contains convenience functions to get helpers using {@link CurrencyConvertDatabaseSchema}. 
  * 
  * @author Jason J.
- * @version 0.1.0-20140613
+ * @version 0.2.0-20140901
  * @see CurrencyConvertDatabaseSchema
  */
 public class CurrencyConvertDatabaseOpenHelper extends DatabaseOpenHelper {
@@ -34,15 +34,15 @@ public class CurrencyConvertDatabaseOpenHelper extends DatabaseOpenHelper {
 	/** Convenience function for {@link #getWriteHelper(Context, DatabaseSchema)}
      * using the {@link CurrencyConvertDatabaseSchema}.  
      * @return A writable {@link DatabaseOpenHelper}.      */
-	public static CurrencyConvertDatabaseOpenHelper getWriteHelper(Context context){
-		return (CurrencyConvertDatabaseOpenHelper) getWriteHelper(context, currConvDatabaseSchema);
+	public static DatabaseOpenHelper getWriteHelper(Context context){
+		return getWriteHelper(context, currConvDatabaseSchema);
     }
     
     /** Convenience function for {@link #getReadHelper(Context, DatabaseSchema)}
      * using the {@link CurrencyConvertDatabaseSchema}.  
      * @return A read-only {@link DatabaseOpenHelper}.      */
-	public static CurrencyConvertDatabaseOpenHelper getReadHelper(Context context){
-    	return (CurrencyConvertDatabaseOpenHelper) getReadHelper(context, currConvDatabaseSchema);
+	public static DatabaseOpenHelper getReadHelper(Context context){
+    	return getReadHelper(context, currConvDatabaseSchema);
     }
 	/** Calls DatabaseOpenHelper constructor. */
 	protected CurrencyConvertDatabaseOpenHelper(Context context, DatabaseSchema databaseSchema) {
