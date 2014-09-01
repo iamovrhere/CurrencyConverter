@@ -21,6 +21,79 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.ovrhere.android.currencyconverter.MainActivity$PlaceholderFragment" >
+    >
 
+    <TextView
+        android:id="@+id/com_ovrhere_currConv_main_text_currSymbol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        
+        android:layout_alignParentLeft="true"
+        android:layout_alignBaseline="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+        
+        android:text="@string/com_ovrhere_currConv_USD_symbol"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="100dp"
+            android:inputType="numberDecimal"
+            android:layout_marginTop="5dp"
+            android:layout_alignTop="@+id/com_overhere_currConv_image_currFlag"
+            android:layout_toRightOf="@+id/com_ovrhere_currConv_main_text_currSymbol"
+            android:text="0.00" 
+            android:layout_marginLeft="10dp"
+            tools:ignore="HardcodedText" 
+            />
+        
+         <ImageView
+            android:id="@+id/com_overhere_currConv_image_currFlag"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_flag_usd" 
+            android:contentDescription="@string/com_ovrhere_currConv_USD_name"
+            />
+         
+        <Spinner
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+            android:layout_toRightOf="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+            />
+         
+
+        <Spinner
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyTo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="36dp" />
+
+        <ViewStub
+            
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true" 
+            android:layout="@layout/fragment_currency_value"
+            />
+
+        <TextView
+            android:id="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
+            android:layout_centerHorizontal="true"
+            android:text="@string/com_ovrhere_currConv_cachedRate_warning"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+       
+    
 </RelativeLayout>
