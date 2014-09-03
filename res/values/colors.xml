@@ -16,5 +16,22 @@
 -->
 <resources>
     <!-- The approximation of black for this project.  -->
-   <color name="com_ovrhere_currConv_black">#080808</color> 
+   <color name="com_ovrhere_currConv_black">#080808</color>
+   
+   <!-- Background color -->
+   <color name="com_ovrhere_currConv_background">#e8f6f7</color>
+   <!-- Action bar color -->
+   <color name="com_ovrhere_currConv_actionBar">#BAE6EA</color>  
+   <!-- List fade  color -->
+   <color name="com_ovrhere_currConv_listFade">@color/com_ovrhere_currConv_background</color>
+   
+   <!-- The colour used for warnings. -->
+   <color name="com_ovrhere_currConv_warningColor">#aa1111</color>
+   
+   <!-- Currency output list colours: The colour for even rows. 
+   Starting at 2nd row. -->
+   <color name="com_ovrhere_currConv_outputEven">#33BAE6EA</color>
+   <!-- Currency output list colours: The colour for odd rows. 
+   Starting in first row. -->
+   <color name="com_ovrhere_currConv_outputOdd">#66eaeaea</color>
 </resources>

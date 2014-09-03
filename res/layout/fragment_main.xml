@@ -37,24 +37,27 @@
         <EditText
             android:id="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
             android:lines="1"
-            android:minWidth="100dp"
+            android:minWidth="@dimen/com_ovrhere_currConv_main_input_minWidth"
             android:inputType="numberDecimal"
-            android:layout_marginTop="5dp"
-            android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
+            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_alignTop="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_alignBottom="@+id/com_ovrhere_currConv_main_spinner_currencySource"
             android:layout_toRightOf="@+id/com_ovrhere_currConv_main_text_currSymbol"
             android:layout_toLeftOf="@+id/com_ovrhere_currConv_main_spinner_currencySource"
             android:text="0.00" 
-            android:layout_marginLeft="7dp"
+            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
             tools:ignore="HardcodedText" 
             android:maxLength="100000000001"
             />
         
          <ImageView
             android:id="@+id/com_overhere_currConv_main_image_currFlag"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_sourceFlag_width"
+            android:scaleType="fitCenter"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_flag_usd" 
@@ -63,10 +66,10 @@
          
         <Spinner
             android:id="@+id/com_ovrhere_currConv_main_spinner_currencySource"
-            android:layout_width="120dp"
-            android:layout_height="50dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
+            android:layout_width="@dimen/com_ovrhere_currConv_main_spinner_width"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
+            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_marginRight="@dimen/com_ovrhere_currConv_main_generalPadding"
             android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
             android:layout_toLeftOf="@+id/com_overhere_currConv_main_image_currFlag"
             
@@ -76,11 +79,11 @@
         <Spinner
             android:id="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:minWidth="100dp"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
+            android:minWidth="@dimen/com_ovrhere_currConv_main_spinner_width"
             android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="13dp" />
+            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_destSpinner_topPadding" />
 
        
 
@@ -92,7 +95,9 @@
             android:layout_centerHorizontal="true"
             android:text="@string/com_ovrhere_currConv_cachedRate_warning"
             android:gravity="center"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/com_ovrhere_currConv_warningColor"
+             />
 
         <ListView
             android:id="@+id/com_ovrhere_currConv_main_listView"
@@ -100,6 +105,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="6dp" />
+            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_listView_topPadding" 
+            android:cacheColorHint="@color/com_ovrhere_currConv_listFade"
+            />
     
 </RelativeLayout>
