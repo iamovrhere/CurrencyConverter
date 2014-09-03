@@ -27,4 +27,12 @@
     <string name="com_ovrhere_currConv_cachedRate_warning">
     	Warning: Using cached values (%1$s). \nRates may be outdated.    
     </string>
+    <!-- The formatted string to use for currency long-click actions. -->
+    <string name="com_ovrhere_currConv_context_currencyAction">
+        Action on "%1$s"
+    </string>
+    <!-- The label for the clipboard action performed -->
+    <string name="com_ovrhere_currConv_clipboard_label_copiedCurrency">
+        Copied Currency
+    </string>
 </resources>

@@ -29,27 +29,30 @@
         android:layout_height="wrap_content"
         
         android:layout_alignParentLeft="true"
-        android:layout_alignBaseline="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+        android:layout_alignBaseline="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
         
         android:text="@string/com_ovrhere_currConv_USD_symbol"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <EditText
-            android:id="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
-            android:layout_width="wrap_content"
+            android:id="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:lines="1"
             android:minWidth="100dp"
             android:inputType="numberDecimal"
             android:layout_marginTop="5dp"
-            android:layout_alignTop="@+id/com_overhere_currConv_image_currFlag"
+            android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
             android:layout_toRightOf="@+id/com_ovrhere_currConv_main_text_currSymbol"
+            android:layout_toLeftOf="@+id/com_ovrhere_currConv_main_spinner_currencySource"
             android:text="0.00" 
-            android:layout_marginLeft="10dp"
+            android:layout_marginLeft="7dp"
             tools:ignore="HardcodedText" 
+            android:maxLength="100000000001"
             />
         
          <ImageView
-            android:id="@+id/com_overhere_currConv_image_currFlag"
+            android:id="@+id/com_overhere_currConv_main_image_currFlag"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_alignParentTop="true"
@@ -59,41 +62,44 @@
             />
          
         <Spinner
-            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
-            android:layout_toRightOf="@+id/com_ovrhere_currConv_main_edittext_currValueToConv"
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
+            android:layout_toLeftOf="@+id/com_overhere_currConv_main_image_currFlag"
+            
             />
          
 
         <Spinner
-            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyTo"
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
+            android:layout_height="50dp"
+            android:minWidth="100dp"
+            android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="36dp" />
+            android:layout_marginTop="13dp" />
 
-        <ViewStub
-            
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true" 
-            android:layout="@layout/fragment_currency_value"
-            />
+       
 
         <TextView
             android:id="@+id/com_ovrhere_currConv_main_text_warning"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyFrom"
+            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencySource"
             android:layout_centerHorizontal="true"
             android:text="@string/com_ovrhere_currConv_cachedRate_warning"
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-       
+        <ListView
+            android:id="@+id/com_ovrhere_currConv_main_listView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="6dp" />
     
 </RelativeLayout>
