@@ -34,12 +34,14 @@ import com.ovrhere.android.currencyconverter.model.asyncmodel.AsyncModel;
  * the {@link Context}.
  * 
  * @author Jason J.
- * @version 0.1.0-20140613
+ * @version 0.1.1-20140901
  */
 public class CurrencyExchangeRateAsyncModel extends AsyncModel {
 	/** The log tag to use. */
 	final static private String LOGTAG = 
 			CurrencyExchangeRateAsyncModel.class.getSimpleName();
+	/** The boolean for debugging. */
+	final static private boolean DEBUG = true;
 
 	/* * Retrieves a single record from the database. 
 	 * May be accompanied by an id (integer or string). 
@@ -104,6 +106,9 @@ public class CurrencyExchangeRateAsyncModel extends AsyncModel {
 		if (mLocalModel == null){
 			return 1;
 		}
+		if (DEBUG){
+			Log.d(LOGTAG, "sendMessage: "+what);
+		}
 		// TODO Complete implementation.
 		switch (what) {
 		case REQUEST_GET_ALL_RECORDS:
@@ -124,13 +129,13 @@ public class CurrencyExchangeRateAsyncModel extends AsyncModel {
 		List<CurrencyData> records = mLocalModel.getAllRecords();
 		if (records.isEmpty()){
 			if (initDefaultDatabase()){
-				records = mLocalModel.getAllRecords();
-				setFlagDrawables(records);
+				records = mLocalModel.getAllRecords();				
 			} else {
 				notifyHandlers(ERROR_REQUEST_FAILED, null);
 				return;
 			}
 		}
+		setFlagDrawables(records);
 		notifyHandlers(REPLY_RECORDS_RESULT, records);
 	}
 
@@ -141,7 +146,7 @@ public class CurrencyExchangeRateAsyncModel extends AsyncModel {
 	/** Sets the flag drawables for the currency records.	 */
 	private void setFlagDrawables(List<CurrencyData> records) {
 		for (Iterator<CurrencyData> iterator = records.iterator(); iterator.hasNext();) {
-			FlagResourceMap.setCurrencyFlagDrawable(res, iterator.next());			
+			FlagResourceMap.setCurrencyFlagDrawable(res, iterator.next());	
 		}
 	}
 	
