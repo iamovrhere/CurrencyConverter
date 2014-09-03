@@ -15,15 +15,63 @@
  */
 package com.ovrhere.android.currencyconverter.utils;
 
+import java.text.NumberFormat;
+import java.util.Currency;
+
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 
 /**
- * The calculations regarding currency. 
+ * Performs calculations & formatting regarding currency. 
  * @author Jason J.
- * @version 0.2.0-20140902
+ * @version 0.3.0-20140903
  */
 public class CurrencyCalculator {
+	/** The minimal format precision. */
+	final static private int FORMAT_MIN_PRECISION = 4;
 
+	/** Convenience function for {@link #format(CurrencyData, double, boolean)}.
+	 * Same as calling with <code>detailed</code> <code>false</code>.
+	 * @param currencyData The currency data to get decimal data from.
+	 * @param amount The amount to format
+	 * @return The formatted currency string.
+	 */
+	static public String format(CurrencyData currencyData, 
+			double amount){
+		return format(currencyData, amount, false);
+	}
+	
+	/** Formats currents according the currency data
+	 * @param currencyData The currency data to get decimal data from.
+	 * @param amount The amount to format
+	 * @param detailed <code>true</code> to give more decimal points, 
+	 * <code>false</code> to give the default currency digits. 
+	 * @return The formatted currency string.	 */
+	static public String format(CurrencyData currencyData, 
+			double amount, boolean detailed){
+		NumberFormat numFormat = NumberFormat.getInstance();
+		Currency currency = currencyData.getCurrency();
+		numFormat.setCurrency(currency);
+		int fracDigits = 
+				currency.getDefaultFractionDigits() > FORMAT_MIN_PRECISION ?
+				currency.getDefaultFractionDigits() : FORMAT_MIN_PRECISION;
+		if (detailed){
+			String rate = ""+currencyData.getRateFromUSD();
+			
+			if (rate != null && rate.indexOf(".") >= 0){
+				int length = rate.substring(rate.indexOf(".")+1).length();
+				if (length > fracDigits){
+					fracDigits = length;
+				}
+			}
+			//as most currencies supported will have at least 2 decimals, so add two more
+			fracDigits += 2;
+		}
+		numFormat.setMinimumFractionDigits(fracDigits);
+		numFormat.setMaximumFractionDigits(fracDigits);
+		
+		return numFormat.format(amount);
+	}
+	
 	/**
 	 * Converts an amount of currency <code>source</code> 
 	 * from currency <code>source</code> to currency <code>dest</code>

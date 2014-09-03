@@ -16,6 +16,7 @@
 package com.ovrhere.android.currencyconverter.dao;
 
 import java.text.ParseException;
+import java.util.Currency;
 import java.util.Date;
 
 import android.os.Parcel;
@@ -26,9 +27,12 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * The data access object for currency data records. 
  * 
  * @author Jason J.
- * @version 0.2.0-20140620
+ * @version 0.3.0-20140903
  */
 public class CurrencyData implements Parcelable {
+	/** The current ISO standard for this currency based upon the currency code. 
+	 * Default is <code>null</code>. */
+	protected Currency isoCurrency = null;	
 	/** The record id. */
 	protected int _id = -1;
 	/** The 1 character currency symbol. Default is null. */
@@ -70,18 +74,21 @@ public class CurrencyData implements Parcelable {
 	public int getId() {
 		return _id;
 	}
-	/** @return The 3 letter currency code for this currency (e.g. "CAD).
-	 *  Default is <code>null</code>. */ 
+	/** @return The 3 letter currency code for this currency (e.g. "CAD). */ 
 	public String getCurrencyCode() {
 		return currencyCode;
 	}
-	/** @return The currency symbol (e.g. $). 
-	 *  Default is <code>null</code>. */
+	/** @return The currency symbol (e.g. $) */
 	public String getCurrencySymbol() {
 		return currencySymbol;
 	}
-	/** @return The full name of the currency (e.g. "Euro").
-	 *  Default is <code>null</code>. */
+	
+	/** Gets the Android currency object for this currency.
+	 * @return The ISO 4217 {@link Currency} object.	 */
+	public Currency getCurrency(){
+		return isoCurrency;
+	}
+	/** @return The full name of the currency (e.g. "Euro").  */
 	public String getCurrencyName() {
 		return currencyName;
 	}
@@ -119,17 +126,21 @@ public class CurrencyData implements Parcelable {
 	/**
 	 * The builder for the currency data records. 
 	 * @author Jason J.
-	 * @version 0.1.0-20140615
+	 * @version 0.1.1-20140903
 	 */
 	public static class Builder {
 		final static private String DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO = 
 				"Exchange rate must be >= 0";
+		final static private String DETAILED_EXCEPTION_BUILDER_IS_NOT_PREPARED = 
+				"Insufficient details to build currency.";
 		final static private String DETAILED_EXCEPTION_SYMBOL_NONEMPTY = 
-				"Currency symbol cannot be empty";
+				"Currency symbol cannot be empty";		
 		final static private String DETAILED_EXCEPTION_NAME_NONEMPTY = 
 				"Currency name cannot be empty";
 		final static private String DETAILED_EXCEPTION_CODE_NONEMPTY = 
 				"Currency code cannot be empty";
+		/** If ready to build. */
+		private boolean readyToBuild = false;		
 		private CurrencyData currencyData = new CurrencyData();
 		public Builder() {}
 		/** @param id The record id. 
@@ -138,9 +149,38 @@ public class CurrencyData implements Parcelable {
 			currencyData._id = id;
 			return this;
 		}
-		/** Sets currency information. 
+		/** Required. Sets currency information. 
 		 * @param symbol The symbol related to currency (e.g. $)
 		 * Cannot be blank.
+		 * @param code The 3 letter currency code (e.g. GBP)
+		 * Cannot be blank.
+		 * @param name The proper name of the currency (e.g. Great British Pound).
+		 * Cannot be blank.
+		 * @param rate The exchange rate from USD to this currency. 
+		 * Must be >= 0.
+		 * @return {@link Builder} for chaining. 
+		 * @throws IllegalArgumentException If the arguments passed are empty
+		 * or if the currency code is not a supported ISO 4217 currency  . */
+		private Builder setCurrency(String code, String name, float rate){
+			if (code.isEmpty()){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_CODE_NONEMPTY);
+			}
+			if (name.isEmpty()){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_NAME_NONEMPTY);
+			}
+			if (rate < 0){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO);
+			}
+			currencyData.isoCurrency = Currency.getInstance(code);
+			//all valid data.
+			currencyData.currencyCode = code.trim();
+			currencyData.currencyName = name.trim();			
+			currencyData.rateFromUSD =  rate;
+			readyToBuild = true;
+			return this;
+		}
+		/** Required. Sets currency information. 
+		 * @param symbol Currently. Not used.
 		 * @param code The 3 letter currency code (e.g. GBP)
 		 * Cannot be blank.
 		 * @param name The proper name of the currency (e.g. Great British Pound).
@@ -152,21 +192,8 @@ public class CurrencyData implements Parcelable {
 			if (symbol.isEmpty()){
 				throw new IllegalArgumentException(DETAILED_EXCEPTION_SYMBOL_NONEMPTY);
 			}
-			if (code.isEmpty()){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_CODE_NONEMPTY);
-			}
-			if (name.isEmpty()){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_NAME_NONEMPTY);
-			}
-			if (rate < 0){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO);
-			}
-			//all valid data.
-			currencyData.currencySymbol = symbol.trim();
-			currencyData.currencyCode = code.trim();
-			currencyData.currencyName = name.trim();			
-			currencyData.rateFromUSD =  rate;
-			return this;
+			currencyData.currencySymbol = symbol;
+			return setCurrency(code, name, rate);
 		}
 		/*public Builder setRateFromUSD(float rate){
 			currencyData.rateToUSD =  rate;
@@ -192,9 +219,14 @@ public class CurrencyData implements Parcelable {
 			currencyData.modifiedTimestamp = timestamp;
 			return this;
 		}
-		/** Creates the currency data object. */
+		/** Creates the currency data object. 
+		 * @throws IllegalStateException If the builder is not ready to build. */
 		public CurrencyData create(){
-			return currencyData;
+			if (readyToBuild){
+				return currencyData;
+			} else {
+				throw new IllegalStateException(DETAILED_EXCEPTION_BUILDER_IS_NOT_PREPARED);
+			}
 		}
 	}
 	
@@ -249,6 +281,8 @@ public class CurrencyData implements Parcelable {
 		} catch (ParseException e) {
 			//should never throw.
 		}
+		//reintialize
+		isoCurrency = Currency.getInstance(currencyCode);
 	}
 
     /** Creator used with parcellable interface. */
