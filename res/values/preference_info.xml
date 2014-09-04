@@ -33,9 +33,22 @@
     <!-- Int key. The index of the dest currency to show  -->
     <string name="com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX" >
         com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX
+    </string>    
+    <!-- Int key. The number of milliseconds before rechecking is necessary.  -->
+    <string name="com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" >
+        com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
     </string>
     
     <!-- Preference Default Values  -->
 	<eat-comment />
+	<!-- Default Value to com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX -->
+	<item name="com_ovrhere_currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX"
+	    type="integer">0</item>
+	<!-- Default Value to com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX  -->
+	<item name="com_ovrhere_currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"
+	    type="integer">0</item>
+	<!-- Default Value to com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL  -->
+	<item name="com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
+	    type="integer">3600000</item>
 	
 </resources>

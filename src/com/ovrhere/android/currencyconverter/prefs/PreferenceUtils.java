@@ -25,7 +25,7 @@ import com.ovrhere.android.currencyconverter.R;
  * Preference Utility for handling the preferences and the preference container.
  * Has ability to set defaults.
  * @author Jason J.
- * @version 0.1.0-20140903
+ * @version 0.2.0-20140904
  */
 public class PreferenceUtils {
 	/* The class name. */
@@ -78,6 +78,18 @@ public class PreferenceUtils {
 	 * @param prefEdit The {@link SharedPreferences} editor to use to commit. */
 	static private void _setDefaults(Resources r, SharedPreferences.Editor prefEdit){
 		//Thought: Consider using parallel arrays in res to respect open-close?
+		prefEdit.putInt(
+				r.getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
+			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
+		);
+		prefEdit.putInt(
+				r.getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX),
+			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
+		);
+		prefEdit.putInt(
+				r.getString(R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
+		);
 		
 		//first run has completed.
 		prefEdit.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET);
