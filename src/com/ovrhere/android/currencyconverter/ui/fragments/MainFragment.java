@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
@@ -47,6 +48,7 @@ import android.widget.TextView;
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.model.CurrencyExchangeRateAsyncModel;
+import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataFilterListAdapter;
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataSpinnerAdapter;
 import com.ovrhere.android.currencyconverter.utils.CompatClipboard;
@@ -55,7 +57,7 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.2.0-20140902
+ * @version 0.3.0-20140903
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -67,12 +69,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** Bundle key: List<CurrencyData>/List<Parcellable>. The currently parsed list. */
 	final static private String KEY_CURRENCY_LIST = 
 			CLASS_NAME + ".KEY_CURRENCY_LIST";
-	/** Bundle key: Int. The "from" currency spinner position (see #sp_fromCurr ). */
-	final static private String KEY_SOURCE_CURRENCY_POSITION = 
-			CLASS_NAME + ".KEY_SOURCE_CURRENCY_POSITION";
-	/** Bundle key: Int. The "to" currency spinner position (see #sp_toCurr ). */
-	final static private String KEY_DEST_CURRENCY_POSITION = 
-			CLASS_NAME + ".KEY_DEST_CURRENCY_POSITION";
+	
 	/** Bundle key: String. The input to convert. */
 	final static private String KEY_CURRENCY_VALUE_INPUT = 
 			CLASS_NAME+".KEY_CURRENCY_VALUE_INPUT";
@@ -92,6 +89,9 @@ implements Handler.Callback, OnItemLongClickListener {
 	private CurrencyDataSpinnerAdapter destCurrAdapter = null;
 	/** The output list adapter. */
 	private CurrencyDataFilterListAdapter outputListAdapter = null;
+	
+	/** The shared preference handle. */
+	private SharedPreferences prefs = null;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Views start here
@@ -119,10 +119,6 @@ implements Handler.Callback, OnItemLongClickListener {
 	public void onSaveInstanceState(Bundle outState) {	
 		super.onSaveInstanceState(outState);
 		
-		outState.putInt(KEY_SOURCE_CURRENCY_POSITION, 
-				sp_sourceCurr.getSelectedItemPosition());
-		outState.putInt(KEY_DEST_CURRENCY_POSITION, 
-				sp_destCurr.getSelectedItemPosition());
 		outState.putParcelableArrayList(KEY_CURRENCY_LIST, 
 				(ArrayList<? extends Parcelable>) currencyList);
 		outState.putString(KEY_CURRENCY_VALUE_INPUT, 
@@ -135,6 +131,9 @@ implements Handler.Callback, OnItemLongClickListener {
 		super.onCreate(savedInstanceState);
 		asycModel = new CurrencyExchangeRateAsyncModel(getActivity());
 		asycModel.addMessageHandler(new Handler(this));
+		
+		prefs = PreferenceUtils.getPreferences(getActivity());
+		
 		if (savedInstanceState == null){
 			requestFreshExchangeRates();
 		} else {
@@ -161,62 +160,17 @@ implements Handler.Callback, OnItemLongClickListener {
 			Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_main, container,
 				false);
-		outputListAdapter = new CurrencyDataFilterListAdapter(getActivity());
-		
-		ListView outputListView = (ListView) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_listView);
-		outputListView.setAdapter(outputListAdapter);
-		outputListView.setOnItemLongClickListener(this);
-		registerForContextMenu(outputListView);
-		
-		
-		sourceCurrAdapter = 
-				new CurrencyDataSpinnerAdapter(getActivity(), 
-						android.R.layout.simple_list_item_1);
-
-		destCurrAdapter = 
-				new CurrencyDataSpinnerAdapter(getActivity(), 
-						android.R.layout.simple_list_item_1, true);
-		destCurrAdapter.setSelectAllText("View All");
+		initAdapters();		
+		initInputViews(rootView);
+		initOutputViews(rootView);
+		processSavedState(savedInstanceState);
 		
 		updateCurrencyAdapters();
-		
-		
-		sp_sourceCurr = (Spinner) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencySource);
-		sp_sourceCurr.setAdapter(sourceCurrAdapter);
-		sp_sourceCurr.setOnItemSelectedListener(sourceItemSelectedListener);
-		
-		sp_destCurr = (Spinner) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencyDest);
-		sp_destCurr.setAdapter(destCurrAdapter);
-		sp_destCurr.setOnItemSelectedListener(destItemSelectListener);
-		
-		et_currInput = (EditText)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_edittext_valueToConv);
-		et_currInput.addTextChangedListener(valueInputListener);
-		
-		int fromCurrSelect = 0;
-		int toCurrSelect = 0;
-		if (savedInstanceState != null){
-			fromCurrSelect = savedInstanceState.getInt(KEY_SOURCE_CURRENCY_POSITION);
-			toCurrSelect = savedInstanceState.getInt(KEY_DEST_CURRENCY_POSITION);
-			String input = savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT);
-			et_currInput.setText(input != null ? input : "0");
-		}
-		sp_sourceCurr.setSelection(fromCurrSelect);
-		sp_destCurr.setSelection(toCurrSelect);
-		
-		img_currFlag = (ImageView)  
-				rootView.findViewById(R.id.com_overhere_currConv_main_image_currFlag);
-		
-		tv_currSymbol = (TextView)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_currSymbol);
-		tv_warning = (TextView)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_warning);
 		updateSourceCurrency();
 		return rootView;
 	}
+	
+	
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
@@ -232,6 +186,8 @@ implements Handler.Callback, OnItemLongClickListener {
 		    			currency.getCurrencyCode());
 		    	menu.setHeaderTitle(title);
 			    menu.add(Menu.CATEGORY_SECONDARY, 0, 0, android.R.string.copy);
+			    menu.add(Menu.CATEGORY_SECONDARY, 1, 1, 
+			    		R.string.com_ovrhere_currConv_context_detailedCopy);
 		    }
 		  }
 	}
@@ -243,35 +199,103 @@ implements Handler.Callback, OnItemLongClickListener {
 					(AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 			switch (item.getItemId()){
 				case 0:
-					int position = info.position;
-				copyConvertedValue(position);					
+					int pos1 = info.position;
+					copyConvertedValue(pos1, false);
+					break;
+				case 1:
+					int pos2 = info.position;
+					copyConvertedValue(pos2, true);
+					break;
 			}
 		}
 		return super.onContextItemSelected(item); 
 	}
 
-
-	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Helper Methods
+	/// Initializer helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/** Copies the converted currency at the given position. 
-	 * @param position The position the item was selected from.
-	 */
-	private void copyConvertedValue(int position) {
+	/** Processes the saved state, preferences and updates views accordingly.
+	 * Assumes all views to be valid.
+	 * @param savedInstanceState The current saved state.
+	 * @see #initInputViews(View)
+	 * @see #initOutputViews(View) 	 */
+	private void processSavedState(Bundle savedInstanceState) {
 		Resources r = getActivity().getResources();
-		CurrencyData sourceCurrency = (CurrencyData) sp_sourceCurr.getSelectedItem();
-		CurrencyData destCurrency = outputListAdapter.getItem(position);
-		if (destCurrency != null && sourceCurrency != null){
-			double amount = convertToDouble(et_currInput.getText().toString());
-			String value = destCurrency.getCurrencySymbol() +
-					CurrencyCalculator.convert(sourceCurrency, destCurrency, amount)
-					+" "+destCurrency.getCurrencyCode();
-			String label = 
-					r.getString(R.string.com_ovrhere_currConv_clipboard_label_copiedCurrency);
-			CompatClipboard.copyToClipboard(getActivity(), label, value);
+		int sourceCurrSelect = 
+				prefs.getInt(
+						r.getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
+						0);
+		int destCurrSelect = 
+				prefs.getInt(
+						r.getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX), 
+						0);
+
+		sp_sourceCurr.setSelection(sourceCurrSelect);
+		sp_destCurr.setSelection(destCurrSelect);
+		
+		String input = "0";
+		if (savedInstanceState != null){
+			input = 
+				savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT) == null ?
+				input : savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT);
+			et_currInput.setText(input);
 		}
+		CurrencyData cdata = (CurrencyData) sp_sourceCurr.getSelectedItem();
+		if (cdata != null){
+			outputListAdapter.updateCurrentValue(cdata, convertToDouble(input));	
+		}
+	}
+	
+	/** Initializes the output views such as textviews, images & listview.
+	 * Assumes adapters are valid.
+	 * @param rootView The rootview to configure	
+	 * @see #initAdapters()  */
+	private void initOutputViews(View rootView) {
+		ListView outputListView = (ListView) 
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_listView);
+		outputListView.setAdapter(outputListAdapter);
+		outputListView.setOnItemLongClickListener(this);
+		registerForContextMenu(outputListView);
+		
+		tv_currSymbol = (TextView)
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_currSymbol);
+		tv_warning = (TextView)
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_warning);
+
+		img_currFlag = (ImageView)  
+				rootView.findViewById(R.id.com_overhere_currConv_main_image_currFlag);
+	}
+	/** Initializes all input views. Assumes adapters are valid.
+	 * @param rootView The rootview to configure	
+	 * @see #initAdapters()	 */
+	private void initInputViews(View rootView) {
+		sp_sourceCurr = (Spinner) 
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencySource);
+		sp_sourceCurr.setAdapter(sourceCurrAdapter);
+		sp_sourceCurr.setOnItemSelectedListener(sourceItemSelectedListener);
+		
+		sp_destCurr = (Spinner) 
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencyDest);
+		sp_destCurr.setAdapter(destCurrAdapter);
+		sp_destCurr.setOnItemSelectedListener(destItemSelectListener);
+		
+		et_currInput = (EditText)
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_edittext_valueToConv);
+		et_currInput.addTextChangedListener(valueInputListener);
+	}
+	/** Initializes adapters for output list and spinners. */
+	private void initAdapters() {
+		outputListAdapter = new CurrencyDataFilterListAdapter(getActivity());
+		
+		sourceCurrAdapter = 
+				new CurrencyDataSpinnerAdapter(getActivity(), 
+						android.R.layout.simple_list_item_1);
+		destCurrAdapter = 
+				new CurrencyDataSpinnerAdapter(getActivity(), 
+						android.R.layout.simple_list_item_1, true);
+		destCurrAdapter.setSelectAllText(
+				getActivity().getResources()
+					.getString(R.string.com_ovrhere_currConv_spinner_dest_selectAll));
 	}
 	
 	/** Updates all currency adapters the the current value of #currencyList 
@@ -281,22 +305,6 @@ implements Handler.Callback, OnItemLongClickListener {
 		destCurrAdapter.setCurrencyData(currencyList);
 		outputListAdapter.setCurrencyData(currencyList);
 	}
-	
-	/** Requests a fresh list of exchange rates from the model. */
-	private void requestFreshExchangeRates() {
-		asycModel.sendMessage(
-				CurrencyExchangeRateAsyncModel.REQUEST_GET_ALL_RECORDS, 
-				true);
-	}
-	
-	
-	/** Parses input and sends it to adapter for calculation(s).
-	 * @param input The input to strip & parse.		 */
-	private void calculateOutput(String input) {
-		double value = convertToDouble(input);
-		outputListAdapter.updateCurrentValue(value);
-	}
-	
 	
 	/** Updates source views to match source currency. */
 	private void updateSourceCurrency(){
@@ -329,6 +337,64 @@ implements Handler.Callback, OnItemLongClickListener {
 			img_currFlag.setImageDrawable(r.getDrawable(flagId));
 		}
 	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Helper Methods
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/** Copies the converted currency at the given position. 
+	 * @param position The position the item was selected from.
+	 * @param detailed <code>true</code> to copy with multiple decimals places,
+	 * <code>false</code> for the basic currency decimals.	 */
+	private void copyConvertedValue(int position, boolean detailed) {
+		Resources r = getActivity().getResources();
+		CurrencyData sourceCurrency = (CurrencyData) sp_sourceCurr.getSelectedItem();
+		CurrencyData destCurrency = outputListAdapter.getItem(position);
+		if (destCurrency != null && sourceCurrency != null){
+			double amount = convertToDouble(et_currInput.getText().toString());
+			String value = destCurrency.getCurrencySymbol() +
+					CurrencyCalculator.format(
+							destCurrency, 
+							CurrencyCalculator.convert(
+									sourceCurrency, 
+									destCurrency, 
+									amount),
+							detailed
+							)
+					+" "+destCurrency.getCurrencyCode();
+			String label = 
+					r.getString(R.string.com_ovrhere_currConv_clipboard_label_copiedCurrency);
+			CompatClipboard.copyToClipboard(getActivity(), label, value);
+		}
+	}
+	
+	
+	
+	/** Requests a fresh list of exchange rates from the model. */
+	private void requestFreshExchangeRates() {
+		asycModel.sendMessage(
+				CurrencyExchangeRateAsyncModel.REQUEST_GET_ALL_RECORDS, 
+				true);
+	}
+	
+	
+	/** Parses input and sends it to adapter for calculation(s).
+	 * @param input The input to strip & parse.		 */
+	private void calculateOutput(String input) {
+		double value = convertToDouble(input);
+		outputListAdapter.updateCurrentValue(value);
+	}	
+	
+	
+	/** Sets an integer preference 
+	 * @param stringRes The preference string resource
+	 * @param value The value to insert.	 */
+	private void putIntPref(int stringRes, int value){
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putInt(getActivity().getResources().getString(stringRes), value);
+		editor.commit();
+	}
+	
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility function
@@ -336,7 +402,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** Parses currency data's timestamp into more readable form. 
 	 * @param currencyData The current data to parse.
 	 * @param resources The resources to 
-	 * @return
+	 * @return The readable timestamp.
 	 */
 	static private String getReadableTimestamp(CurrencyData currencyData) {
 		String original = currencyData.getModifiedTimestamp();
@@ -374,7 +440,11 @@ implements Handler.Callback, OnItemLongClickListener {
 		
 		@Override
 		public void afterTextChanged(Editable s) {
-			String input = s.toString();
+			String input = s.toString().trim();
+			if (input.isEmpty()){
+				input = "0";
+				et_currInput.setText(input);
+			}
 			calculateOutput(input);
 		}
 	};
@@ -391,7 +461,9 @@ implements Handler.Callback, OnItemLongClickListener {
 				outputListAdapter.updateCurrentValue(currency, 0);
 				calculateOutput(et_currInput.getText().toString());
 			}
-			//TODO change image, symbol, recalculate 
+			putIntPref(
+					R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX, 
+					position);
 		};
 		@Override
 		public void onNothingSelected(android.widget.AdapterView<?> parent) {
@@ -411,8 +483,9 @@ implements Handler.Callback, OnItemLongClickListener {
 				outputListAdapter.setContraints(
 						new String[]{data.getCurrencyCode()});
 			}
-			
-			//TODO change list, recalculate 
+			putIntPref(
+					R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX, 
+					position);
 		};
 		@Override
 		public void onNothingSelected(android.widget.AdapterView<?> parent) {

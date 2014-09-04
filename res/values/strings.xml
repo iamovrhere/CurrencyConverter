@@ -17,7 +17,7 @@
 <resources>
 
     <!-- The name of the application. -->
-    <string name="app_name">Currency Coverter</string>
+    <string name="app_name">Currency Converter</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
    	
@@ -31,8 +31,17 @@
     <string name="com_ovrhere_currConv_context_currencyAction">
         Action on "%1$s"
     </string>
+    <!-- The spinner option for selectioning all -->
+    <string name="com_ovrhere_currConv_spinner_dest_selectAll" >
+        View All
+    </string>
+    
     <!-- The label for the clipboard action performed -->
     <string name="com_ovrhere_currConv_clipboard_label_copiedCurrency">
         Copied Currency
+    </string>
+    <!-- String for the command to copy with multiple decimal places -->
+    <string name="com_ovrhere_currConv_context_detailedCopy">
+        Detailed copy
     </string>
 </resources>
