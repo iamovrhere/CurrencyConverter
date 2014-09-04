@@ -18,8 +18,6 @@ package com.ovrhere.android.currencyconverter.ui.adapters;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,9 +25,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.ovrhere.android.currencyconverter.R;
+import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+
 /** The spinner adapter for value to convert. 
  * @author Jason J.
- * @version 0.1.0-20140901
+ * @version 0.2.0-20140903
  */
 public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 	
@@ -170,20 +171,7 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 		if(selectAllOption){
 			position-=1; //decrement the additional item.			
 		}
-		
 		Holder holder = null;
-		String text = "";
-		
-		if (position < 0){
-			text = allText;
-		} else {
-			CurrencyData data = currencyList.get(position);
-			if (verbose){
-				text =  data.getCurrencyName() + " ("+data.getCurrencyCode() +")";
-			} else {
-				text =  data.getCurrencyCode();
-			}
-		}
 		
 		if (convertView == null){
 			convertView = inflater.inflate(layoutResource, parent, false);
@@ -193,7 +181,31 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 		} else { //if created, getTag
 			holder = (Holder) convertView.getTag();
 		}
+		
+		String text = "";
+		int flagRes = 0;
+		int drawablePadding = 0;
+		if (position < 0){
+			text = allText;
+		} else {
+			CurrencyData data = currencyList.get(position);
+			if (verbose){
+				text =  data.getCurrencyName() + " ("+data.getCurrencyCode() +")";
+				if (data.getFlagResource() > flagRes){
+					flagRes = data.getFlagResource();
+					drawablePadding = 
+							convertView.getResources()
+								.getDimensionPixelSize(
+										R.dimen.com_ovrhere_currConv_main_spinner_imgPadding);
+				}
+			} else {
+				text =  data.getCurrencyCode();
+			}			
+		}		
+		
 		holder.text.setText(text);
+		holder.text.setCompoundDrawablePadding(drawablePadding);
+		holder.text.setCompoundDrawablesWithIntrinsicBounds(flagRes, 0, 0, 0);
 		return convertView;
 	}	
 	

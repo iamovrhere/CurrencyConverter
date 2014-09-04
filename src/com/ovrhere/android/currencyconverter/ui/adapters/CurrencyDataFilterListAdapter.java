@@ -37,7 +37,7 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 /** The currency data with a filter adapter. 
  * Additionally, performs the currency conversion calculations.
  * @author Jason J.
- * @version 0.1.0-20140902
+ * @version 0.2.0-20140903
  */
 public class CurrencyDataFilterListAdapter extends BaseAdapter 
 implements Filterable {
@@ -72,6 +72,8 @@ implements Filterable {
 	 * <li><code>com_ovrhere_currConv_frag_currVal_text_symbol</code></li>
 	 * <li><code>com_ovrhere_currConv_frag_currVal_text_currValue</code></li>
 	 * <li><code>com_ovrhere_currConv_frag_currVal_img_currFlag</code></li>
+	 * <li><code>com_ovrhere_currConv_frag_currVal_text_currCode</code></li>
+	 * </ul>
 	 */
 	public CurrencyDataFilterListAdapter(Context context, int resource) {
 		this.inflater = (LayoutInflater) 
@@ -94,7 +96,9 @@ implements Filterable {
 	 */
 	public void updateCurrentValue(double value){
 		this.currentValue = value;
-		notifyDataSetChanged();
+		if (sourceRateFromUSD > 0){
+			notifyDataSetChanged();
+		}
 	}
 	
 	/** Updates the value and recalculates.
@@ -175,12 +179,14 @@ implements Filterable {
 					convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_text_currValue);
 			holder.flag = (ImageView)
 				convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_img_currFlag);
-						
+			holder.code = (TextView)
+				convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_text_currCode);
 			convertView.setTag(holder);
 		} else {
 			holder = (Holder) convertView.getTag();
 		}
 		populateView(position, convertView, holder);
+		setRowColour(convertView, position);
 		return convertView;
 	}
 	
@@ -193,11 +199,23 @@ implements Filterable {
 		public TextView symbol = null;
 		public TextView value = null;
 		public ImageView flag = null;  
+		public TextView code = null;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	/** Sets the background colour of row based upon position. 
+	 * @param convertView The view to set
+	 * @param position The current position of row 	 */
+	static void setRowColour(View convertView, int position){
+		int color = convertView.getResources().getColor(
+				position % 2 == 1 ? //zero-indexed 	
+				R.color.com_ovrhere_currConv_outputEven :
+				R.color.com_ovrhere_currConv_outputOdd);
+		convertView.setBackgroundColor(color);
+	}
+	
 	
 	/** Populates view at given position in the list.
 	 * @param position The position of item
@@ -208,17 +226,20 @@ implements Filterable {
 		if (isListEmpty()){
 			holder.symbol.setVisibility(View.GONE);
 			holder.flag.setVisibility(View.GONE);
+			holder.code.setVisibility(View.GONE);
 			//hide unused views, set empty message
-			holder.value.setText(EMPTY_LIST);
+			holder.value.setText(EMPTY_LIST);			
 			return; //escape early
 		} else {
 			holder.symbol.setVisibility(View.VISIBLE);
 			holder.flag.setVisibility(View.VISIBLE);
+			holder.code.setVisibility(View.VISIBLE);
 		}
 		
 		CurrencyData currency = displayList.get(position);
 		holder.symbol.setText(currency.getCurrencySymbol());
-		holder.value.setText(calculatedValue(currency)); //TODO calculate and format
+		holder.value.setText(calculatedValue(currency));
+		holder.code.setText(currency.getCurrencyCode());
 		int flagResource  = currency.getFlagResource();
 		
 		if (flagResource > 0){
@@ -231,15 +252,19 @@ implements Filterable {
 	/** Calculates values of currencies.
 	 * @param destCurrency The final destination currency.
 	 * @return The formatted currency string
-	 * //TODO Format currency strings
 	 */
 	private String calculatedValue(CurrencyData destCurrency){
 		if (sourceRateFromUSD <= 0){
 			Log.w(LOGTAG, 
 					"Unexpected behaviour, rate is \""+sourceRateFromUSD+"\"");
+			return "";
 		}
-		return ""+
-				CurrencyCalculator.convert(sourceRateFromUSD, destCurrency, currentValue);
+		return CurrencyCalculator.format(
+						destCurrency, 
+						CurrencyCalculator.convert(
+								sourceRateFromUSD, 
+								destCurrency, 
+								currentValue));
 	}
 	
 	/** Calls {@link #notifyDataSetChanged()} and resets the filter. */
