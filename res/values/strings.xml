@@ -25,7 +25,7 @@
    		Formatted string takes the date to display 
    		(preferably, yyyy-mm-dd hh:mm:ss form) -->
     <string name="com_ovrhere_currConv_cachedRate_warning">
-    	Warning: Using cached values (%1$s). \nRates may be outdated.    
+    	Warning: Using cached values (fetched %1$s). Results accuracy may vary.    
     </string>
     <!-- The formatted string to use for currency long-click actions. -->
     <string name="com_ovrhere_currConv_context_currencyAction">
@@ -44,4 +44,26 @@
     <string name="com_ovrhere_currConv_context_detailedCopy">
         Detailed copy
     </string>
+    
+    <!-- The plurals for the time display of hours. -->
+    <plurals name="com_ovrhere_currConv_hours">
+        <item quantity="zero">0 hours ago</item>
+        <item quantity="one">1 hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    
+    <!-- The plurals for the time display of minutes. -->
+    <plurals name="com_ovrhere_currConv_minutes">
+        <item quantity="zero">0 minutes ago</item>
+        <item quantity="one">1 minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    
+    <!-- The plurals for the time display of days. -->
+    <plurals name="com_ovrhere_currConv_days">
+        <item quantity="zero">0 days ago</item>
+        <item quantity="one">1 day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+    
 </resources>

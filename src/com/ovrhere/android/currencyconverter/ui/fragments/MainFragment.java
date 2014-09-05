@@ -17,6 +17,8 @@ package com.ovrhere.android.currencyconverter.ui.fragments;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import android.content.SharedPreferences;
@@ -53,11 +55,12 @@ import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataFilterListA
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataSpinnerAdapter;
 import com.ovrhere.android.currencyconverter.utils.CompatClipboard;
 import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
+import com.ovrhere.android.currencyconverter.utils.DateFormatter;
 
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.3.0-20140903
+ * @version 0.4.0-20140904
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -79,8 +82,10 @@ implements Handler.Callback, OnItemLongClickListener {
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	/** The model for fetching currency info. */
 	private CurrencyExchangeRateAsyncModel asycModel = null;
+	/** Lists of resources used with {@link DateFormatter}.*/ 
+	private HashMap<String, Integer> dateResUnits = new HashMap<String, Integer>();
 	
-	/** The currency list to use. */
+	/** The currency list to use. Should be synchronized. */
 	private List<CurrencyData> currencyList = new ArrayList<CurrencyData>();
 	
 	/** The from adapter. */
@@ -118,9 +123,10 @@ implements Handler.Callback, OnItemLongClickListener {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {	
 		super.onSaveInstanceState(outState);
-		
-		outState.putParcelableArrayList(KEY_CURRENCY_LIST, 
-				(ArrayList<? extends Parcelable>) currencyList);
+		synchronized (currencyList) {
+			outState.putParcelableArrayList(KEY_CURRENCY_LIST, 
+					(ArrayList<? extends Parcelable>) currencyList);
+		}
 		outState.putString(KEY_CURRENCY_VALUE_INPUT, 
 				et_currInput.getText().toString());
 	}
@@ -132,23 +138,35 @@ implements Handler.Callback, OnItemLongClickListener {
 		asycModel = new CurrencyExchangeRateAsyncModel(getActivity());
 		asycModel.addMessageHandler(new Handler(this));
 		
-		prefs = PreferenceUtils.getPreferences(getActivity());
+		dateResUnits.put(DateFormatter.MINUTE_UNIT, 
+					R.plurals.com_ovrhere_currConv_minutes);
+		dateResUnits.put(DateFormatter.HOUR_UNIT, 
+				R.plurals.com_ovrhere_currConv_hours);
+		dateResUnits.put(DateFormatter.DAY_UNIT, 
+				R.plurals.com_ovrhere_currConv_days);
+		
+		if (PreferenceUtils.isFirstRun(getActivity())){
+			PreferenceUtils.setToDefault(getActivity());
+		}
+		prefs = PreferenceUtils.getPreferences(getActivity());		
 		
 		if (savedInstanceState == null){
 			requestFreshExchangeRates();
 		} else {
 			ArrayList<Parcelable> list = 
 					savedInstanceState.getParcelableArrayList(KEY_CURRENCY_LIST);
-			if (list != null){
-				currencyList.clear();
-				try {
-					currencyList.addAll((Collection<? extends CurrencyData>) list);
-				} catch (ClassCastException e){
-					Log.e(LOGTAG, "Current data invalid: "+e);
+			synchronized (currencyList) {
+				if (list != null){
+					currencyList.clear();
+					try {
+						currencyList.addAll((Collection<? extends CurrencyData>) list);
+					} catch (ClassCastException e){
+						Log.e(LOGTAG, "Current data invalid: "+e);
+					}
 				}
-			}
-			if (currencyList.isEmpty()){
-				requestFreshExchangeRates();
+				if (currencyList.isEmpty()){
+					requestFreshExchangeRates();
+				}
 			}
 		}
 		
@@ -301,14 +319,17 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** Updates all currency adapters the the current value of #currencyList 
 	 * Assumes all adapters are set. */
 	private void updateCurrencyAdapters() {
-		sourceCurrAdapter.setCurrencyData(currencyList);
-		destCurrAdapter.setCurrencyData(currencyList);
-		outputListAdapter.setCurrencyData(currencyList);
+		synchronized (currencyList) {
+			sourceCurrAdapter.setCurrencyData(currencyList);
+			destCurrAdapter.setCurrencyData(currencyList);
+			outputListAdapter.setCurrencyData(currencyList);
+		}
 	}
 	
 	/** Updates source views to match source currency. */
 	private void updateSourceCurrency(){
-		if (sp_sourceCurr == null || tv_currSymbol == null || img_currFlag == null){
+		if (sp_sourceCurr == null || tv_warning == null || 
+				tv_currSymbol == null || img_currFlag == null){
 			return; //nothing can be set.
 		}
 		int position = sp_sourceCurr.getSelectedItemPosition();
@@ -328,9 +349,8 @@ implements Handler.Callback, OnItemLongClickListener {
 			return;
 		}
 		Resources r = getActivity().getResources();
-		String date = r.getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
-									getReadableTimestamp(data));
-		tv_warning.setText(date);
+		checkTimestampWarning(r, data);
+		
 		tv_currSymbol.setText(data.getCurrencySymbol());
 		int flagId = data.getFlagResource(); 
 		if (flagId >= 0){
@@ -399,19 +419,38 @@ implements Handler.Callback, OnItemLongClickListener {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility function
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** Parses currency data's timestamp into more readable form. 
-	 * @param currencyData The current data to parse.
-	 * @param resources The resources to 
+	
+	/** Takes the currency time stamp and checks if to display message.  
+	 * @param r The resources to access strings with.
+	 * @param currencyData The current data to parse. 
 	 * @return The readable timestamp.
 	 */
-	static private String getReadableTimestamp(CurrencyData currencyData) {
-		String original = currencyData.getModifiedTimestamp();
+	private void checkTimestampWarning(Resources r, CurrencyData currencyData) {
+		long updateInterval = prefs.getInt(
+							r.getString(
+									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+							0);
+		long interval = 
+				new Date().getTime() - currencyData.getModifiedDate().getTime();
+		if (updateInterval < interval){			
+			String timestamp = DateFormatter.dateToRelativeDate(
+					getActivity(), dateResUnits,
+					currencyData.getModifiedDate());
+			tv_warning.setText(
+					r.getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
+							timestamp)
+							);
+			tv_warning.setVisibility(View.VISIBLE);
+		} else {
+			tv_warning.setVisibility(View.GONE);
+		}
 		//TODO more granular timestamp readablity
+		/*String original = currencyData.getModifiedTimestamp();
 		int seconds = original.lastIndexOf(":");
 		if (seconds > -1){
 			return original.substring(0, seconds);
 		}
-		return original;
+		return original;*/
 	}
 	
 	/** Converts input to pure double. Only 0-9 and "." allowed
@@ -515,8 +554,10 @@ implements Handler.Callback, OnItemLongClickListener {
 					//cast type checking.
 					CurrencyData data = (CurrencyData) list.get(0);
 				}
-				currencyList.clear();
-				currencyList.addAll(list);
+				synchronized (currencyList) {
+					currencyList.clear();
+					currencyList.addAll(list);
+				}
 				updateCurrencyAdapters();
 				updateSourceCurrency();
 			} catch (ClassCastException e){
