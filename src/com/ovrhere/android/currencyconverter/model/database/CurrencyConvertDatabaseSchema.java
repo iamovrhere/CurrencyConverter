@@ -20,7 +20,7 @@ import java.util.Locale;
 /**
  * The currency data schema for currency converter application.
  * @author Jason J.
- * @version 0.1.0-20140609
+ * @version 0.2.0-20140906
  */
 public class CurrencyConvertDatabaseSchema extends DatabaseSchema {
 	/** The database name. This should be unique to the application. */
@@ -53,8 +53,8 @@ public class CurrencyConvertDatabaseSchema extends DatabaseSchema {
 	/** The array of sql-lite create commands. */
 	public static String[] DATABASE_TABLE_CREATES = new String[]{
 		"CREATE TABLE " + EXCHANGE_RATES_USD.TABLE_NAME + " ("+
-				EXCHANGE_RATES_USD.COL_ID + " INT, " +
-				EXCHANGE_RATES_USD.COL_CURRENCY_CODE + " TEXT PRIMARY KEY, "  +
+				EXCHANGE_RATES_USD.COL_ID + " INTEGER PRIMARY KEY, " +
+				EXCHANGE_RATES_USD.COL_CURRENCY_CODE + " TEXT, "  +
 				EXCHANGE_RATES_USD.COL_CURRENCY_SYMBOL + " TEXT, " +
 				EXCHANGE_RATES_USD.COL_CURRENCY_NAME + " TEXT, " +
 				EXCHANGE_RATES_USD.COL_USD_RATE + " TEXT, " +

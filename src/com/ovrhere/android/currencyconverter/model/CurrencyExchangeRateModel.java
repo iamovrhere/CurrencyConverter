@@ -25,6 +25,7 @@ import com.ovrhere.android.currencyconverter.model.database.CurrencyConvertDatab
 import com.ovrhere.android.currencyconverter.model.database.CurrencyConvertDatabaseSchema;
 import com.ovrhere.android.currencyconverter.model.database.DatabaseOpenHelper;
 import com.ovrhere.android.currencyconverter.model.localmodel.ReadWriteModel;
+import com.ovrhere.android.currencyconverter.utils.Timestamp;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -35,7 +36,7 @@ import android.util.Log;
 /**
  * The local model for the database for cached Exchange rates. 
  * @author Jason J.
- * @version 0.1.1-20140901
+ * @version 0.1.2-20140906
  */
 class CurrencyExchangeRateModel 
 	implements ReadWriteModel<CurrencyData, List<CurrencyData>> {
@@ -106,7 +107,7 @@ class CurrencyExchangeRateModel
 	 * <li>A currency symbol</li><li>An exchange rate</li>
 	 * </ul>
 	 * If a date is included, it will be used, otherwise the current time is used.
-	 * @throws SQLException 
+	 * @throws SQLException If the update fails to effect any rows 
 	 */
 	@Override
 	public void modifyRecord(int id, CurrencyData record) throws SQLException {
@@ -263,8 +264,12 @@ class CurrencyExchangeRateModel
 				record.getCurrencySymbol());
 		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_USD_RATE,
 				record.getRateFromUSD());
+		String timestamp = record.getModifiedTimestamp();
+		if (timestamp == null || timestamp.isEmpty()){
+			timestamp = Timestamp.getUtc();
+		}
 		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_LAST_MODIFIED,
-				record.getModifiedTimestamp());	
+				timestamp);	
 	}
 	
 	/**
