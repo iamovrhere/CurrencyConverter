@@ -37,7 +37,7 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 /** The currency data with a filter adapter. 
  * Additionally, performs the currency conversion calculations.
  * @author Jason J.
- * @version 0.2.0-20140903
+ * @version 0.2.1-20140908
  */
 public class CurrencyDataFilterListAdapter extends BaseAdapter 
 implements Filterable {
@@ -53,9 +53,9 @@ implements Filterable {
 	private List<CurrencyData> displayList = new ArrayList<CurrencyData>();
 	
 	/** The current value to be calculated. */ 
-	private double currentValue = 0.0f; 
-	/** The start rate. */
-	private double sourceRateFromUSD = 0.0f;
+	private double currentValue = 0.0f;
+	/** The current currency selected. */
+	private CurrencyData startCurrency = null;
 	
 	/** The inflater used to inflate the row layouts. */
 	private LayoutInflater inflater = null;
@@ -96,7 +96,7 @@ implements Filterable {
 	 */
 	public void updateCurrentValue(double value){
 		this.currentValue = value;
-		if (sourceRateFromUSD > 0){
+		if (startCurrency != null){
 			notifyDataSetChanged();
 		}
 	}
@@ -106,7 +106,7 @@ implements Filterable {
 	 * @param value The value to set to and calculate. 
 	 */
 	public void updateCurrentValue(CurrencyData startCurrency, double value){
-		this.sourceRateFromUSD = startCurrency.getRateFromUSD();
+		this.startCurrency = startCurrency;
 		updateCurrentValue(value);
 	}
 	
@@ -254,17 +254,18 @@ implements Filterable {
 	 * @return The formatted currency string
 	 */
 	private String calculatedValue(CurrencyData destCurrency){
-		if (sourceRateFromUSD <= 0){
-			Log.w(LOGTAG, 
-					"Unexpected behaviour, rate is \""+sourceRateFromUSD+"\"");
-			return "";
+		if (startCurrency == null){
+			Log.w(LOGTAG, "Unexpected behaviour, no code selected");
+			return "0.00";			
+		}
+		double rate = startCurrency.getRate(destCurrency.getCurrencyCode());
+		if (rate <= 0){
+			Log.w(LOGTAG, "Unexpected behaviour, rate is \""+rate+"\"");
+			rate = 0.0d;
 		}
 		return CurrencyCalculator.format(
 						destCurrency, 
-						CurrencyCalculator.convert(
-								sourceRateFromUSD, 
-								destCurrency, 
-								currentValue));
+						rate * currentValue);
 	}
 	
 	/** Calls {@link #notifyDataSetChanged()} and resets the filter. */

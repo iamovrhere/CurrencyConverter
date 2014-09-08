@@ -23,11 +23,13 @@ import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 /**
  * Performs calculations & formatting regarding currency. 
  * @author Jason J.
- * @version 0.3.0-20140903
+ * @version 0.4.0-20140908
  */
 public class CurrencyCalculator {
 	/** The minimal format precision. */
-	final static private int FORMAT_MIN_PRECISION = 4;
+	final static private int FORMAT_MIN_PRECISION = 4;	
+	/** The detailed format precision. */
+	final static private int FORMAT_DETAILED_PRECISION = 6;
 
 	/** Convenience function for {@link #format(CurrencyData, double, boolean)}.
 	 * Same as calling with <code>detailed</code> <code>false</code>.
@@ -55,16 +57,8 @@ public class CurrencyCalculator {
 				currency.getDefaultFractionDigits() > FORMAT_MIN_PRECISION ?
 				currency.getDefaultFractionDigits() : FORMAT_MIN_PRECISION;
 		if (detailed){
-			String rate = ""+currencyData.getRateFromUSD();
-			
-			if (rate != null && rate.indexOf(".") >= 0){
-				int length = rate.substring(rate.indexOf(".")+1).length();
-				if (length > fracDigits){
-					fracDigits = length;
-				}
-			}
 			//as most currencies supported will have at least 2 decimals, so add two more
-			fracDigits += 2;
+			fracDigits = FORMAT_DETAILED_PRECISION;
 		}
 		numFormat.setMinimumFractionDigits(fracDigits);
 		numFormat.setMaximumFractionDigits(fracDigits);
@@ -79,32 +73,41 @@ public class CurrencyCalculator {
 	 * @param dest The currency to convert to (must have valid positive rate)
 	 * @param amount The amount of currency <code>source</code> to convert
 	 * @return The amount of currency <code>dest</code>.
+	 * @throws IllegalArgumentException If one of the currencies does not contain
+	 * a valid rate.
 	 */
 	static public double convert(CurrencyData source, CurrencyData dest, 
 			double amount){
-		if (source.getRateFromUSD() <= 0 || dest.getRateFromUSD() <= 0){
+		String sourceCurrency = source.getCurrencyCode();
+		String destCurrency = dest.getCurrencyCode();
+		double fromToRate = source.getRate(destCurrency); //try the best choice
+		if (dest.getRate(sourceCurrency) > 0){
+			fromToRate = 1.0d/dest.getRate(sourceCurrency); //try the next best thing
+		} 
+		if (fromToRate <= 0) { //we give up.
 			throw new IllegalArgumentException(
 					"Currency Data must contain valid rates.");
 		}
-		double fromToRate = dest.getRateFromUSD()/source.getRateFromUSD();
+		
 		return fromToRate * amount;		
 	}
 	
 	/**
 	 * Converts an amount of currency <code>source</code> 
 	 * from currency <code>source</code> to currency <code>dest</code>
-	 * @param sourceRateFromUSD The uSD rate for source currency (must be positive)
+	 * @param sourceUSD The uSD rate for source currency (must be positive)
 	 * @param dest The currency to convert to (must have valid rate)
 	 * @param amount The amount of currency <code>source</code> to convert
 	 * @return The amount of currency <code>dest</code>.
 	 */
-	static public double convert(double sourceRateFromUSD, 
+	@Deprecated
+	static public double convert(double sourceUSD, 
 			CurrencyData dest, double amount){
-		if (sourceRateFromUSD <= 0 || dest.getRateFromUSD() <= 0){
+		if (sourceUSD <= 0 || dest.getRateFromUSD() <= 0){
 			throw new IllegalArgumentException(
 					"Rates must be valid postive values");
 		}
-		double fromToRate = dest.getRateFromUSD()/sourceRateFromUSD;
+		double fromToRate = dest.getRateFromUSD()/sourceUSD;
 		return fromToRate * amount;
 	}
 	
