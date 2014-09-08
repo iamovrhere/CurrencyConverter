@@ -18,7 +18,11 @@ package com.ovrhere.android.currencyconverter.dao;
 import java.text.ParseException;
 import java.util.Currency;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map.Entry;
 
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -27,22 +31,26 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * The data access object for currency data records. 
  * 
  * @author Jason J.
- * @version 0.3.0-20140903
- */
+ * @version 0.4.0-20140907
+ */ 
 public class CurrencyData implements Parcelable {
 	/** The current ISO standard for this currency based upon the currency code. 
 	 * Default is <code>null</code>. */
-	protected Currency isoCurrency = null;	
+	protected Currency isoCurrency = null;
+	
 	/** The record id. */
-	protected int _id = -1;
+	protected int _id = -1;	
 	/** The 1 character currency symbol. Default is null. */
 	protected String currencySymbol = null;
 	/** The 3 letter currency code. Default is null. */
 	protected String currencyCode = null;
 	/** The full currency name. Default is null. */
 	protected String currencyName = null;
-	/** The exchange rate from currency from usd to currency. */ 
-	protected float rateFromUSD = 0.0f;
+	
+	/** The exchange rate from this currency to the keys of this map. */ 
+	protected HashMap<String, Double> exchangeRates = 
+			new HashMap<String, Double>();	
+		
 	/** The flag image resource of currency. Default is -1. */
 	protected int flagImageResourceId = -1;
 	/** The warning that the currency may opt to carry. Default is null. */
@@ -66,6 +74,24 @@ public class CurrencyData implements Parcelable {
 		this.flagImageResourceId = drawableId;
 	}
 	
+	/** Updates the exchange rates with additonal rates. Note that this method
+	 * CANNOT clear rates, but only add/overwrite existing ones, such that:
+	 * <p><i>Before:</i>
+	 * <ul><li>USD -> 2.0</li><li>CAD -> 2.1</li></ul>
+	 * <i>After:</i>
+	 * <ul><li>USD -> 1.9</li><li>CAD -> 2.1</li><li>EUR -> 1.2</li></ul> 
+	 * </ul>
+	 * </p>
+	 * @param rates The rates to append to the existing list. Cannot be null.
+	 * Cannot contain zero values.
+	 */
+	public void updateRates(HashMap<String, Double> rates){
+		if (rates == null){
+			throw new NullPointerException();
+		}
+		Builder.validateRates(rates);
+		this.exchangeRates.putAll(rates);
+	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Start accessors
@@ -97,11 +123,40 @@ public class CurrencyData implements Parcelable {
 	public int getFlagResource() {
 		return flagImageResourceId;
 	}
-	/** @return The exchange rate from USD -> this currency. 
+	/** @deprecated Use {@link #getRate(String)} and, if necessary, 
+	 * <code>1.0f / getRate("USD") </code>.
+	 * @return The exchange rate from USD -> this currency. 
 	 *  Default is 0.0. */
+	@Deprecated
 	public float getRateFromUSD() {
-		return rateFromUSD;
+		Double dRate = exchangeRates.get("USD");
+		if (dRate != null){
+			return 1.0f/dRate.floatValue();
+		}
+		return 0.0f;
 	}
+	/** Returns the rate from this currency -> targetCurrency
+	 * @param targetCurrencyCode The targeted currency. Should be of
+	 * ISO 4217 form.
+	 * @return The exchange rate from this currency -> target, or 0.0d
+	 * if not found.	 */
+	public double getRate(String targetCurrencyCode){
+		Double dRate = exchangeRates.get(targetCurrencyCode.toUpperCase(Locale.US));
+		if (dRate != null){
+			return dRate.doubleValue();
+		} 
+		if (currencyCode.equalsIgnoreCase(targetCurrencyCode)){
+			return 1.0d; //if we are the same, but not set, assume the same.
+		}
+		return 0.0d;
+	}
+	/** Returns the map of all rates.
+	 * @return The hashmap of all target currency rates (i.e. targets are keys)
+	 */
+	public HashMap<String, Double> getRates(){
+		return exchangeRates;
+	}
+
 	/** @return A warning associate with this currency.
 	 *  Default is <code>null</code>. */ 
 	public String getWarning() {
@@ -126,7 +181,7 @@ public class CurrencyData implements Parcelable {
 	/**
 	 * The builder for the currency data records. 
 	 * @author Jason J.
-	 * @version 0.1.1-20140903
+	 * @version 0.2.0-20140908
 	 */
 	public static class Builder {
 		final static private String DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO = 
@@ -137,8 +192,9 @@ public class CurrencyData implements Parcelable {
 				"Currency symbol cannot be empty";		
 		final static private String DETAILED_EXCEPTION_NAME_NONEMPTY = 
 				"Currency name cannot be empty";
-		final static private String DETAILED_EXCEPTION_CODE_NONEMPTY = 
-				"Currency code cannot be empty";
+		final static private String DETAILED_EXCEPTION_CODE_INVALID = 
+				"Currency code must be 3 chars long.";
+		
 		/** If ready to build. */
 		private boolean readyToBuild = false;		
 		private CurrencyData currencyData = new CurrencyData();
@@ -149,38 +205,11 @@ public class CurrencyData implements Parcelable {
 			currencyData._id = id;
 			return this;
 		}
-		/** Required. Sets currency information. 
-		 * @param symbol The symbol related to currency (e.g. $)
-		 * Cannot be blank.
-		 * @param code The 3 letter currency code (e.g. GBP)
-		 * Cannot be blank.
-		 * @param name The proper name of the currency (e.g. Great British Pound).
-		 * Cannot be blank.
-		 * @param rate The exchange rate from USD to this currency. 
-		 * Must be >= 0.
-		 * @return {@link Builder} for chaining. 
-		 * @throws IllegalArgumentException If the arguments passed are empty
-		 * or if the currency code is not a supported ISO 4217 currency  . */
-		private Builder setCurrency(String code, String name, float rate){
-			if (code.isEmpty()){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_CODE_NONEMPTY);
-			}
-			if (name.isEmpty()){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_NAME_NONEMPTY);
-			}
-			if (rate < 0){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO);
-			}
-			currencyData.isoCurrency = Currency.getInstance(code);
-			//all valid data.
-			currencyData.currencyCode = code.trim();
-			currencyData.currencyName = name.trim();			
-			currencyData.rateFromUSD =  rate;
-			readyToBuild = true;
-			return this;
-		}
-		/** Required. Sets currency information. 
-		 * @param symbol Currently. Not used.
+		
+		/** Required. Sets currency information.
+		 * @deprecated  Use {@link #setCurrency(String, String, String, HashMap)} 
+		 * instead.
+		 * @param symbol Cannot be empty.
 		 * @param code The 3 letter currency code (e.g. GBP)
 		 * Cannot be blank.
 		 * @param name The proper name of the currency (e.g. Great British Pound).
@@ -188,21 +217,46 @@ public class CurrencyData implements Parcelable {
 		 * @param rate The exchange rate from USD to this currency. 
 		 * Must be >= 0.
 		 * @return {@link Builder} for chaining. */
+		@Deprecated
 		public Builder setCurrency(String symbol, String code, String name, float rate){
-			if (symbol.isEmpty()){
-				throw new IllegalArgumentException(DETAILED_EXCEPTION_SYMBOL_NONEMPTY);
-			}
+			validateCurrencyStrings(symbol, code, name);
 			currencyData.currencySymbol = symbol;
 			return setCurrency(code, name, rate);
 		}
-		/*public Builder setRateFromUSD(float rate){
-			currencyData.rateToUSD =  rate;
+		
+		/** Required. Sets currency information.
+		 * instead.
+		 * @param symbol Cannot be empty.
+		 * @param code The 3 letter currency code (e.g. GBP) according to ISO 4217.
+		 * @param name The proper name of the currency (e.g. Great British Pound).
+		 * Cannot be blank.
+		 * @return {@link Builder} for chaining. */
+		public Builder setCurrency(String symbol, String code, String name){
+			validateCurrencyStrings(symbol, code, name);
+			currencyData.isoCurrency = Currency.getInstance(code);
+			//all valid data.
+			currencyData.currencyCode = code.trim().toUpperCase(Locale.US);
+			currencyData.currencyName = name.trim();
+			currencyData.currencySymbol = symbol.trim();
+			this.readyToBuild = true;
 			return this;
-		}*/
+		}
+		/** Sets the exchange rates.
+		 * @param rates Non-null list of rates.
+		 * @return {@link Builder} for chaining.  */
+		public Builder setExchangeRates(HashMap<String, Double> rates){
+			if (rates == null){
+				throw new NullPointerException();
+			}
+			validateRates(rates);
+			currencyData.exchangeRates.putAll(rates);
+			return this;
+		}
+		
 		/** @param resId The drawable resource id for the flag
 		 * @return {@link Builder} for chaining. */
 		public Builder setFlagResource(int resId){
-			currencyData.flagImageResourceId = resId;
+			currencyData.flagImageResourceId = resId;			
 			return this;
 		}
 		/** @param warning A warning for the currency.
@@ -228,6 +282,67 @@ public class CurrencyData implements Parcelable {
 				throw new IllegalStateException(DETAILED_EXCEPTION_BUILDER_IS_NOT_PREPARED);
 			}
 		}
+		
+		/////////////////////////////////////////////////////////////////////////////////////////////////
+		/// Helper + Utility methods
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		/** Validates the currency strings and ensures them to be within the 
+		 * restricted params.
+		 * @param symbol Symbol must be non-empty
+		 * @param code Code must be length 3
+		 * @param name Name must be non-empty.
+		 * @throws IllegalArgumentException If any of the currency data is invalid
+		 */
+		static private void validateCurrencyStrings(String symbol, String code,
+				String name) {
+			if (code.length() != 3){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_CODE_INVALID);
+			}
+			if (name.isEmpty()){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_NAME_NONEMPTY);
+			}
+			if (symbol.isEmpty()){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_SYMBOL_NONEMPTY);
+			}
+		}
+		/** Validates the rates and ensures non are less than zero. */
+		static private void validateRates(HashMap<String, Double> rates){
+			for (Entry<String, Double> entry : rates.entrySet()) {
+				if (entry.getValue() <= 0){
+					throw new IllegalArgumentException(
+							DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO
+							+"[Code: " + entry.getKey()+","+
+							entry.getValue()+"]");
+				}
+			}
+		}
+		
+		/** Sets currency information. 
+		 * @param symbol The symbol related to currency (e.g. $)
+		 * Cannot be blank.
+		 * @param code The 3 letter currency code (e.g. GBP)
+		 * Cannot be blank.
+		 * @param name The proper name of the currency (e.g. Great British Pound).
+		 * Cannot be blank.
+		 * @param rate The exchange rate from USD to this currency. 
+		 * Must be >= 0.
+		 * @return {@link Builder} for chaining. 
+		 * @throws IllegalArgumentException If the arguments passed are empty
+		 * or if the currency code is not a supported ISO 4217 currency  . */
+		@Deprecated
+		private Builder setCurrency(String code, String name, float rate){
+			if (rate < 0){
+				throw new IllegalArgumentException(DETAILED_EXCEPTION_RATE_GREATER_THAN_ZERO);
+			}
+			currencyData.isoCurrency = Currency.getInstance(code);
+			//all valid data.
+			currencyData.currencyCode = code.trim().toUpperCase(Locale.US);
+			currencyData.currencyName = name.trim();
+			currencyData.exchangeRates.put("USD", Double.valueOf(1.0f/rate));
+			readyToBuild = true;
+			return this;
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,8 +357,7 @@ public class CurrencyData implements Parcelable {
     public void writeToParcel(Parcel out, int flags) {
         //all ints
 		out.writeIntArray(new int[]{_id, flagImageResourceId});
-		//all floats
-		out.writeFloat(rateFromUSD);
+		
 		//all strings
 		out.writeStringArray(new String[]{
 				currencyCode,
@@ -252,10 +366,16 @@ public class CurrencyData implements Parcelable {
 				modifiedTimestamp
 		});
 		//modifiedDate will be rebuilt.
+		
+		Bundle extras = new Bundle();  
+			extras.putSerializable(
+				CurrencyData.class.getName()+".exchangeRates", exchangeRates);
+		out.writeBundle(extras);	
     }
 	
 	/** Constructor for use with parcellable #CREATOR. 
 	 * Coupled to {@link #writeToParcel(Parcel, int)}. */
+	@SuppressWarnings("unchecked")
 	private CurrencyData(Parcel in){
 		int[] ints = new int[2];
 		String[] strings = new String[4];
@@ -264,10 +384,7 @@ public class CurrencyData implements Parcelable {
 		in.readIntArray(ints);
 		_id = ints[0];
 		flagImageResourceId = ints[1];
-		
-		//reset floats
-		rateFromUSD = in.readFloat();
-		
+				
 		//reset strings, etc
 		in.readStringArray(strings);
 		currencyCode = strings[0];
@@ -281,6 +398,14 @@ public class CurrencyData implements Parcelable {
 		} catch (ParseException e) {
 			//should never throw.
 		}
+		
+		//reset hashmap rates
+		Bundle extras = in.readBundle();  
+		exchangeRates.putAll(
+				(HashMap<String, Double>) extras.getSerializable(
+						CurrencyData.class.getName()+".exchangeRates")
+						);
+		
 		//reintialize
 		isoCurrency = Currency.getInstance(currencyCode);
 	}

@@ -18,7 +18,15 @@ package com.ovrhere.android.currencyconverter.model;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.model.database.CurrencyConvertDatabaseOpenHelper;
@@ -27,32 +35,55 @@ import com.ovrhere.android.currencyconverter.model.database.DatabaseOpenHelper;
 import com.ovrhere.android.currencyconverter.model.localmodel.ReadWriteModel;
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
 /**
  * The local model for the database for cached Exchange rates. 
  * @author Jason J.
- * @version 0.1.2-20140906
+ * @version 0.1.3-20140908
  */
 class CurrencyExchangeRateModel 
 	implements ReadWriteModel<CurrencyData, List<CurrencyData>> {
 	/** The log tag. */
 	final static private String LOGTAG = 
 			CurrencyExchangeRateModel.class.getSimpleName();
+	/** Formatted string for exception message.  Accepts one string. */
+	final static private String DETAILED_EXCEPTION_INSERT = 
+			"An error occured inserting record: '%s' ";
+	/** Formatted string for exception message.  Accepts one string. */
+	final static private String DETAILED_EXCEPTION_UPDATE = 
+			"An error occured updating record: '%s' ";
+	/** Formatted string for exception message. Accepts one string. */
+	final static private String DETAILED_EXCEPTION_DATE_PARSE_ERROR = 
+			"Date did not parse correctly for: '%s'";
 	
-	/** All columns to return in the query.  */
-	final static private String[] COLUMNS_ALL_CURRENCY_DATA =new String[] {
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID,
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_CODE,
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_NAME,
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_SYMBOL,
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_USD_RATE,
-			CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_LAST_MODIFIED
-		};
+	/** All columns to return in query related to the currency list. */
+	final static private String[] COLUMNS_ALL_CURRENCY_LIST_DATA = 
+			new String[]{
+		CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID,
+		CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE,
+		CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_NAME,
+		CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_SYMBOL,
+		CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_LAST_MODIFIED
+		
+	};
+	
+	/** All columns to return in query related to the exchange rates. */
+	final static private String[] COLUMNS_ALL_EXCHANGE_RATE_DATA = 
+			new String[]{
+		CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_ID,
+		CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE,
+		CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE,
+		CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_EXCHANGE_RATE
+		
+	};
+	
+	/*private final String PREPARED_QUERY_ALL_CURRENCY_DATA = 
+			"SELECT * FROM "+ 
+			CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME +
+			" a INNER JOIN "+
+			CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME +
+			" b ON a."+ CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE +
+			" = b."+ CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE +
+			" WHERE a.";*/
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End constants
@@ -85,20 +116,36 @@ class CurrencyExchangeRateModel
 		DatabaseOpenHelper writer = 
 				CurrencyConvertDatabaseOpenHelper.getWriteHelper(mContext); 
 		SQLiteDatabase wDb = writer.getWritableDatabaseOrThrow();
-		ContentValues cv = new ContentValues();
-		prepareRecordForDb(record, cv);
-		long result = wDb.insert(
-						CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.TABLE_NAME, 
-						null, 
-						cv
-					);
-		if (result < 0){
-			throw new SQLException("An error occured inserting record: '"
-					+record.toString()+"'");
+		
+		String sourceCode = record.getCurrencyCode();
+		HashMap<String, Double> rates = record.getRates();
+		ContentValues cv1 = new ContentValues();
+		List<ContentValues> cv2 = new ArrayList<ContentValues>();
+		
+		prepareRecordForCurrencyListDb(record, cv1);
+		prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
+		
+		
+		String recordName = record.toString();
+		wDb.beginTransaction();
+		try{
+			insertRecordIntoTable(
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+					recordName, wDb, cv1);
+			for (ContentValues cv : cv2) {
+				insertRecordIntoTable(
+						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+						recordName, wDb, cv);
+			}
+			wDb.setTransactionSuccessful();
+		} finally {
+			wDb.endTransaction();
 		}
+		
 		wDb.close();
 		writer.softClose();
 	}
+	
 	
 	/**
 	 * Updates an existing currency record in the database.
@@ -115,25 +162,50 @@ class CurrencyExchangeRateModel
 		DatabaseOpenHelper writer = 
 				CurrencyConvertDatabaseOpenHelper.getWriteHelper(mContext); 
 		SQLiteDatabase wDb = writer.getWritableDatabaseOrThrow();
-		ContentValues cv = new ContentValues();
-		prepareRecordForDb(record, cv);
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID, id);
-		long result =
-				wDb.update(
-						CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.TABLE_NAME, 
-						cv, 
-						CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID+
-						" = ? ",
-						new String[]{ String.valueOf(id) }
-						);
 		
-		if (result < 0){
-			throw new SQLException("An error occured updating record: '"
-					+record.toString()+"'");
+		String sourceCode = record.getCurrencyCode();
+		HashMap<String, Double> rates = record.getRates();
+		ContentValues cv1 = new ContentValues();
+		List<ContentValues> cv2 = new ArrayList<ContentValues>();
+		
+		prepareRecordForCurrencyListDb(record, cv1);
+		List<String> targetCodes = 
+				prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
+		
+		cv1.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID, id);
+		String recordName = record.toString();
+		
+		wDb.beginTransaction();
+		try{
+			updateTableRecord(
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+					recordName, 
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+" = ? ",
+					new String[]{ String.valueOf(id)}, 
+					wDb, cv1);
+			for (int index = 0; index < cv2.size(); index++) {
+				updateTableRecord(
+						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+						recordName, 
+						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+						" = ? AND "+
+						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE+
+						" = ? ", 
+						new String[]{
+								record.getCurrencyCode(), 
+								targetCodes.get(index)}, 
+						wDb, 
+						cv2.get(index));
+			}
+			wDb.setTransactionSuccessful();
+		} finally {
+			wDb.endTransaction();
 		}
+		
 		wDb.close();
 		writer.softClose();
 	}
+	
 	
 	/** Unimplemented. */
 	@Override
@@ -163,15 +235,30 @@ class CurrencyExchangeRateModel
 				CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
 		SQLiteDatabase rDb = reader.getReadableDatabase();
 		
+		CurrencyData result = null; //the ultimate result.
+		
 		Cursor cursor = rDb.query(
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.TABLE_NAME, 
-					COLUMNS_ALL_CURRENCY_DATA, 
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID+
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+					COLUMNS_ALL_CURRENCY_LIST_DATA, 
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+
 					" = ? ",
 					new String[]{ String.valueOf(id) }, 
-					null, null, null);		
+					null, null, null);	
 		
-		CurrencyData result = cursorToCurrencyData(cursor);
+		List<CurrencyData> results = new ArrayList<CurrencyData>();
+		listCursorToCurrencyDataList(results, cursor);
+		if (!results.isEmpty()){
+			String code = results.get(0).getCurrencyCode();
+			Cursor cursor2 = rDb.query(
+					CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+					COLUMNS_ALL_EXCHANGE_RATE_DATA, 
+					CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+					" = ? ",
+					new String[]{ String.valueOf(code) }, 
+					null, null, null);	
+			results = rateCursorToCurrencyDataList(results, cursor2);	
+			result = results.get(0);
+		}				
 		
 		rDb.close();
 		reader.softClose();	
@@ -189,15 +276,30 @@ class CurrencyExchangeRateModel
 				CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
 		SQLiteDatabase rDb = reader.getReadableDatabase();
 		
-		Cursor cursor = rDb.query(
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.TABLE_NAME, 
-					COLUMNS_ALL_CURRENCY_DATA, 
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_CODE+
-					" = ? ",
-					new String[]{ key }, 
-					null, null, null);		
+		CurrencyData result =  null;
 		
-		CurrencyData result = cursorToCurrencyData(cursor);
+		Cursor cursor = rDb.query(
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+				COLUMNS_ALL_CURRENCY_LIST_DATA, 
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE+
+				" = ? ",
+				new String[]{ key }, 
+				null, null, null);	
+
+		Cursor cursor2 = rDb.query(
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+				COLUMNS_ALL_EXCHANGE_RATE_DATA, 
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+				" = ? ",
+				new String[]{ key }, 
+				null, null, null);	
+	
+		List<CurrencyData> results = new ArrayList<CurrencyData>();
+		listCursorToCurrencyDataList(results, cursor);
+		if (!results.isEmpty()){
+			results = rateCursorToCurrencyDataList(results, cursor2);	
+			result = results.get(0);
+		}
 		
 		rDb.close();
 		reader.softClose();	
@@ -216,11 +318,16 @@ class CurrencyExchangeRateModel
 		SQLiteDatabase rDb = reader.getReadableDatabase();
 		
 		Cursor cursor = rDb.query(
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.TABLE_NAME, 
-					COLUMNS_ALL_CURRENCY_DATA, 
-					null, null, null, null, null);		
-		 
-		cursorToCurrencyDataList(list, cursor);
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+					COLUMNS_ALL_CURRENCY_LIST_DATA, 
+					null, null, null, null, null);	
+		Cursor cursor2 = rDb.query(
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+				COLUMNS_ALL_EXCHANGE_RATE_DATA, 
+				null, null, null, null, null);	
+	
+		listCursorToCurrencyDataList(list, cursor);
+		list = rateCursorToCurrencyDataList(list, cursor2);
 		
 		rDb.close();
 		reader.softClose();		
@@ -232,21 +339,59 @@ class CurrencyExchangeRateModel
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility functions
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/** Inserts record into given table, throwing error if an error occurs. 
+	 * @param tableName The table name.
+	 * @param recordName The record name (for exceptions)
+	 * @param writableDb The database handle to write with.
+	 * @param cv The contents to input.
+	 * @throws SQLException An exception if no results change.
+	 */
+	static private void insertRecordIntoTable(String tableName, String recordName,
+			SQLiteDatabase writableDb, ContentValues cv) throws SQLException {
+		long result = writableDb.insert(tableName, null, cv);		
+		if (result < 0){
+			throw new SQLException(
+					String.format(DETAILED_EXCEPTION_INSERT, recordName)
+					);
+		}
+	}
+	
+	/** Updates table recorud based upon conditions supplied.
+	 * @param tableName The table name
+	 * @param recordName The record name (for debugging)
+	 * @param preparedCondition The prepared statment for which rows
+	 * @param conditionValues The conditional values
+	 * @param writeableDb The writable db for access
+	 * @param cv The values
+	 * @throws SQLException If no records are updated.
+	 */
+	static private void updateTableRecord(String tableName, String recordName,
+			String preparedCondition, String[] conditionValues,
+			SQLiteDatabase writeableDb, ContentValues cv) throws SQLException {
+		long result =
+				writeableDb.update( tableName, cv, preparedCondition, conditionValues);		
+		if (result < 0){
+			throw new SQLException(
+					String.format(DETAILED_EXCEPTION_UPDATE, recordName)
+					);
+		}
+	}
+	
 	/** Validates the currency data record for insertion. */
 	static private void validateRecord(CurrencyData record) {
 		if (	record.getCurrencyCode() == null ||
 				record.getCurrencyName() == null ||
 				record.getCurrencySymbol() == null ||
-				record.getRateFromUSD() < 0 ){
+				record.getRates().isEmpty() ){
 			//record is not valid for insertion.
 			throw new IllegalArgumentException(
 					"Record must contain: " +
 					"currency code, currency name, currency symbol and an " +
 					"exchange rate >= 0. " +
 					"Values are: currencyCode(" + record.getCurrencyCode() +
-					"), currencyName(" + record.getCurrencyCode() +
-					"), currencySymbol(" + record.getCurrencyCode() +
-					"), rate(" + record.getCurrencyCode() + "). "
+					"), currencyName(" + record.getCurrencyName() +
+					"), currencySymbol(" + record.getCurrencySymbol()+") "
 					);
 		}
 	}
@@ -255,102 +400,74 @@ class CurrencyExchangeRateModel
 	 * @param record The record to insert.
 	 * @param cv The returned content values.
 	 */
-	static private void prepareRecordForDb(CurrencyData record, ContentValues cv){
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_CODE,
+	static private void prepareRecordForCurrencyListDb(CurrencyData record, 
+			ContentValues cv){
+		cv.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE,
 				record.getCurrencyCode());
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_NAME,
+		cv.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_NAME,
 				record.getCurrencyName());
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_SYMBOL,
+		cv.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_SYMBOL,
 				record.getCurrencySymbol());
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_USD_RATE,
-				record.getRateFromUSD());
 		String timestamp = record.getModifiedTimestamp();
 		if (timestamp == null || timestamp.isEmpty()){
 			timestamp = Timestamp.getUtc();
 		}
-		cv.put(	CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_LAST_MODIFIED,
+		cv.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_LAST_MODIFIED,
 				timestamp);	
+	}
+	
+	/** Prepares the record into contents values for insertion/updates.
+	 * Does not set content value for id. 
+	 * @param record The record to insert.
+	 * @param cv The returned content values.
+	 * @return The list of currency code keys in the cv (of same length)
+	 */
+	static private List<String> prepareRecordForExchangeRatesDb(String sourceCode,
+			HashMap<String, Double> rates,
+			List<ContentValues> cvList){
+		List<String> targetCodes = new ArrayList<String>();
+		for (Entry<String, Double> rate : rates.entrySet()) {
+			ContentValues cv = new ContentValues();
+			cv.put(	
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE,
+				sourceCode);
+			cv.put(	
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE,
+				rate.getKey());
+			cv.put(	
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_EXCHANGE_RATE,
+				rate.getValue());
+			targetCodes.add(rate.getKey());
+			cvList.add(cv);
+		}
+		return targetCodes;
 	}
 	
 	/**
 	 * Converts cursor into value.
+	 * @param list The currency data parsed. Sometimes just 1 element.
 	 * @param cursor
-	 * @return The currency data from cursor query or <code>null</code>.
 	 */
-	static private CurrencyData cursorToCurrencyData(Cursor cursor){
+	static private void listCursorToCurrencyDataList
+			(List<CurrencyData> list, Cursor cursor){
 		//list of all column numbers in the query.
-		//See: COLUMNS_ALL_CURRENCY_DATA for order.
+		//See: COLUMNS_ALL_CURRENCY_LIST_DATA for order.
 		final int id = cursor.getColumnIndexOrThrow(
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID
 				);
 		final int code = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_CODE
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE
 			);
 		final int name = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_NAME
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_NAME
 			);
 		final int symbol = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_SYMBOL
-			);
-		final int rate = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_USD_RATE
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_SYMBOL
 			);
 		final int timestamp = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_LAST_MODIFIED
+				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_LAST_MODIFIED
 			);
 		
-		while (cursor.moveToFirst()){
-			CurrencyData.Builder builder = new CurrencyData.Builder();
-			try {
-				builder
-					.setId(cursor.getInt(id))
-					.setCurrency(	cursor.getString(symbol),
-									cursor.getString(code),
-									cursor.getString(name),
-									Float.parseFloat(cursor.getString(rate))
-									)
-					.setModifiedTimestamp(
-							cursor.getString(timestamp)
-						);
-			} catch (NumberFormatException e) {
-				Log.e(LOGTAG, "Rate did not parse correctly for: "+
-						cursor.getString(code));
-			} catch (ParseException e) {
-				Log.e(LOGTAG, "Date did not parse correctly for: "+
-						cursor.getString(code));
-			}
-			return builder.create();
-		}
-		return null;
-	}
-	
-	/**
-	 * Steps throw the cursor to populate the passed currency data list.
-	 * Assumes the query has been done using {@link #COLUMNS_ALL_CURRENCY_DATA}.
-	 * @param list The list to populate.
-	 * @param cursor The cursor to step through. 
-	 */
-	static private void cursorToCurrencyDataList(List<CurrencyData> list, Cursor cursor) {
-		//list of all column numbers in the query.
-		//See: COLUMNS_ALL_CURRENCY_DATA for order.
-		final int id = cursor.getColumnIndexOrThrow(
-					CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_ID
-				);
-		final int code = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_CODE
-			);
-		final int name = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_NAME
-			);
-		final int symbol = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_CURRENCY_SYMBOL
-			);
-		final int rate = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_USD_RATE
-			);
-		final int timestamp = cursor.getColumnIndexOrThrow(
-				CurrencyConvertDatabaseSchema.EXCHANGE_RATES_USD.COL_LAST_MODIFIED
-			);
 		
 		while (cursor.moveToNext()){
 			CurrencyData.Builder builder = new CurrencyData.Builder();
@@ -359,9 +476,7 @@ class CurrencyExchangeRateModel
 					.setId(cursor.getInt(id))
 					.setCurrency(	cursor.getString(symbol),
 									cursor.getString(code),
-									cursor.getString(name),
-									Float.parseFloat(cursor.getString(rate))
-									)
+									cursor.getString(name))
 					.setModifiedTimestamp(
 							cursor.getString(timestamp)
 						);
@@ -369,10 +484,65 @@ class CurrencyExchangeRateModel
 				Log.e(LOGTAG, "Rate did not parse correctly for: "+
 						cursor.getString(code));
 			} catch (ParseException e) {
-				Log.e(LOGTAG, "Date did not parse correctly for: "+
-						cursor.getString(code));
+				Log.e(LOGTAG, 
+						String.format(DETAILED_EXCEPTION_DATE_PARSE_ERROR, 
+								cursor.getString(code))
+								);
 			}
 			list.add(builder.create());
 		}
+	}
+	
+	/**
+	 * Steps through the cursor to populate the passed currency data list.
+	 * Assumes the query has been done using {@link #COLUMNS_ALL_EXCHANGE_RATE_DATA}.
+	 * @param list The list to update.
+	 * @param cursor The cursor to step through.
+	 * @return The updated results with rates. 
+	 */
+	static private List<CurrencyData> rateCursorToCurrencyDataList
+				(List<CurrencyData> list, Cursor cursor) {
+		//list of all column numbers in the query.
+		//See: COLUMNS_ALL_EXCHANGE_RATE_DATA
+		//for order.
+		
+		final int rate = cursor.getColumnIndexOrThrow(
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_EXCHANGE_RATE
+			);
+		final int sCode = cursor.getColumnIndexOrThrow(
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE
+			);
+		final int dCode = cursor.getColumnIndexOrThrow(
+				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE
+			);
+		
+		//this is incredibly inefficient
+		HashMap<String, HashMap<String,Double>> rateMap = 
+				new HashMap<String, HashMap<String,Double>>();
+		while (cursor.moveToNext()){
+			String source = cursor.getString(sCode);
+			if (!rateMap.containsKey(source)){ //if there is no group for this source
+				rateMap.put(source, new HashMap<String, Double>());
+			}
+			try { //put rate for source -> dCode
+			rateMap.get(source).put(
+						cursor.getString(dCode), 
+						Double.parseDouble(cursor.getString(rate))
+					);
+			} catch (NumberFormatException e) {
+				Log.e(LOGTAG, "Rate did not parse correctly for: "+
+						source+cursor.getString(dCode));
+			}
+		}
+		List<CurrencyData> results = new ArrayList<CurrencyData>();
+		for (CurrencyData currencyData : list) {
+			HashMap<String, Double> rates = 
+					rateMap.get(currencyData.getCurrencyCode());
+			if (rates != null){
+				currencyData.updateRates(rates);
+			}
+			results.add(currencyData);
+		}
+		return results;
 	}
 }
