@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ import android.util.Log;
 
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.dao.SimpleExchangeRates;
 import com.ovrhere.android.currencyconverter.model.asyncmodel.AsyncModel;
 import com.ovrhere.android.currencyconverter.model.asyncmodel.RunnableHeadlessFragment;
 import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyRequest;
@@ -46,7 +48,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * the {@link Context}.
  * 
  * @author Jason J.
- * @version 0.2.0-20140905
+ * @version 0.3.0-20140908
  */
 public class CurrencyExchangeRateAsyncModel extends AsyncModel 
 implements YahooApiCurrencyRequest.OnRequestEventListener {
@@ -108,8 +110,9 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	private Resources res = null;
 	/** The fragment manager for getting the fragment. */
 	private FragmentManager mfragManager = null;
-	/** The base currency code. */
-	final private String baseCurrencyCode; 
+	
+	/** A list of all currencies. */
+	final private List<String> currencyCodeList = new ArrayList<String>(); 
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End class members 
@@ -119,8 +122,10 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	public CurrencyExchangeRateAsyncModel(FragmentActivity activity) {
 		this.mLocalModel = new CurrencyExchangeRateModel(activity);
 		this.res = activity.getResources();
-		this.baseCurrencyCode = 
-				res.getString(R.string.com_ovrhere_currConv_USD_code);
+		this.currencyCodeList.addAll( 
+		Arrays.asList(
+					res.getStringArray(R.array.com_ovrhere_currConv_rateOrder))
+					);
 		mfragManager = activity.getSupportFragmentManager();
 		//prepare the headless fragment in advance.
 		getHeadlessFrag(); 
@@ -133,8 +138,10 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	public CurrencyExchangeRateAsyncModel(Context context) {
 		this.mLocalModel = new CurrencyExchangeRateModel(context);
 		this.res = context.getResources();
-		this.baseCurrencyCode = 
-				res.getString(R.string.com_ovrhere_currConv_USD_code);
+		this.currencyCodeList.addAll( 
+				Arrays.asList(
+							res.getStringArray(R.array.com_ovrhere_currConv_rateOrder))
+							);
 	}
 	
 	@Override
@@ -207,7 +214,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 			destCodes.add(cd.getCurrencyCode());
 		}
 		YahooApiCurrencyRequest request = 
-				new YahooApiCurrencyRequest(baseCurrencyCode, destCodes, 
+				new YahooApiCurrencyRequest(currencyCodeList, currencyCodeList, 
 						this);
 		notifyHandlers(NOTIFY_UPDATING_RATES, null);
 		RunnableHeadlessFragment runFrag = getHeadlessFrag();
@@ -240,35 +247,35 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 							R.string.com_ovrhere_currConv_USD_symbol, 
 							R.string.com_ovrhere_currConv_USD_code,
 							R.string.com_ovrhere_currConv_USD_name,
-							R.string.com_ovrhere_currConv_defRate_USD)
+							R.array.com_ovrhere_currConv_USD_defRates)
 					);
 			mLocalModel.insertRecord(
 					createCurrencyData(
 							R.string.com_ovrhere_currConv_CAD_symbol, 
 							R.string.com_ovrhere_currConv_CAD_code,
 							R.string.com_ovrhere_currConv_CAD_name,
-							R.string.com_ovrhere_currConv_defRate_CAD)
+							R.array.com_ovrhere_currConv_CAD_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
 							R.string.com_ovrhere_currConv_EUR_symbol, 
 							R.string.com_ovrhere_currConv_EUR_code,
 							R.string.com_ovrhere_currConv_EUR_name,
-							R.string.com_ovrhere_currConv_defRate_EUR)
+							R.array.com_ovrhere_currConv_EUR_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
 							R.string.com_ovrhere_currConv_GBP_symbol, 
 							R.string.com_ovrhere_currConv_GBP_code,
 							R.string.com_ovrhere_currConv_GBP_name,
-							R.string.com_ovrhere_currConv_defRate_GBP)
+							R.array.com_ovrhere_currConv_GBP_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
 							R.string.com_ovrhere_currConv_JPY_symbol, 
 							R.string.com_ovrhere_currConv_JPY_code,
 							R.string.com_ovrhere_currConv_JPY_name,
-							R.string.com_ovrhere_currConv_defRate_JPY)
+							R.array.com_ovrhere_currConv_JPY_defRates)
 				);
 		} catch (ParseException e) {
 			Log.e(LOGTAG, "Float parse error occurred");
@@ -286,65 +293,86 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	 * @param symbolId The symbol string resource to use (e.g. $)
 	 * @param codeId The 3 letter code string resource to use 
 	 * @param nameId The name string resource to use
-	 * @param rateId The rate string/float resource to use.
+	 * @param rateArrayId The rate string array resource to use.
 	 * @return CurrencyData
 	 * @throws ParseException
+	 * @throws {@link NumberFormatException}
 	 */
 	private CurrencyData createCurrencyData(int symbolId, int codeId, int nameId, 
-			int rateId) throws ParseException{
+			int rateArrayId) throws ParseException{
+		String defRates[] = res.getStringArray(rateArrayId);
+		if (defRates.length != currencyCodeList.size()){
+			if (DEBUG){
+				Log.w(LOGTAG, "Irregular behavior: Mismatched lists?");
+			}
+			throw new IndexOutOfBoundsException();
+		}
+		HashMap<String, Double> exchangeRates = new HashMap<String, Double>();
+		final int SIZE = currencyCodeList.size();
+		for (int index = 0; index < SIZE; index++) {
+			exchangeRates.put(
+					currencyCodeList.get(index), 
+					Double.parseDouble(defRates[index]));
+		}
+		
 		CurrencyData.Builder build = new CurrencyData.Builder();
 		build.setCurrency(	res.getString(symbolId),
 							res.getString(codeId),
-							res.getString(nameId),
-							Float.parseFloat (res.getString (rateId)))
+							res.getString(nameId))
 			.setModifiedTimestamp(
 							res.getString(R.string.com_ovrhere_currConv_defRate_updateTime)
-					);		
-		return build.create();		
+					)
+			.setExchangeRates(exchangeRates);
+		
+		return 	build.create();
 	}
 	
 	/** Updates the local model's record rates
 	 * @param rates The rates to apply to the records. 	 */
-	private void updateRecordRates(HashMap<String, Float> rates) {
+	private void updateRecordRates(SimpleExchangeRates rates) {
 		List<CurrencyData> records = mLocalModel.getAllRecords();
 		String timestamp = Timestamp.getUtc();
-		//add the base currency code to be updated as well.
-		rates.put(baseCurrencyCode, 1.0f);
 		
 		for(CurrencyData record : records){
-			String cCode = record.getCurrencyCode();
-			if (rates.containsKey(cCode) ){ //if the rate was found
-				float rate = rates.get(cCode);
-				int id = record.getId();
-				CurrencyData.Builder builder = new CurrencyData.Builder();
-				try {
-					builder.setId(id)
-					.setCurrency(
-						record.getCurrencySymbol(), 
-						cCode, 
-						record.getCurrencyName(), 
-						rate)
-					.setModifiedTimestamp(timestamp);
-					if (DEBUG){
-						Log.d(LOGTAG, 
-								"Updating: "+id + " - " + builder.create() );
-					}
-					mLocalModel.modifyRecord(id, builder.create());
-				} catch (SQLException e) {
-					if (DEBUG){
-						Log.e(LOGTAG, 
-								"Record "+record.getId()+" not updated: " + e);
-					}
-				} catch (ParseException e) {
-					if (DEBUG){
-						e.printStackTrace();
-					}
-				}
-			} else {
-				if (DEBUG){ //the record is not found in result.
-					Log.d(LOGTAG, "Skipping '"+cCode+"'");
-				}
+			String sCode = record.getCurrencyCode();
+			HashMap<String, Double> rateMap = new HashMap<String, Double>();
+			for (String dCode : currencyCodeList) {
+				double rate= rates.getRate(sCode, dCode);
+				rateMap.put(dCode, rate);
 			}
+			rateMap.put(sCode, 1.0d); //put itself, for safety.
+			int id = record.getId();
+			CurrencyData.Builder builder = new CurrencyData.Builder();
+			try {
+				builder.setId(id)
+				.setCurrency(
+					record.getCurrencySymbol(), 
+					sCode, 
+					record.getCurrencyName())
+				.setModifiedTimestamp(timestamp)
+				.setExchangeRates(rateMap);
+				if (DEBUG){
+					Log.d(LOGTAG, 
+							"Updating: "+id + " - " + builder.create() );
+				}
+				
+				mLocalModel.modifyRecord(id, builder.create());
+			} catch (SQLException e) {
+				if (DEBUG){
+					Log.e(LOGTAG, 
+							"Record "+record.getId()+" not updated: " + e);
+				}
+			} catch (ParseException e) {
+				if (DEBUG){
+					e.printStackTrace();
+				}
+			} catch (Exception e) {
+				if (DEBUG){
+					Log.e(LOGTAG, "Other exception occurred at: " +
+							sCode+" - " + e);
+					e.printStackTrace();
+				}
+			}			
 		}
 	}
 	
@@ -369,7 +397,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	
 	@Override
 	public void onStart(InputStream in) {
-		HashMap<String, Float> rates = new HashMap<String, Float>();		
+		SimpleExchangeRates rates = null;		
 		try {
 			YahooApiCurrencyXmlParser parser = new YahooApiCurrencyXmlParser();
 			rates = parser.parseXmlStream(in);

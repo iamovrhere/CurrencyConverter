@@ -25,12 +25,14 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.ovrhere.android.currencyconverter.dao.SimpleExchangeRates;
+
 import android.util.Log;
 
 /** The xml parser for the yahoo currency exchange api.
  * Found at: <code>http://query.yahooapis.com/v1/public/yql?...</code>
  * @author Jason J.
- * @version 0.1.0-20140905 
+ * @version 0.2.0-20140908 
  * @see YahooApiCurrencyRequest */
 public class YahooApiCurrencyXmlParser {
 	/** The tag for debugging purposes. */
@@ -74,12 +76,11 @@ public class YahooApiCurrencyXmlParser {
 	/** Parses the xml stream and returns it as a {@link HashMap} 
 	 * of codes to USD from rates.
 	 * @param in The input reading
-	 * @return {@link HashMap} of Currency codes -> "USD from" rates.
-	 * All keys are in uppercase.
+	 * @return A complete list of exchange rates, via {@link SimpleExchangeRates}.
 	 * @throws XmlPullParserException re-thrown 
 	 * @throws IOException re-thrown
 	 */
-	public HashMap<String, Float> parseXmlStream(Reader in) 
+	public SimpleExchangeRates parseXmlStream(Reader in) 
 			throws XmlPullParserException, IOException{
 		parserNullCheck();
 		try {
@@ -88,18 +89,17 @@ public class YahooApiCurrencyXmlParser {
 			Log.e(LOGTAG, "Parser failed to be created: "+e);
 			throw e;
 		}
-		return parseXmlToHashMap();
+		return parseXmlToExchangeRatesDao();
 	}
 	
 	/** Parses the xml stream and returns it as a {@link HashMap} 
 	 * of codes to USD from rates.
 	 * @param in The input stream
-	 * @return {@link HashMap} of Currency codes -> "USD from" rates.
-	 * All keys are in uppercase.
+	 * @return A complete list of exchange rates, via {@link SimpleExchangeRates}. 
 	 * @throws XmlPullParserException re-thrown 
 	 * @throws IOException re-thrown
 	 */
-	public HashMap<String, Float> parseXmlStream(InputStream in) 
+	public SimpleExchangeRates parseXmlStream(InputStream in) 
 			throws XmlPullParserException, IOException{
 		parserNullCheck();
 		try {
@@ -109,7 +109,7 @@ public class YahooApiCurrencyXmlParser {
 			throw e;
 		}
 		
-		return parseXmlToHashMap();
+		return parseXmlToExchangeRatesDao();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,10 +127,10 @@ public class YahooApiCurrencyXmlParser {
 	/** Parses the xml to a list using prepared PullParser 
 	 * @throws XmlPullParserException  re-thrown from next
 	 * @throws IOException  re-thrown from next */
-	private HashMap<String, Float> parseXmlToHashMap() 
+	private SimpleExchangeRates parseXmlToExchangeRatesDao() 
 			throws XmlPullParserException, IOException {
 		//hashmap for ISO currency codes -> USD rates
-		HashMap<String, Float> results = new HashMap<String, Float>();
+		SimpleExchangeRates results = new SimpleExchangeRates(false);
 		
 		pullParser.nextTag();
 		pullParser.require(XmlPullParser.START_TAG, null, TAG_QUERY_ROOT);
@@ -147,7 +147,10 @@ public class YahooApiCurrencyXmlParser {
 				if (ratePair == null){
 					continue;
 				}
-				results.put(ratePair.code, ratePair.rate);
+				results.addRate(
+						ratePair.srcCode, 
+						ratePair.destCode, 
+						ratePair.rate );
 			} else {
 				skipTag(); //skip all other tags
 			}
@@ -171,7 +174,8 @@ public class YahooApiCurrencyXmlParser {
 			return null;
 		}
 		//extract the last 3 characters.
-		ratePair.code = idText.substring(3).toUpperCase(Locale.US);				 
+		ratePair.destCode = idText.substring(3).toUpperCase(Locale.US);
+		ratePair.srcCode = idText.substring(0,3).toUpperCase(Locale.US);
 		
 		while (pullParser.next() != XmlPullParser.END_TAG) {
 			if (pullParser.getEventType() != XmlPullParser.START_TAG) {
@@ -185,7 +189,7 @@ public class YahooApiCurrencyXmlParser {
 				} catch (NumberFormatException e){
 					Log.w(LOGTAG, 
 							"Rate was not parsed correctly for currency \""+
-							ratePair.code+"\"; skipping. ");
+							ratePair.destCode+"\"; skipping. ");
 					return null;
 				}
 			} else {
@@ -238,10 +242,18 @@ public class YahooApiCurrencyXmlParser {
 	/// Internal classes
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	/** Simple internal dao for easy management. 
-	 * @version 0.1.0-20140905 */
+	 * @version 0.2.0-20140908 */
 	static private class CodeRatePair {
 		public float rate = 0.0f;
-		public String code = "";
+		public String destCode = "";
+		public String srcCode = "";
+		
+		@Override
+		public String toString() {
+			return super.toString()+
+					"[ sourceCode:"+srcCode+",destCode:"+destCode+
+					" rate:"+rate+"]";
+		}
 	}
 	
 }
