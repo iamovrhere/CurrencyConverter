@@ -48,7 +48,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * the {@link Context}.
  * 
  * @author Jason J.
- * @version 0.3.0-20140908
+ * @version 0.3.1-20140908
  */
 public class CurrencyExchangeRateAsyncModel extends AsyncModel 
 implements YahooApiCurrencyRequest.OnRequestEventListener {
@@ -78,7 +78,8 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	//final static public int REQUEST_GET_MULTI_RECORDS = 0x004;
 	/** Retrieves all records from the database.
 	 * If accompanied by a boolean <code>true</code>, 
-	 * cached records are forced to update. 
+	 * cached records are forced to update and ONLY replies if they are
+	 * updated.  
 	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
 	final static public int REQUEST_GET_ALL_RECORDS = 0x005;
 		
@@ -188,6 +189,10 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	 * does not.*/
 	private void requestRecords(boolean force){
 		List<CurrencyData> records = mLocalModel.getAllRecords();
+		if (force){
+			requestApiValues(records);
+			return;
+		}
 		if (records.isEmpty()){
 			if (initDefaultDatabase()){
 				records = mLocalModel.getAllRecords();
@@ -196,8 +201,6 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 				notifyHandlers(ERROR_REQUEST_FAILED, null);
 				return;
 			}
-		} else if (force){
-			requestApiValues(records);
 		}
 		replyWithRecords(records);
 	}

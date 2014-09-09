@@ -28,7 +28,11 @@ import android.widget.TextView;
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 
-/** The spinner adapter for value to convert. 
+/** /** The spinner adapter for currencies.
+ * <ul>
+ * <li>In spinner only the currency code is shown</li>
+ * <li>During selection popup: Full currency name, currency code & Flags are shown.</li>
+ * </ul>
  * @author Jason J.
  * @version 0.2.0-20140903
  */

@@ -60,7 +60,7 @@ import com.ovrhere.android.currencyconverter.utils.DateFormatter;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.4.0-20140904
+ * @version 0.4.1-20140908
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -76,6 +76,9 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** Bundle key: String. The input to convert. */
 	final static private String KEY_CURRENCY_VALUE_INPUT = 
 			CLASS_NAME+".KEY_CURRENCY_VALUE_INPUT";
+	/** Bundle key. Boolean. The value of {@link #currentlyUpdating} */
+	final static private String KEY_CURRENTLY_UPDATING = 
+			CLASS_NAME + ".KEY_CURRENTLY_UPDATED";
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End constants
@@ -94,6 +97,8 @@ implements Handler.Callback, OnItemLongClickListener {
 	private CurrencyDataSpinnerAdapter destCurrAdapter = null;
 	/** The output list adapter. */
 	private CurrencyDataFilterListAdapter outputListAdapter = null;
+	/** <code>true</code> if updating, <code>false</code> otherwise. */
+	private boolean currentlyUpdating = false;
 	
 	/** The shared preference handle. */
 	private SharedPreferences prefs = null;
@@ -113,6 +118,8 @@ implements Handler.Callback, OnItemLongClickListener {
 	private TextView tv_warning = null;
 	/** The currency input. */
 	private EditText et_currInput = null;
+	/** The View for the spinny-progress bar for updates. */
+	private View updateProgressSpin = null;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End members 
@@ -129,6 +136,8 @@ implements Handler.Callback, OnItemLongClickListener {
 		}
 		outState.putString(KEY_CURRENCY_VALUE_INPUT, 
 				et_currInput.getText().toString());
+		outState.putBoolean(KEY_CURRENTLY_UPDATING, 
+				currentlyUpdating);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -151,8 +160,11 @@ implements Handler.Callback, OnItemLongClickListener {
 		prefs = PreferenceUtils.getPreferences(getActivity());		
 		
 		if (savedInstanceState == null){
-			requestFreshExchangeRates();
+			requestFreshExchangeRates(false);
 		} else {
+				currentlyUpdating = savedInstanceState.getBoolean(
+						KEY_CURRENTLY_UPDATING);
+			
 			ArrayList<Parcelable> list = 
 					savedInstanceState.getParcelableArrayList(KEY_CURRENCY_LIST);
 			synchronized (currencyList) {
@@ -165,10 +177,10 @@ implements Handler.Callback, OnItemLongClickListener {
 					}
 				}
 				if (currencyList.isEmpty()){
-					requestFreshExchangeRates();
+					requestFreshExchangeRates(false);
 				}
 			}
-		}
+		}		
 		
 	}
 
@@ -274,6 +286,10 @@ implements Handler.Callback, OnItemLongClickListener {
 		outputListView.setAdapter(outputListAdapter);
 		outputListView.setOnItemLongClickListener(this);
 		registerForContextMenu(outputListView);
+		
+		updateProgressSpin =
+				rootView.findViewById(R.id.com_ovrhere_currConv_main_progressSpin);
+		checkProgressBar();
 		
 		tv_currSymbol = (TextView)
 				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_currSymbol);
@@ -387,14 +403,65 @@ implements Handler.Callback, OnItemLongClickListener {
 			CompatClipboard.copyToClipboard(getActivity(), label, value);
 		}
 	}
+	/** Hides/Shows the progress bar based on the value of {@link #currentlyUpdating}. */
+	private void checkProgressBar(){
+		updateProgressSpin.setVisibility(
+				currentlyUpdating ? View.VISIBLE : View.GONE );
+	}
+	
+	/** Takes the currency time stamp and checks if request for a new update.
+	 * and update views. 
+	 * @param r The resources to access strings with.
+	 * @param currencyData The current data to parse. 
+	 * @return The readable timestamp.	 */
+	private void checkTimestampToUpdate(Resources r, CurrencyData currencyData) {
+		long updateInterval = prefs.getInt(
+							r.getString(
+									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+							0);
+		long interval = 
+				new Date().getTime() - currencyData.getModifiedDate().getTime();
+		if (updateInterval < interval){
+			requestFreshExchangeRates(true);
+			checkTimestampWarning(r, currencyData);
+		}
+	}
+	
+
+	/** Takes the currency time stamp and checks if to display message. 
+	 * @param r The resources to access strings with.
+	 * @param currencyData The current data to parse. 
+	 * @return The readable timestamp.	 */
+	private void checkTimestampWarning(Resources r, CurrencyData currencyData) {
+		long updateInterval = prefs.getInt(
+							r.getString(
+									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+							0);
+		long interval = 
+				new Date().getTime() - currencyData.getModifiedDate().getTime();
+		if (updateInterval < interval){			
+			String timestamp = DateFormatter.dateToRelativeDate(
+					getActivity(), dateResUnits,
+					currencyData.getModifiedDate());
+			tv_warning.setText(
+					r.getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
+							timestamp)
+							);
+			tv_warning.setVisibility(View.VISIBLE);
+			requestFreshExchangeRates(true);
+		} else {
+			tv_warning.setVisibility(View.GONE);
+		}
+	}
 	
 	
-	
-	/** Requests a fresh list of exchange rates from the model. */
-	private void requestFreshExchangeRates() {
+	/** Requests a fresh list of exchange rates from the model. 
+	 * @param forceUpdate <code>true</code> to force online update, 
+	 * <code>false</code> to forgo it. */
+	private void requestFreshExchangeRates(boolean forceUpdate) {
 		asycModel.sendMessage(
 				CurrencyExchangeRateAsyncModel.REQUEST_GET_ALL_RECORDS, 
-				true);
+				forceUpdate);
 	}
 	
 	
@@ -415,43 +482,12 @@ implements Handler.Callback, OnItemLongClickListener {
 		editor.commit();
 	}
 	
-
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility function
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	/** Takes the currency time stamp and checks if to display message.  
-	 * @param r The resources to access strings with.
-	 * @param currencyData The current data to parse. 
-	 * @return The readable timestamp.
-	 */
-	private void checkTimestampWarning(Resources r, CurrencyData currencyData) {
-		long updateInterval = prefs.getInt(
-							r.getString(
-									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-							0);
-		long interval = 
-				new Date().getTime() - currencyData.getModifiedDate().getTime();
-		if (updateInterval < interval){			
-			String timestamp = DateFormatter.dateToRelativeDate(
-					getActivity(), dateResUnits,
-					currencyData.getModifiedDate());
-			tv_warning.setText(
-					r.getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
-							timestamp)
-							);
-			tv_warning.setVisibility(View.VISIBLE);
-		} else {
-			tv_warning.setVisibility(View.GONE);
-		}
-		//TODO more granular timestamp readablity
-		/*String original = currencyData.getModifiedTimestamp();
-		int seconds = original.lastIndexOf(":");
-		if (seconds > -1){
-			return original.substring(0, seconds);
-		}
-		return original;*/
-	}
 	
 	/** Converts input to pure double. Only 0-9 and "." allowed
 	 * @param input The string input.
@@ -560,11 +596,28 @@ implements Handler.Callback, OnItemLongClickListener {
 				}
 				updateCurrencyAdapters();
 				updateSourceCurrency();
+				if (!currentlyUpdating){
+					checkTimestampToUpdate(getResources(), currencyList.get(0));
+				} else {
+					currentlyUpdating = false;
+				}
 			} catch (ClassCastException e){
 				Log.e(LOGTAG, "Current data invalid: "+e);
 			}
 			return true;
+
+		case CurrencyExchangeRateAsyncModel.NOTIFY_INITIALIZING_DATABASE:			
+			return true;
+		case CurrencyExchangeRateAsyncModel.NOTIFY_UPDATING_RATES:
+			currentlyUpdating = true;
+			return true;
+		case CurrencyExchangeRateAsyncModel.ERROR_REQUEST_FAILED:
+		case CurrencyExchangeRateAsyncModel.ERROR_REQUEST_TIMEOUT:
+			currentlyUpdating = false;
+			return true;
 		}
+		checkProgressBar();
+		
 		return false;
 	}
 
