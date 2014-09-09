@@ -21,7 +21,8 @@
    <!-- Background color -->
    <color name="com_ovrhere_currConv_background">#e8f6f7</color>
    <!-- Action bar color -->
-   <color name="com_ovrhere_currConv_actionBar">#BAE6EA</color>  
+   <!-- <color name="com_ovrhere_currConv_actionBar">#BAE6EA</color>  -->
+   <color name="com_ovrhere_currConv_actionBar">#333</color>  
    <!-- List fade  color -->
    <color name="com_ovrhere_currConv_listFade">@color/com_ovrhere_currConv_background</color>
    

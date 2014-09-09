@@ -58,7 +58,7 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
-        android:src="@android:drawable/star_big_on"
+        android:src="@drawable/ic_flag_error"
         tools:ignore="ContentDescription" />
 
     <TextView

@@ -60,7 +60,7 @@
             android:scaleType="fitCenter"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:src="@drawable/ic_flag_usd" 
+            android:src="@drawable/ic_flag_error" 
             android:contentDescription="@string/com_ovrhere_currConv_USD_name"
             />
          
@@ -81,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
             android:minWidth="@dimen/com_ovrhere_currConv_main_spinner_width"
-            android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_below="@+id/com_ovrhere_currConv_main_progressSpin"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/com_ovrhere_currConv_main_destSpinner_topPadding" />
 
@@ -98,6 +98,15 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/com_ovrhere_currConv_warningColor"
              />
+        
+        <ProgressBar
+            android:id="@+id/com_ovrhere_currConv_main_progressSpin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_centerHorizontal="true" 
+            style="@android:style/Widget.ProgressBar.Small"
+            />
 
         <ListView
             android:id="@+id/com_ovrhere_currConv_main_listView"
@@ -108,5 +117,7 @@
             android:layout_marginTop="@dimen/com_ovrhere_currConv_main_listView_topPadding" 
             android:cacheColorHint="@color/com_ovrhere_currConv_listFade"
             />
+
+        
     
 </RelativeLayout>
