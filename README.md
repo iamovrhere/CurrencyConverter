@@ -1,11 +1,30 @@
-#Currency Converter
+#Currency Converter  <span style=""><img src="./ic_launcher-web.png" title="'Currency Converter'" height="50" width="50" style="padding-right: 15px; padding-left: 15px;height: 50px;" />
 
-This app is intended to be a utility for converting between multiple currencies.
+This app is intended to be a utility for converting between multiple currencies. Supports 5 currencies.
 
 
 ###Notes
 
-The app supports **Android 2.3.3** and up.
+The app supports **Android 2.3.3** and up. It is currently in development and testing starges, pending beta release. 
+
+Application requires the compatibility v7 library. Uses resources from [Android Holo Colors Generator](http://android-holo-colors.com/ "Android Holo Colors Generator").
+
+Currently supports:
+
+* USD (United State's Dollar)
+* CAD (Canadian Dollar)
+* EUR (Euro)
+* GBP (Great British Pound)
+* JPY (Japanese Yen)
+
+Makes use of the Yahoo currency api, currently via XML parsing.
+
+As always, all graphics are done by yours truely.
+
+
+###Screenshots
+
+*Coming soon!*
 
 
 #License
