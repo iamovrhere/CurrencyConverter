@@ -1,11 +1,13 @@
-#Currency Converter  <span style=""><img src="./ic_launcher-web.png" title="'Currency Converter'" height="50" width="50" style="padding-right: 15px; padding-left: 15px;height: 50px;" />
+[<img src="./screenshots/feature_graphic.png?raw=true" title="Get 'Currency Converter' on Google Play"  /> ](https://play.google.com/store/apps/details?id=com.ovrhere.android.currencyconverter)
+
+#Currency Converter  [<span style=""><img src="./ic_launcher-web.png?raw=true" title="Get 'Currency Converter' on Google Play" height="50" width="50" style="padding-right: 15px; padding-left: 15px;height: 50px;" /> <img src="./screenshots/get_on_play_45.png?raw=true" title="Get 'Currency Converter' on Google Play" /></span>](https://play.google.com/store/apps/details?id=com.ovrhere.android.currencyconverter)
 
 This app is intended to be a utility for converting between multiple currencies. Supports 5 currencies.
 
 
 ###Notes
 
-The app supports **Android 2.3.3** and up. It is currently in development and testing starges, pending beta release. 
+The app supports **Android 2.3.3** and up. It is currently an open beta release. 
 
 Application requires the compatibility v7 library. Uses resources from [Android Holo Colors Generator](http://android-holo-colors.com/ "Android Holo Colors Generator").
 
@@ -17,14 +19,17 @@ Currently supports:
 * GBP (Great British Pound)
 * JPY (Japanese Yen)
 
-Makes use of the Yahoo currency api, currently via XML parsing.
+Makes use of the Yahoo currency api, currently via XML parsing. All exchange rates are stored offline for future use. Context menu support allows copying of the results.
 
 As always, all graphics are done by yours truely.
 
 
 ###Screenshots
 
-*Coming soon!*
+<img src="./screenshots/currconv_screenshot0.png?raw=true" title="Screenshot of Canadian currency being converted on Gingerbread"  width="250"/> <img src="./screenshots/currconv_screenshot1.png?raw=true" title="Screenshot of context menu"  width="250"/> 
+
+
+<img src="./screenshots/currconv_screenshot2.png?raw=true" title="Screenshot of USD  being converted on Icecream Sandwich"  width="250"/>  <img src="./screenshots/currconv_screenshot3.png?raw=true" title="Screenshot of when it cannot update"  width="250"/>  
 
 
 #License
