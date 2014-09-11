@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -36,6 +37,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -46,7 +48,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.model.CurrencyExchangeRateAsyncModel;
@@ -56,11 +57,12 @@ import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataSpinnerAdap
 import com.ovrhere.android.currencyconverter.utils.CompatClipboard;
 import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 import com.ovrhere.android.currencyconverter.utils.DateFormatter;
+import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.4.1-20140908
+ * @version 0.4.3-20140911
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -193,6 +195,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		initAdapters();		
 		initInputViews(rootView);
 		initOutputViews(rootView);
+		initKeyboardHide(rootView);
 		processSavedState(savedInstanceState);
 		
 		updateCurrencyAdapters();
@@ -263,7 +266,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		sp_sourceCurr.setSelection(sourceCurrSelect);
 		sp_destCurr.setSelection(destCurrSelect);
 		
-		String input = "0";
+		String input = "";
 		if (savedInstanceState != null){
 			input = 
 				savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT) == null ?
@@ -316,6 +319,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		et_currInput = (EditText)
 				rootView.findViewById(R.id.com_ovrhere_currConv_main_edittext_valueToConv);
 		et_currInput.addTextChangedListener(valueInputListener);
+		et_currInput.clearFocus();
 	}
 	/** Initializes adapters for output list and spinners. */
 	private void initAdapters() {
@@ -330,6 +334,21 @@ implements Handler.Callback, OnItemLongClickListener {
 		destCurrAdapter.setSelectAllText(
 				getActivity().getResources()
 					.getString(R.string.com_ovrhere_currConv_spinner_dest_selectAll));
+	}
+	/** Initializes the hiding of the keyboard for all non-edit-texts views.
+	 * @param rootView The rootview to attach to.
+	 */
+	private void initKeyboardHide(View rootView){
+		final FragmentActivity activity = getActivity();
+		rootView.setOnTouchListener(new View.OnTouchListener() {	
+				//this is will bubble until consumed (such as EditText)
+				@SuppressLint("ClickableViewAccessibility")
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					KeyboardUtil.hideSoftKeyboard(activity);
+					return false; //we aren't consume either
+				}
+			});
 	}
 	
 	/** Updates all currency adapters the the current value of #currencyList 
@@ -490,9 +509,10 @@ implements Handler.Callback, OnItemLongClickListener {
 	
 	
 	/** Converts input to pure double. Only 0-9 and "." allowed
-	 * @param input The string input.
+	 * @param input The string input. If empty, returns 0.
 	 * @return The parsed double. 	 */
 	static private double convertToDouble(String input) {
+		if (input.isEmpty()){ return 0.0d; }
 		//scrub input from non-valid input
 		return Double.parseDouble(input.replaceAll("[^\\.0-9]", ""));
 	}
@@ -515,12 +535,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		
 		@Override
 		public void afterTextChanged(Editable s) {
-			String input = s.toString().trim();
-			if (input.isEmpty()){
-				input = "0";
-				et_currInput.setText(input);
-			}
-			calculateOutput(input);
+			calculateOutput(s.toString().trim());
 		}
 	};
 	
