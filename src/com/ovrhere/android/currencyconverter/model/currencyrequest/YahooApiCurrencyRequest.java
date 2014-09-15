@@ -42,7 +42,7 @@ import android.util.Log;
  * Note that an instance of {@link YahooApiCurrencyRequest} will only run 
  * one request at a time and that requests are blocking</p>
  * @author Jason J.
- * @version 0.3.0-20140911
+ * @version 0.3.1-20140914
  */
 public class YahooApiCurrencyRequest implements Runnable {
 	/** The logtag for debuggin. */
@@ -74,7 +74,7 @@ public class YahooApiCurrencyRequest implements Runnable {
 	/** The prepared request ready for execution. */
 	private String preparedRequest = "";
 	/** The required listener for the request. */
-	private OnRequestEventListener mRequestEventListener = null;
+	volatile private OnRequestEventListener mRequestEventListener = null;
 	/** The request timeout period in milliseconds. */
 	private int requestTimeout = DEFAULT_TIMEOUT;
 	/** Whether not to use json format. */
@@ -117,6 +117,9 @@ public class YahooApiCurrencyRequest implements Runnable {
 	 * take effect during a request.
 	 * @param requestTimeout The time in milliseconds	 */
 	public void setRequestTimeout(int requestTimeout) {
+		if (requestTimeout < 0){
+			throw new IllegalArgumentException("Cannot be less than 0");
+		}
 		this.requestTimeout = requestTimeout;
 	}
 	/** Returns the timeout period before giving up.
@@ -209,8 +212,10 @@ public class YahooApiCurrencyRequest implements Runnable {
 			destCodes.remove(sCode); //do not request twice
 		}
 		//insert records & replace spaces (as the api does not handle spaces well)
+		//We could also use URLEncoder.encode(String, Locale);
 		preparedRequest  = String.format(Locale.US, PREPARED_API_URL, codeList)
 								.replaceAll(" ", "%20");
+		
 		if (jsonFormat){
 			preparedRequest += JSON_API_APPEND;
 		}
