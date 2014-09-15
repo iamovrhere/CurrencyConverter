@@ -48,7 +48,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * the {@link Context}.
  * 
  * @author Jason J.
- * @version 0.3.1-20140908
+ * @version 0.3.2-20140914
  */
 public class CurrencyExchangeRateAsyncModel extends AsyncModel 
 implements YahooApiCurrencyRequest.OnRequestEventListener {
@@ -68,14 +68,6 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	/// End private constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	/* * Retrieves a single record from the database. 
-	 * May be accompanied by an id (integer or string). 
-	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
-	//final static public int REQUEST_GET_SINGLE_RECORD = 0x003;
-	/* * Retrieves multiple records from the database. 
-	 * May be accompanied by an id (integer list or string list). 
-	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
-	//final static public int REQUEST_GET_MULTI_RECORDS = 0x004;
 	/** Retrieves all records from the database.
 	 * If accompanied by a boolean <code>true</code>, 
 	 * cached records are forced to update and ONLY replies if they are
@@ -115,6 +107,28 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	/** A list of all currencies. */
 	final private List<String> currencyCodeList = new ArrayList<String>(); 
 	
+	/** Whether the model is disposed. false by default, true in #dispose() */
+	volatile private boolean isDisposed = false;
+	/** Whether or not the model is updating.
+	 * Set true in {@link #onStart(InputStream)} and false in {@link #onComplete()}
+	 * or {@link #onException(Exception)}	 */
+	volatile private boolean isUpdating = false;
+	
+	/** Runnable to dispose of the contexts. This is so if we are disposing 
+	 * while a thread is still running we can dispose AFTER we do the work. */
+	private Runnable asyncDispose = new Runnable() {		
+		@Override
+		public void run() {
+			mLocalModel = null; 
+			res = null;
+			mfragManager = null;	
+			if (DEBUG){
+				Log.d(LOGTAG, "asyncDispose in: "+ 
+			CurrencyExchangeRateAsyncModel.this.hashCode());
+			}
+		}
+	};
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End class members 
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +143,15 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 					);
 		mfragManager = activity.getSupportFragmentManager();
 		//prepare the headless fragment in advance.
-		getHeadlessFrag(); 
+		RunnableHeadlessFragment runFrag = getHeadlessFrag();
+		if (runFrag.getRunnable() != null){ //if there are any runnables
+			try {
+				YahooApiCurrencyRequest req = (YahooApiCurrencyRequest) 
+						runFrag.getRunnable();
+				//update any running to the current object
+				req.setOnRequestEventListener(this);
+			} catch (ClassCastException e){}
+		}
 	}
 
 	
@@ -148,10 +170,12 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	@Override
 	public void dispose() {
 		super.dispose();
-		this.mLocalModel = null; 
-		this.res = null;
-		this.mfragManager = null;
+		isDisposed = true;
+		if (!isUpdating){
+			disposeHelper();
+		}
 	}
+	
 	
 	@Override
 	public int sendMessage(int what, Object object) {
@@ -206,6 +230,9 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	}
 	/** The request for api values from {@link YahooApiCurrencyRequest}. */
 	private void requestApiValues(List<CurrencyData> records){
+		if (isUpdating){
+			return;
+		}
 		if (records.isEmpty()){
 			if (DEBUG){
 				Log.w(LOGTAG, "The records are empty. What are we to update?");
@@ -390,8 +417,15 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 			mfragManager.beginTransaction()
 					.add(runFrag, RUNNABLE_HEADLESS_FRAG_TAG)
 					.commit();
-		}
+		}		
 		return runFrag;
+	}
+	
+	/** Disposes via the runnable method. */
+	private void disposeHelper() {
+		if (isDisposed){
+			asyncDispose.run();
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -400,6 +434,11 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	
 	@Override
 	public void onStart(InputStream in) {
+		if (DEBUG){
+			Log.d(LOGTAG, "Starting in object: " +this.hashCode());
+		}		
+		isUpdating = true;
+		
 		SimpleExchangeRates rates = null;		
 		try {
 			YahooApiCurrencyXmlParser parser = new YahooApiCurrencyXmlParser();
@@ -415,12 +454,16 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 			}
 		}		
 		updateRecordRates(rates);
-		replyWithRecords(mLocalModel.getAllRecords());
+		
+		disposeHelper();
 	}
 	
 	
 	@Override
 	public void onException(Exception exception) {
+		if (DEBUG){
+			Log.d(LOGTAG, "Exception in object: " +this.hashCode());
+		}
 		try {
 			throw exception;
 		} catch (IOException e){
@@ -433,14 +476,24 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 				e.printStackTrace();
 			}
 		}
+
+		isUpdating = false;
+		disposeHelper();
 	}
+
+
 	
 	@Override
 	public void onComplete() {
 		if (DEBUG){
-			Log.d(LOGTAG, "request: onComplete");
+			Log.d(LOGTAG, "request: onComplete in: " + this.hashCode());
 		}
-		//nothing to do here
+		//reply when finsihed.
+		replyWithRecords(mLocalModel.getAllRecords());
+		getHeadlessFrag().setRunable(null); //remove runnable
+		
+		isUpdating = false;
+		disposeHelper();
 	}
 	
 	

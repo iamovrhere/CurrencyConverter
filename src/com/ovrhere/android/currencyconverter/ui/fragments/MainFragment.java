@@ -62,7 +62,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.4.3-20140911
+ * @version 0.4.4-20140914
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -70,6 +70,8 @@ implements Handler.Callback, OnItemLongClickListener {
 	final static private String CLASS_NAME = MainFragment.class.getSimpleName();
 	/** The log tag for errors. */
 	final static private String LOGTAG = CLASS_NAME;
+	/** Whether or not to debug. */
+	final static private boolean DEBUG = true;
 	
 	/** Bundle key: List<CurrencyData>/List<Parcellable>. The currently parsed list. */
 	final static private String KEY_CURRENCY_LIST = 
@@ -86,7 +88,10 @@ implements Handler.Callback, OnItemLongClickListener {
 	/// End constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	/** The model for fetching currency info. */
-	private CurrencyExchangeRateAsyncModel asycModel = null;
+	private CurrencyExchangeRateAsyncModel asyncModel = null;
+	/** The handler for the model. */
+	private Handler asyncHandler = new Handler(this);
+	
 	/** Lists of resources used with {@link DateFormatter}.*/ 
 	private HashMap<String, Integer> dateResUnits = new HashMap<String, Integer>();
 	
@@ -142,12 +147,18 @@ implements Handler.Callback, OnItemLongClickListener {
 				currentlyUpdating);
 	}
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		asyncModel.dispose();
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		asycModel = new CurrencyExchangeRateAsyncModel(getActivity());
-		asycModel.addMessageHandler(new Handler(this));
+		asyncModel = new CurrencyExchangeRateAsyncModel(getActivity());
+		asyncModel.addMessageHandler(asyncHandler);
 		
 		dateResUnits.put(DateFormatter.MINUTE_UNIT, 
 					R.plurals.com_ovrhere_currConv_minutes);
@@ -318,8 +329,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		
 		et_currInput = (EditText)
 				rootView.findViewById(R.id.com_ovrhere_currConv_main_edittext_valueToConv);
-		et_currInput.addTextChangedListener(valueInputListener);
-		et_currInput.clearFocus();
+		et_currInput.addTextChangedListener(valueInputListener);		
 	}
 	/** Initializes adapters for output list and spinners. */
 	private void initAdapters() {
@@ -440,7 +450,7 @@ implements Handler.Callback, OnItemLongClickListener {
 							0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
-		if (updateInterval < interval){
+		if (updateInterval < interval ){
 			requestFreshExchangeRates(true);
 			checkTimestampWarning(r, currencyData);
 		}
@@ -478,7 +488,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @param forceUpdate <code>true</code> to force online update, 
 	 * <code>false</code> to forgo it. */
 	private void requestFreshExchangeRates(boolean forceUpdate) {
-		asycModel.sendMessage(
+		asyncModel.sendMessage(
 				CurrencyExchangeRateAsyncModel.REQUEST_GET_ALL_RECORDS, 
 				forceUpdate);
 	}
@@ -595,6 +605,9 @@ implements Handler.Callback, OnItemLongClickListener {
 	
 	@Override
 	public boolean handleMessage(Message msg) {
+		if (DEBUG){
+			Log.d(LOGTAG, "Message received: "+msg.what );
+		}
 		switch (msg.what){
 		case CurrencyExchangeRateAsyncModel.REPLY_RECORDS_RESULT:
 			try {
@@ -615,6 +628,7 @@ implements Handler.Callback, OnItemLongClickListener {
 					checkTimestampToUpdate(getResources(), currencyList.get(0));
 				} else {
 					currentlyUpdating = false;
+					checkProgressBar();
 				}
 			} catch (ClassCastException e){
 				Log.e(LOGTAG, "Current data invalid: "+e);
@@ -625,13 +639,14 @@ implements Handler.Callback, OnItemLongClickListener {
 			return true;
 		case CurrencyExchangeRateAsyncModel.NOTIFY_UPDATING_RATES:
 			currentlyUpdating = true;
+			checkProgressBar();
 			return true;
 		case CurrencyExchangeRateAsyncModel.ERROR_REQUEST_FAILED:
 		case CurrencyExchangeRateAsyncModel.ERROR_REQUEST_TIMEOUT:
 			currentlyUpdating = false;
+			checkProgressBar();
 			return true;
 		}
-		checkProgressBar();
 		
 		return false;
 	}

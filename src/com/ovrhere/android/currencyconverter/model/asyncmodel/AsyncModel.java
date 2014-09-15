@@ -28,7 +28,7 @@ import android.os.Message;
  * Documentation requires overriding.
  * 
  * @author Jason J.
- * @version 0.1.0-20140613 
+ * @version 0.1.1-20140914 
  */
 abstract public class AsyncModel {
 	/* * If implemented: Inserts a single record into the database. 
@@ -73,7 +73,9 @@ abstract public class AsyncModel {
 	/** Closes and cleans up anything the model 
 	 * needs to before closing. Default clears the handler list. */ 
 	public void dispose() {
-		mHandlerList.clear();
+		synchronized (mHandlerList) {
+			mHandlerList.clear();
+		}
 	}
 	
 	/** Sends a request to the model to handle. 
