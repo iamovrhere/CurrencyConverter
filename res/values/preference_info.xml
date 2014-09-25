@@ -47,7 +47,8 @@
 	<!-- Default Value to com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX  -->
 	<item name="com_ovrhere_currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"
 	    type="integer">0</item>
-	<!-- Default Value to com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL  -->
+	<!-- Default Value to com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL;
+	currently 1 hour  -->
 	<item name="com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
 	    type="integer">3600000</item>
 	

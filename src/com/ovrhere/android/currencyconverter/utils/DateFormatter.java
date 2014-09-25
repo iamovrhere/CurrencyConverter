@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.res.Resources;
 
 /** Used for formatting {@link Date}s and timestamps created by {@link Timestamp}
- * into readable data.
+ * into readable data.  
  * @author Jason J.
  * @version 0.1.0-20140904
  */
@@ -18,6 +18,8 @@ public class DateFormatter {
 	/** Class name for debugging purposes. */
 	final static private String CLASS_NAME = DateFormatter.class
 			.getSimpleName();
+	
+	//TODO restructure using DateUtils
 	
 	/** Minute in milliseconds. */
 	final static private long MINUTE_IN_MILLIS = 60000; //ms 

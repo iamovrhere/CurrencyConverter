@@ -28,40 +28,12 @@ import android.os.Message;
  * Documentation requires overriding.
  * 
  * @author Jason J.
- * @version 0.1.1-20140914 
+ * @version 0.1.2-20140919 
  */
 abstract public class AsyncModel {
-	/* * If implemented: Inserts a single record into the database. 
-	 * Expects a data access object of some kind. */
-	//final static public int REQUEST_INSERT_RECORD = 0x000;
-	/* * If implemented: Updates a single record in the database. 
-	 * Expects a data access object of some kind. */
-	//final static public int REQUEST_UPDATE_RECORD = 0x001;
-	/* * If implemented: Deletes a single record in the database. 
-	 * Expects an integer or string id. */
-	//final static public int REQUEST_DELETE_RECORD = 0x002;
-	
-	/* * If implemented: Retrieves a single record from the database. 
-	 * May be accompanied by an id (integer or string). 
-	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
-	//final static public int REQUEST_GET_SINGLE_RECORD = 0x003;
-	/* * If implemented: Retrieves multiple records from the database. 
-	 * May be accompanied by an id (integer list or string list). 
-	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
-	//final static public int REQUEST_GET_MULTI_RECORDS = 0x004;
-	/* * If implemented: Retrieves all records from the database. 
-	 * Responds via {@link #REPLY_RECORDS_RESULT}. */
-	//final static public int REQUEST_GET_ALL_RECORDS = 0x005;
-		
-	
-	/* * Reply of relevant records. 
-	 * Accompanied by a {@link List} of data access objects. */
-	//final static public int REPLY_RECORDS_RESULT = 0x100;
 	
 	/** Generic error given if request fails. */
 	final static public int ERROR_REQUEST_FAILED = 0x4000;
-	/*  Error given if request timesout. */
-	//final static public int ERROR_REQUEST_TIMEOUT = 0x4001;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End Request & Reponses keys
@@ -94,7 +66,7 @@ abstract public class AsyncModel {
 	 * @return -1 if nothing was done (unsupported action), 0 for success,
 	 * 1 for failure. */
 	public int sendMessage(int what, Bundle data){
-		return sendMessage(what, data);
+		return sendMessage(what, (Object) data);
 	}
 	
 	/** Sends a request to the model. Default behaviour is to call 

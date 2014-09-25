@@ -25,13 +25,13 @@ import com.ovrhere.android.currencyconverter.R;
  * Preference Utility for handling the preferences and the preference container.
  * Has ability to set defaults.
  * @author Jason J.
- * @version 0.2.0-20140904
+ * @version 0.3.0-20140925
  */
 public class PreferenceUtils {
 	/* The class name. */
 	//final static private String CLASS_NAME = PreferenceUtils.class.getSimpleName();	
 	/** The key for the first run/preferences set pref. */
-	final static protected String KEY_PREFERENCES_SET = "com.ovrhere.morseflash.KEY_FIRST_RUN";
+	final static protected String KEY_PREFERENCES_SET = "com.ovrhere.currConv.KEY_FIRST_RUN";
 	/** The pref value for the first run/preferences set . 
 	 * @see {@link #KEY_PREFERENCES_SET} */
 	final static protected boolean VALUE_PREFERENCES_SET	 = true;
