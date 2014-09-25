@@ -62,7 +62,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.4.4-20140914
+ * @version 0.5.0-20140925
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -109,10 +109,13 @@ implements Handler.Callback, OnItemLongClickListener {
 	
 	/** The shared preference handle. */
 	private SharedPreferences prefs = null;
-	
+	/** The state of the view. */
+	private boolean viewBuilt = false;
+		
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Views start here
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** The spinner for the from Currency. */
 	private Spinner sp_sourceCurr = null;
 	/** The spinner for the to Currency. */
@@ -141,24 +144,22 @@ implements Handler.Callback, OnItemLongClickListener {
 			outState.putParcelableArrayList(KEY_CURRENCY_LIST, 
 					(ArrayList<? extends Parcelable>) currencyList);
 		}
-		outState.putString(KEY_CURRENCY_VALUE_INPUT, 
-				et_currInput.getText().toString());
-		outState.putBoolean(KEY_CURRENTLY_UPDATING, 
-				currentlyUpdating);
+		if (viewBuilt){
+			outState.putString(KEY_CURRENCY_VALUE_INPUT, 
+					et_currInput.getText().toString());
+			outState.putBoolean(KEY_CURRENTLY_UPDATING, 
+					currentlyUpdating);
+		}
 	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		asyncModel.dispose();
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		asyncModel = new CurrencyExchangeRateAsyncModel(getActivity());
-		asyncModel.addMessageHandler(asyncHandler);
 		
 		dateResUnits.put(DateFormatter.MINUTE_UNIT, 
 					R.plurals.com_ovrhere_currConv_minutes);
@@ -170,32 +171,9 @@ implements Handler.Callback, OnItemLongClickListener {
 		if (PreferenceUtils.isFirstRun(getActivity())){
 			PreferenceUtils.setToDefault(getActivity());
 		}
-		prefs = PreferenceUtils.getPreferences(getActivity());		
-		
-		if (savedInstanceState == null){
-			requestFreshExchangeRates(false);
-		} else {
-				currentlyUpdating = savedInstanceState.getBoolean(
-						KEY_CURRENTLY_UPDATING);
-			
-			ArrayList<Parcelable> list = 
-					savedInstanceState.getParcelableArrayList(KEY_CURRENCY_LIST);
-			synchronized (currencyList) {
-				if (list != null){
-					currencyList.clear();
-					try {
-						currencyList.addAll((Collection<? extends CurrencyData>) list);
-					} catch (ClassCastException e){
-						Log.e(LOGTAG, "Current data invalid: "+e);
-					}
-				}
-				if (currencyList.isEmpty()){
-					requestFreshExchangeRates(false);
-				}
-			}
-		}		
-		
+		prefs = PreferenceUtils.getPreferences(getActivity());
 	}
+	
 
 	
 	@Override
@@ -203,6 +181,11 @@ implements Handler.Callback, OnItemLongClickListener {
 			Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_main, container,
 				false);
+
+		asyncModel = new CurrencyExchangeRateAsyncModel(getActivity());
+		asyncModel.addMessageHandler(asyncHandler);
+		processStateForRates(savedInstanceState);	
+		
 		initAdapters();		
 		initInputViews(rootView);
 		initOutputViews(rootView);
@@ -211,9 +194,17 @@ implements Handler.Callback, OnItemLongClickListener {
 		
 		updateCurrencyAdapters();
 		updateSourceCurrency();
+		viewBuilt = true;
 		return rootView;
 	}
 	
+	@Override
+	public void onDestroyView() {	
+		super.onDestroyView();
+		viewBuilt = false;
+		asyncModel.dispose();
+		asyncModel = null;
+	}
 	
 	
 	@Override
@@ -225,7 +216,7 @@ implements Handler.Callback, OnItemLongClickListener {
 		    
 		    CurrencyData currency = outputListAdapter.getItem(info.position);
 		    if (currency != null){
-		    	String title = getActivity().getResources().getString(
+		    	String title = getString(
 		    			R.string.com_ovrhere_currConv_context_currencyAction,
 		    			currency.getCurrencyCode());
 		    	menu.setHeaderTitle(title);
@@ -258,20 +249,48 @@ implements Handler.Callback, OnItemLongClickListener {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Initializer helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/** Processes the save state for rates, requesting if there are none.
+	 * Requires asyncModel to be valid. */
+	@SuppressWarnings("unchecked")
+	public void processStateForRates(Bundle savedInstanceState) {
+		if (savedInstanceState == null){
+			requestFreshExchangeRates(false);;
+		} else {
+				currentlyUpdating = savedInstanceState.getBoolean(
+						KEY_CURRENTLY_UPDATING);
+			
+			ArrayList<Parcelable> list = 
+					savedInstanceState.getParcelableArrayList(KEY_CURRENCY_LIST);
+			synchronized (currencyList) {
+				if (list != null){
+					currencyList.clear();
+					try {
+						currencyList.addAll((Collection<? extends CurrencyData>) list);
+					} catch (ClassCastException e){
+						Log.e(LOGTAG, "Current data invalid: "+e);
+					}
+				}
+				if (currencyList.isEmpty()){
+					requestFreshExchangeRates(false);
+				}
+			}
+		}
+	}
+	
 	/** Processes the saved state, preferences and updates views accordingly.
 	 * Assumes all views to be valid.
 	 * @param savedInstanceState The current saved state.
 	 * @see #initInputViews(View)
 	 * @see #initOutputViews(View) 	 */
 	private void processSavedState(Bundle savedInstanceState) {
-		Resources r = getActivity().getResources();
 		int sourceCurrSelect = 
 				prefs.getInt(
-						r.getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
+						getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
 						0);
 		int destCurrSelect = 
 				prefs.getInt(
-						r.getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX), 
+						getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX), 
 						0);
 
 		sp_sourceCurr.setSelection(sourceCurrSelect);
@@ -312,7 +331,12 @@ implements Handler.Callback, OnItemLongClickListener {
 
 		img_currFlag = (ImageView)  
 				rootView.findViewById(R.id.com_overhere_currConv_main_image_currFlag);
+		//show or hide flags, depending on bool.
+		boolean showFlags = 
+				getResources().getBoolean(R.bool.com_ovrhere_currConv_showFlags);
+		img_currFlag.setVisibility(showFlags ?  View.VISIBLE : View.GONE);
 	}
+	
 	/** Initializes all input views. Assumes adapters are valid.
 	 * @param rootView The rootview to configure	
 	 * @see #initAdapters()	 */
@@ -342,9 +366,10 @@ implements Handler.Callback, OnItemLongClickListener {
 				new CurrencyDataSpinnerAdapter(getActivity(), 
 						android.R.layout.simple_list_item_1, true);
 		destCurrAdapter.setSelectAllText(
-				getActivity().getResources()
-					.getString(R.string.com_ovrhere_currConv_spinner_dest_selectAll));
+				getString(R.string.com_ovrhere_currConv_spinner_dest_selectAll));
 	}
+	
+	
 	/** Initializes the hiding of the keyboard for all non-edit-texts views.
 	 * @param rootView The rootview to attach to.
 	 */
@@ -394,7 +419,7 @@ implements Handler.Callback, OnItemLongClickListener {
 			return;
 		}
 		Resources r = getActivity().getResources();
-		checkTimestampWarning(r, data);
+		checkTimestampWarning(data);
 		
 		tv_currSymbol.setText(data.getCurrencySymbol());
 		int flagId = data.getFlagResource(); 
@@ -412,11 +437,12 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @param detailed <code>true</code> to copy with multiple decimals places,
 	 * <code>false</code> for the basic currency decimals.	 */
 	private void copyConvertedValue(int position, boolean detailed) {
-		Resources r = getActivity().getResources();
 		CurrencyData sourceCurrency = (CurrencyData) sp_sourceCurr.getSelectedItem();
 		CurrencyData destCurrency = outputListAdapter.getItem(position);
+		
 		if (destCurrency != null && sourceCurrency != null){
 			double amount = convertToDouble(et_currInput.getText().toString());
+			//produces: $ [converted value] CODE
 			String value = destCurrency.getCurrencySymbol() +
 					CurrencyCalculator.format(
 							destCurrency, 
@@ -427,11 +453,13 @@ implements Handler.Callback, OnItemLongClickListener {
 							detailed
 							)
 					+" "+destCurrency.getCurrencyCode();
-			String label = 
-					r.getString(R.string.com_ovrhere_currConv_clipboard_label_copiedCurrency);
+			
+			String label = getString(
+					R.string.com_ovrhere_currConv_clipboard_label_copiedCurrency);
 			CompatClipboard.copyToClipboard(getActivity(), label, value);
 		}
 	}
+	
 	/** Hides/Shows the progress bar based on the value of {@link #currentlyUpdating}. */
 	private void checkProgressBar(){
 		updateProgressSpin.setVisibility(
@@ -440,30 +468,28 @@ implements Handler.Callback, OnItemLongClickListener {
 	
 	/** Takes the currency time stamp and checks if request for a new update.
 	 * and update views. 
-	 * @param r The resources to access strings with.
 	 * @param currencyData The current data to parse. 
 	 * @return The readable timestamp.	 */
-	private void checkTimestampToUpdate(Resources r, CurrencyData currencyData) {
+	private void checkTimestampToUpdate(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
-							r.getString(
+							getString(
 									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 							0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
 		if (updateInterval < interval ){
 			requestFreshExchangeRates(true);
-			checkTimestampWarning(r, currencyData);
+			checkTimestampWarning(currencyData);
 		}
 	}
 	
 
-	/** Takes the currency time stamp and checks if to display message. 
-	 * @param r The resources to access strings with.
+	/** Takes the currency time stamp and checks if to display message.
 	 * @param currencyData The current data to parse. 
 	 * @return The readable timestamp.	 */
-	private void checkTimestampWarning(Resources r, CurrencyData currencyData) {
+	private void checkTimestampWarning(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
-							r.getString(
+							getString(
 									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 							0);
 		long interval = 
@@ -473,7 +499,7 @@ implements Handler.Callback, OnItemLongClickListener {
 					getActivity(), dateResUnits,
 					currencyData.getModifiedDate());
 			tv_warning.setText(
-					r.getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
+					getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
 							timestamp)
 							);
 			tv_warning.setVisibility(View.VISIBLE);
@@ -507,7 +533,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @param value The value to insert.	 */
 	private void putIntPref(int stringRes, int value){
 		SharedPreferences.Editor editor = prefs.edit();
-		editor.putInt(getActivity().getResources().getString(stringRes), value);
+		editor.putInt(getString(stringRes), value);
 		editor.commit();
 	}
 	
@@ -625,7 +651,7 @@ implements Handler.Callback, OnItemLongClickListener {
 				updateCurrencyAdapters();
 				updateSourceCurrency();
 				if (!currentlyUpdating){
-					checkTimestampToUpdate(getResources(), currencyList.get(0));
+					checkTimestampToUpdate(currencyList.get(0));
 				} else {
 					currentlyUpdating = false;
 					checkProgressBar();

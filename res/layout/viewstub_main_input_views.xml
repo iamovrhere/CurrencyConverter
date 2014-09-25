@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2014 Jason J.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <TextView
+        android:id="@+id/com_ovrhere_currConv_main_text_currSymbol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        
+        android:layout_alignParentLeft="true"
+        android:layout_alignBaseline="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
+        
+        android:text="@string/com_ovrhere_currConv_USD_symbol"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <EditText
+            android:id="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:lines="1"
+            android:minWidth="@dimen/com_ovrhere_currConv_main_input_minWidth"
+            android:inputType="numberDecimal"
+            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_alignTop="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_alignBottom="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_toRightOf="@+id/com_ovrhere_currConv_main_text_currSymbol"
+            android:layout_toLeftOf="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            
+            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
+             
+            android:maxLength="100000000001"
+            />
+        
+         <ImageView
+            android:id="@+id/com_overhere_currConv_main_image_currFlag"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_sourceFlag_width"
+            android:scaleType="fitCenter"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_flag_error" 
+            android:contentDescription="@string/com_ovrhere_currConv_USD_name"
+            
+            />
+         <!-- Work around to get the image view to appear + disappear
+         without the spinner jumping left -->
+         <View 	android:id="@+id/com_ovrhere_currConv_main_dummyLeft"
+             	android:layout_height="1dp"
+             	android:layout_width="match_parent"
+             	android:layout_toLeftOf="@+id/com_overhere_currConv_main_image_currFlag"
+             />
+         
+        <Spinner
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_width="@dimen/com_ovrhere_currConv_main_spinner_width"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
+            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_marginRight="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
+            android:layout_alignRight="@+id/com_ovrhere_currConv_main_dummyLeft"
+            
+            />
+         
+
+        <Spinner
+            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
+            android:minWidth="@dimen/com_ovrhere_currConv_main_spinner_width"
+            android:layout_below="@+id/com_ovrhere_currConv_main_progressSpin"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_destSpinner_topPadding" />
+
+       
+
+        <TextView
+            android:id="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_centerHorizontal="true"
+            android:text="@string/com_ovrhere_currConv_cachedRate_warning"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/com_ovrhere_currConv_warningColor"
+             />
+        
+        <ProgressBar
+            android:id="@+id/com_ovrhere_currConv_main_progressSpin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_centerHorizontal="true" 
+            style="@android:style/Widget.ProgressBar.Small"
+            />
+       
+</RelativeLayout>
