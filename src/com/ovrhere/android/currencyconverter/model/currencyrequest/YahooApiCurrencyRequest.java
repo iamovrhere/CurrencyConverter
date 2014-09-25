@@ -15,18 +15,12 @@
  */
 package com.ovrhere.android.currencyconverter.model.currencyrequest;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import android.util.Log;
+import com.ovrhere.android.currencyconverter.model.requests.AbstractSimpleHttpRequest;
 
 /**
  * Makes yahoo api request for currencies. Requests are made to be non-redundant 
@@ -42,16 +36,13 @@ import android.util.Log;
  * Note that an instance of {@link YahooApiCurrencyRequest} will only run 
  * one request at a time and that requests are blocking</p>
  * @author Jason J.
- * @version 0.3.1-20140914
+ * @version 0.4.0-20140925
  */
-public class YahooApiCurrencyRequest implements Runnable {
+public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	/** The logtag for debuggin. */
+	@SuppressWarnings("unused")
 	final static private String LOGTAG = YahooApiCurrencyRequest.class
 			.getSimpleName();
-	/** Whether or not to output debugging logs. */ 
-	final static private boolean DEBUG = false;
-	/** The default timeout period in milliseconds. */ 
-	final static private int DEFAULT_TIMEOUT = 10000; //ms
 	
 	/** The API url to  base the query on.  
 	 *  Use {@link String#format(java.util.Locale, String, Object...)  
@@ -73,10 +64,6 @@ public class YahooApiCurrencyRequest implements Runnable {
 	
 	/** The prepared request ready for execution. */
 	private String preparedRequest = "";
-	/** The required listener for the request. */
-	volatile private OnRequestEventListener mRequestEventListener = null;
-	/** The request timeout period in milliseconds. */
-	private int requestTimeout = DEFAULT_TIMEOUT;
 	/** Whether not to use json format. */
 	private boolean jsonFormat = false;
 	
@@ -88,8 +75,9 @@ public class YahooApiCurrencyRequest implements Runnable {
 	 */
 	public YahooApiCurrencyRequest(String[] sourceCode, String[] destCodes,
 			OnRequestEventListener onRequestEventListener) {
+		super();
 		prepareRequest(Arrays.asList(sourceCode), Arrays.asList(destCodes));
-		this.mRequestEventListener = onRequestEventListener;
+		this.setOnRequestEventListener(onRequestEventListener);
 	}
 	
 	/** Creates and prepares a new request.
@@ -103,30 +91,9 @@ public class YahooApiCurrencyRequest implements Runnable {
 		List<String> mDestCodes = new ArrayList<String>();
 		mDestCodes.addAll(destCodes);
 		prepareRequest(sourceCodes, mDestCodes);
-		this.mRequestEventListener = onRequestEventListener;
+		this.setOnRequestEventListener(onRequestEventListener);
 	}
 	
-	
-	/** Sets a request event listener. 
-	 * @param onRequestEventListener The implementer of this interface	 */
-	public void setOnRequestEventListener(
-			OnRequestEventListener onRequestEventListener) {
-		this.mRequestEventListener = onRequestEventListener;
-	}
-	/** Sets how long in milliseconds before the request gives up. Will not 
-	 * take effect during a request.
-	 * @param requestTimeout The time in milliseconds	 */
-	public void setRequestTimeout(int requestTimeout) {
-		if (requestTimeout < 0){
-			throw new IllegalArgumentException("Cannot be less than 0");
-		}
-		this.requestTimeout = requestTimeout;
-	}
-	/** Returns the timeout period before giving up.
-	 * @return The timeout in milliseconds	 */
-	public long getRequestTimeout() {
-		return requestTimeout;
-	}
 	/** Whether to use json format for the response. False by default.
 	 * @param jsonFormat <code>true</code> for JSON, <code>false</code> for XML.
 	 */
@@ -134,56 +101,9 @@ public class YahooApiCurrencyRequest implements Runnable {
 		this.jsonFormat = jsonFormat;
 	}
 	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Runnable
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
 	@Override
-	public void run() {
-		synchronized (preparedRequest) {
-			final int QUERY_TIMEOUT = requestTimeout;
-			
-			HttpURLConnection urlConnection = null;
-			int responseCode = 0;
-			try {
-				URL url = new URL(preparedRequest);
-				urlConnection = (HttpURLConnection) url.openConnection();
-				urlConnection.setConnectTimeout((int) QUERY_TIMEOUT);
-				urlConnection.setReadTimeout((int) QUERY_TIMEOUT);
-				urlConnection.setRequestMethod("GET");
-				urlConnection.setDoInput(true);
-			    // Start query
-				urlConnection.connect();
-				responseCode = urlConnection.getResponseCode();
-
-				InputStream in = 
-						new BufferedInputStream(urlConnection.getInputStream());
-				
-				mRequestEventListener.onStart(in);
-			} catch (MalformedURLException e){
-				if (DEBUG){
-					Log.e(LOGTAG, "Poorly formed request: "+e);
-				}
-				mRequestEventListener.onException(e);
-				return;
-			} catch(IOException e){
-				if (DEBUG){
-					Log.e(LOGTAG, 
-							"Cannot perform request (response code:"+
-							responseCode+"): "+e);
-				}
-				mRequestEventListener.onException(e);
-				return;				
-			}  catch (Exception e){
-				if (DEBUG){
-					Log.w(LOGTAG, "Unexpected error occurred: " + e);
-				}
-				mRequestEventListener.onException(e);
-				return;
-			}
-			mRequestEventListener.onComplete();	
-		}
-		
+	protected String getPreparedRequest() {
+		return preparedRequest;
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,24 +140,4 @@ public class YahooApiCurrencyRequest implements Runnable {
 			preparedRequest += JSON_API_APPEND;
 		}
 	}
-	
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Internal interfaces
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/** Provides a list of methods to notify the listener of runnable events 
-	 * and results.
-	 *  @version 0.1.0-20140905	 */
-	public interface OnRequestEventListener {
-		/** Sends any exceptions encountered to the listener.
-		 * @param e The forwarded exception, if any.		 */
-		public void onException(Exception e);
-		/** Sent when the request starts
-		 * @param in The input stream being used		 */
-		public void onStart(InputStream in);
-		/** When the request run has been concluded. */
-		public void onComplete();
-	}
-
 }

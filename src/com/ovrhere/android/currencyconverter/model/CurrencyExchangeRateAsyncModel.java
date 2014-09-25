@@ -17,6 +17,7 @@ package com.ovrhere.android.currencyconverter.model;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -41,14 +42,13 @@ import com.ovrhere.android.currencyconverter.model.asyncmodel.RunnableHeadlessFr
 import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyRequest;
 import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyXmlParser;
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
-
 /**
  * 
  * Remember to call {@link #dispose()} to start cleanup and release 
  * the {@link Context}.
  * 
  * @author Jason J.
- * @version 0.3.2-20140914
+ * @version 0.4.0-20140925
  */
 public class CurrencyExchangeRateAsyncModel extends AsyncModel 
 implements YahooApiCurrencyRequest.OnRequestEventListener {
@@ -155,18 +155,6 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	}
 
 	
-	/** {@link Deprecated} Use {@link #CurrencyExchangeRateAsyncModel(FragmentActivity)}.
-	 *   @param context The context to use when opening the model. */
-	@Deprecated
-	public CurrencyExchangeRateAsyncModel(Context context) {
-		this.mLocalModel = new CurrencyExchangeRateModel(context);
-		this.res = context.getResources();
-		this.currencyCodeList.addAll( 
-				Arrays.asList(
-							res.getStringArray(R.array.com_ovrhere_currConv_rateOrder))
-							);
-	}
-	
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -185,7 +173,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 		if (DEBUG){
 			Log.d(LOGTAG, "sendMessage: "+what);
 		}
-		// TODO Complete implementation.
+		
 		switch (what) {
 		case REQUEST_GET_ALL_RECORDS:
 			if (((Boolean) object)){
@@ -208,6 +196,22 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	private void requestRecords(){
 		requestRecords(false);
 	}
+	
+
+	/*
+	 * Response logic is as follows:
+	 * -If records are empty/forced update: request update
+	 * -A) If continuing as normal: 
+	 *   + update database 
+	 *   + re-fetch db values and send values
+	 * -B) If the model is "disposed" during an update: 
+	 *  + Set a check for disposal
+	 *  + Run request until update and update the model-x
+	 *  + dispose model-x after update; releasing context
+	 *  + if request is made in new model-y while model-x is still running:
+	 *    re-attach model to runnable, and follow route "A" above
+	 */
+	
 	/** The basic request of records.	 
 	 * @param force <code>true</code> forces and update, <code>false</code>
 	 * does not.*/
@@ -228,10 +232,11 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 		}
 		replyWithRecords(records);
 	}
+	
 	/** The request for api values from {@link YahooApiCurrencyRequest}. */
 	private void requestApiValues(List<CurrencyData> records){
 		if (isUpdating){
-			return;
+			return; //we are already updating, it will return eventually
 		}
 		if (records.isEmpty()){
 			if (DEBUG){
@@ -465,16 +470,22 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 			Log.d(LOGTAG, "Exception in object: " +this.hashCode());
 		}
 		try {
-			throw exception;
-		} catch (IOException e){
+			throw exception;		
+		} catch (SocketTimeoutException e){
 			if (DEBUG){
 				e.printStackTrace();
 			}
 			notifyHandlers(ERROR_REQUEST_TIMEOUT, null);
+		} catch (IOException e){
+			if (DEBUG){
+				e.printStackTrace();
+			}
+			notifyHandlers(ERROR_REQUEST_FAILED, null);
 		} catch (Exception e){
 			if (DEBUG){
 				e.printStackTrace();
 			}
+			notifyHandlers(ERROR_REQUEST_FAILED, null);
 		}
 
 		isUpdating = false;
@@ -482,6 +493,12 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 	}
 
 
+	@Override
+	public void onResponseCode(int responseCode) {
+		if (DEBUG){
+			Log.d(LOGTAG, "Repsonse code: " + responseCode);
+		}
+	}
 	
 	@Override
 	public void onComplete() {
