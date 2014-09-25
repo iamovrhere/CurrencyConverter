@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2014 Jason J.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<PreferenceScreen  xmlns:android="http://schemas.android.com/apk/res/android"
+   	android:defaultValue="false"
+      >
+    
+	<ListPreference 
+		android:key="@string/currConv_settings_KEY_UPDATE_INTERVAL"
+        android:title="@string/currConv_settings_updateInterval_title"
+        android:entries="@array/currConv_spinner_updatePeriod_labels"
+        android:entryValues="@array/currConv_spinner_updatePeriod_values"
+        android:dialogTitle="@string/currConv_settings_updateInterval_title"
+        android:persistent="false"
+        />
+    
+    <Preference 
+        android:key="@string/currConv_settings_KEY_CLEAR_SETTINGS"
+        android:title="@string/currConv_settings_clearSettings_title" 
+        android:summary="@string/currConv_settings_clearSettings_summary"
+        android:persistent="false"
+		/>
+    
+     <Preference 
+        android:key="@string/currConv_settings_KEY_SOFTWARE_VERSION"
+        android:title="@string/currConv_settings_softwareVersion_title" 
+        android:persistent="false"
+		/>
+    
+</PreferenceScreen>
