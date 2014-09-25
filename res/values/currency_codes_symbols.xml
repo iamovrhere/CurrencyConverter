@@ -53,22 +53,7 @@
     <!-- The symbol for JPY -->
     <string name="com_ovrhere_currConv_JPY_symbol" >¥</string>
     
-    <!-- Long names. -->
-    <eat-comment />    
-    <!-- The name for USD -->
-    <string name="com_ovrhere_currConv_USD_name" 
-        >United States Dollar</string>
-    <!-- The name for CAD -->
-    <string name="com_ovrhere_currConv_CAD_name" 
-        >Canadian Dollar</string>    
-    <!-- The name for EUR -->
-    <string name="com_ovrhere_currConv_EUR_name" 
-        >Euro</string>
-    <!-- The name for GBP -->
-    <string name="com_ovrhere_currConv_GBP_name" 
-        >Great British Pound</string>
-    <!-- The name for JPY -->
-    <string name="com_ovrhere_currConv_JPY_name" 
-        >Japanese Yen</string>
-    
+    <!-- Long names. Migrated to strings.xml for translation purposes -->
+    <eat-comment />  
+        
 </resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Copyright 2014 Jason J.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<resources>
+    
+    <!--  The values for the spinner of update times (in milliseconds!)
+    Parallel to currConv_spinner_updatePeriod_labels  -->
+    <string-array name="currConv_spinner_updatePeriod_values">
+        <item>300000</item><!-- 5 minutes -->
+		<item>900000</item><!-- 15 minutes -->
+		<item>1800000</item><!-- 30 minutes -->
+		<item>3600000</item><!-- 1 hour -->
+		<item>7200000</item><!-- 2 hours -->
+		<item>21600000</item><!-- 6 hours -->
+		<item>43200000</item><!-- 12 hours -->
+		<item>86400000</item><!-- 24 hours -->
+		<item>172800000</item><!--2 days  -->
+		<item>604800000</item><!-- 1 week -->        
+    </string-array>
+    
+    <!-- Default vlues used with the update list. -->
+    <integer-array name="currConv_spinner_updatePeriod_default" >
+        <item >@integer/com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL</item>
+    </integer-array>
+    
+</resources>

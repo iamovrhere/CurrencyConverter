@@ -18,7 +18,7 @@
 
     <!-- The name of the application. -->
     <string name="app_name">Currency Converter</string>
-    <string name="hello_world">Hello world!</string>
+    <!-- Settings label string -->
     <string name="action_settings">Settings</string>
    	
    	<!-- The warning to give when the value supplied is using a cached value. 
@@ -45,6 +45,47 @@
         Detailed copy
     </string>
     
+      <!-- Start Long current names. -->
+    <eat-comment />    
+    <!-- The name for USD -->
+    <string name="com_ovrhere_currConv_USD_name" 
+        >United States Dollar</string>
+    <!-- The name for CAD -->
+    <string name="com_ovrhere_currConv_CAD_name" 
+        >Canadian Dollar</string>    
+    <!-- The name for EUR -->
+    <string name="com_ovrhere_currConv_EUR_name" 
+        >Euro</string>
+    <!-- The name for GBP -->
+    <string name="com_ovrhere_currConv_GBP_name" 
+        >Great British Pound</string>
+    <!-- The name for JPY -->
+    <string name="com_ovrhere_currConv_JPY_name" 
+        >Japanese Yen</string>
+    
+    
+      <!-- End Long current names. -->
+    <eat-comment />    
+    
+    
+    <!-- Start update periods -->
+    <eat-comment />    
+     <!-- The labels for the spinner of update times.
+    Parallel to  currConv_spinner_updatePeriod_values -->
+    <string-array name="currConv_spinner_updatePeriod_labels">
+        <item>5 minutes</item>
+		<item>15 minutes</item>
+		<item>30 minutes</item>
+		<item>1 hour</item>
+		<item>2 hours</item>
+		<item>6 hours</item>
+		<item>12 hours</item>
+		<item>24 hours</item>
+		<item>2 days</item>
+		<item>1 week</item>
+    </string-array>
+    
+    
     <!-- The plurals for the time display of hours. -->
     <plurals name="com_ovrhere_currConv_hours">
         <item quantity="zero">0 hours ago</item>
@@ -66,4 +107,34 @@
         <item quantity="other">%d days ago</item>
     </plurals>
     
+    
+    <!-- Beginning settings block -->
+    <eat-comment />
+    
+    <!-- The pref title app version -->
+    <string name="currConv_settings_updateInterval_title"
+        >Update interval</string>
+    
+    <!-- The pref title for clearin settings -->
+    <string name="currConv_settings_clearSettings_title"
+        >Reset all settings</string>
+    <!-- The pref description for clearing settings  -->
+    <string name="currConv_settings_clearSettings_summary"
+        >Set all settings to default values</string>
+    <!-- The clearing settings confirmation message  -->
+    <string name="currConv_settings_clearSettings_confirmMsg"
+        >Are you sure you wish to reset ALL settings? 
+        This cannot be undone.</string>
+    
+    <!-- Toast for when settings are cleared. -->
+    <string name="currConv_toast_clearedSettings"
+        >Settings reset</string>
+        
+    <!-- The pref title app version -->
+    <string name="currConv_settings_softwareVersion_title"
+        >Application version</string>
+    
+    <!-- Ends settings fragment strings -->
+    <eat-comment />
+   
 </resources>
