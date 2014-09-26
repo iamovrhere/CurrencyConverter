@@ -7,11 +7,11 @@ This app is intended to be a utility for converting between multiple currencies.
 
 ###Notes
 
-The app supports **Android 2.3.3** and up. It is currently an open beta release. 
+The app supports **Android 2.3.3** and up, with enhanced support for tablet & small screens. It is currently an open beta release. 
 
-Application requires the compatibility v7 library. Uses resources from [Android Holo Colors Generator](http://android-holo-colors.com/ "Android Holo Colors Generator").
+Application requires the Android v7 compatibility library & the unoffical [preference fragment library](https://github.com/kolavar/android-support-v4-preferencefragment "android-support-v4-preferencefragment by Kolavar"). Uses resources from [Android Holo Colors Generator](http://android-holo-colors.com/ "Android Holo Colors Generator").
 
-Currently supports:
+Currently converts between:
 
 * USD (United State's Dollar)
 * CAD (Canadian Dollar)
@@ -21,7 +21,7 @@ Currently supports:
 
 Makes use of the Yahoo currency api, currently via XML parsing. All exchange rates are stored offline for future use. Context menu support allows copying of the results.
 
-As always, all graphics are done by yours truely.
+All graphics are done in a combination of GIMP & Inkscape.
 
 
 ###Screenshots
@@ -29,7 +29,13 @@ As always, all graphics are done by yours truely.
 <img src="./screenshots/currconv_screenshot0.png?raw=true" title="Screenshot of Canadian currency being converted on Gingerbread"  width="250"/> <img src="./screenshots/currconv_screenshot1.png?raw=true" title="Screenshot of context menu"  width="250"/> 
 
 
-<img src="./screenshots/currconv_screenshot2.png?raw=true" title="Screenshot of USD  being converted on Icecream Sandwich"  width="250"/>  <img src="./screenshots/currconv_screenshot3.png?raw=true" title="Screenshot of when it cannot update"  width="250"/>  
+<img src="./screenshots/currconv_screenshot2.png?raw=true" title="Screenshot of EUR  being converted on Icecream Sandwich"  width="250"/>  <img src="./screenshots/currconv_screenshot3.png?raw=true" title="Screenshot of when it cannot update"  width="250"/>
+
+<img src="./screenshots/currconv_screenshot4.png?raw=true" title="Screenshot of smaller resolutions"  width="250"/>
+
+<img src="./screenshots/currconv_screenshot5_tablet.png?raw=true" title="Screenshot of tablet view"  width="500"/>
+
+
 
 
 #License
