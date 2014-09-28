@@ -25,10 +25,12 @@ import java.net.URL;
 
 import android.util.Log;
 
-/** Outlines the basics of a simple GET http request. The request is set in
- * {@link #preparedRequest} and executed in the {@link #run()}.
- * Only allows requests to run sequentially for one object. Do not forget to 
- * call {@link #setOnRequestEventListener(OnRequestEventListener)}.
+/** Outlines the basics of a simple GET http request. The request is set via
+ * {@link #getPreparedRequest()} and executed in the {@link #run()}.
+ * Only allows one request to run at a time on any instance, as {@link #run()}
+ * blocks. Default timeout is {@value #DEFAULT_TIMEOUT}ms. 
+ * <p>Do not forget to 
+ * call {@link #setOnRequestEventListener(OnRequestEventListener)}.</p>
  * @author Jason J.
  * @version 0.2.0-20140920
  */
@@ -101,7 +103,7 @@ public abstract class AbstractSimpleHttpRequest implements Runnable{
 	abstract protected String getPreparedRequest();
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Over ridge methods
+	/// Overridden methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	@Override
