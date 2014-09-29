@@ -16,7 +16,6 @@
 package com.ovrhere.android.currencyconverter.model.currencyrequest;
 
 import java.io.IOException;
-import java.util.Locale;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -29,7 +28,7 @@ import com.ovrhere.android.currencyconverter.model.parsers.AbstractXmlParser;
 /** The xml parser for the yahoo currency exchange api.
  * Found at: <code>http://query.yahooapis.com/v1/public/yql?...</code>
  * @author Jason J.
- * @version 0.3.0-20140925 
+ * @version 0.3.1-20140929 
  * @see YahooApiCurrencyRequest */
 public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeRates> {
 		/** The tag for debugging purposes. */
@@ -46,9 +45,25 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 	/** The tag containing the actual exchange rate. */
 	final static private String TAG_EXCHANGE_RATE = "Rate";
 	
+	/* XML Form is: 
+	 * <query yahoo:count="7" yahoo:created="2014-09-29T12:52:03Z" yahoo:lang="en-US">
+	 * 	<results>
+	 * 		<rate id="USDEUR">
+	 * 			<Name>USD to EUR</Name>
+	 * 			<Rate>0.7872</Rate>
+	 * 			...
+	 * 		</rate>
+	 * 		<rate id="USDJPY">
+	 * 		...
+	 * 		</rate>
+	 * 	</results>
+	 * </query>
+	 */
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End contants
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** Initializes parser.
 	 * @throws XmlPullParserException if parser or factory fails to be created.*/
 	public YahooApiCurrencyXmlParser() throws XmlPullParserException {
@@ -115,14 +130,9 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 		CodeRatePair ratePair = new CodeRatePair();
 		
 		String idText = (String) pullParser.getAttributeValue(null, "id");
-		if (idText.length() < 6){
-			Log.w(LOGTAG, 
-					"Skipping; Unable to extract currency code from id: "+idText);
+		if (ratePair.extractCurrencyCodes(idText) == false){
 			return null;
 		}
-		//extract the last 3 characters.
-		ratePair.destCode = idText.substring(3).toUpperCase(Locale.US);
-		ratePair.srcCode = idText.substring(0,3).toUpperCase(Locale.US);
 		
 		while (pullParser.next() != XmlPullParser.END_TAG) {
 			if (pullParser.getEventType() != XmlPullParser.START_TAG) {
@@ -145,24 +155,12 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 		}
 		return ratePair;
 	}
+
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Internal classes
+	/// CodeRatePair - Moved to package directory
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** Simple internal dao for easy management. 
-	 * @version 0.2.0-20140908 */
-	static private class CodeRatePair {
-		public float rate = 0.0f;
-		public String destCode = "";
-		public String srcCode = "";
-		
-		@Override
-		public String toString() {
-			return super.toString()+
-					"[ sourceCode:"+srcCode+",destCode:"+destCode+
-					" rate:"+rate+"]";
-		}
-	}
+	
 	
 }

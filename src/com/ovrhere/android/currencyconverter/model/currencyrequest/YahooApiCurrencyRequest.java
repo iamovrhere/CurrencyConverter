@@ -36,7 +36,7 @@ import com.ovrhere.android.currencyconverter.model.requests.AbstractSimpleHttpRe
  * Note that an instance of {@link YahooApiCurrencyRequest} will only run 
  * one request at a time and that requests are blocking</p>
  * @author Jason J.
- * @version 0.4.0-20140925
+ * @version 0.4.1-20140929
  */
 public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	/** The logtag for debuggin. */
@@ -99,6 +99,14 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	 */
 	public void setJsonFormat(boolean jsonFormat) {
 		this.jsonFormat = jsonFormat;
+		if (jsonFormat){
+			if (!preparedRequest.contains(JSON_API_APPEND)){
+				//add json string
+				preparedRequest += JSON_API_APPEND;
+			}
+		} else { //remove json string
+			preparedRequest.replaceAll(JSON_API_APPEND, "");
+		}	
 	}
 	
 	@Override
