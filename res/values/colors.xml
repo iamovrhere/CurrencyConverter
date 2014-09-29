@@ -31,8 +31,8 @@
    
    <!-- Currency output list colours: The colour for even rows. 
    Starting at 2nd row. -->
-   <color name="com_ovrhere_currConv_outputEven">#33BAE6EA</color>
+   <color name="com_ovrhere_currConv_outputEven">#99c6f1f4</color>
    <!-- Currency output list colours: The colour for odd rows. 
-   Starting in first row. -->
-   <color name="com_ovrhere_currConv_outputOdd">#66eaeaea</color>
+   Starting in first row. Transparent-->
+   <color name="com_ovrhere_currConv_outputOdd">#0fff</color>
 </resources>
