@@ -26,14 +26,27 @@
         android:dialogTitle="@string/currConv_settings_updateInterval_title"
         android:persistent="false"
         />
+	
+	<CheckBoxPreference 
+	    android:key="@string/com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST"
+	    android:title="@string/currConv_settings_useJson_title"
+	    android:summary="@string/currConv_settings_useJson_summary"
+	    />
     
-    <Preference 
+	<Preference 
         android:key="@string/currConv_settings_KEY_CLEAR_SETTINGS"
         android:title="@string/currConv_settings_clearSettings_title" 
         android:summary="@string/currConv_settings_clearSettings_summary"
         android:persistent="false"
 		/>
-    
+	
+	<Preference 
+        android:key="@string/currConv_settings_KEY_MORE_APPS"
+        android:title="@string/currConv_settings_moreApps_title" 
+        android:summary="@string/currConv_settings_moreApps_summary"
+        android:persistent="false"
+		/>
+	
      <Preference 
         android:key="@string/currConv_settings_KEY_SOFTWARE_VERSION"
         android:title="@string/currConv_settings_softwareVersion_title" 

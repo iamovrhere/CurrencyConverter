@@ -115,6 +115,21 @@
     <string name="currConv_settings_updateInterval_title"
         >Update interval</string>
     
+    
+    <!-- The pref title for use json. -->
+    <string name="currConv_settings_useJson_title"
+        >Use JSON updates </string>
+    <!-- The pref summary for use json -->
+    <string name="currConv_settings_useJson_summary"
+        >Uses the more compact JSON format for updates</string>
+    
+    <!-- The pref title for more apps from this dev. -->
+    <string name="currConv_settings_moreApps_title"
+        >More apps </string>
+    <!-- The pref summary for more apps from dev -->
+    <string name="currConv_settings_moreApps_summary"
+        >See more apps from this developer</string>
+    
     <!-- The pref title for clearin settings -->
     <string name="currConv_settings_clearSettings_title"
         >Reset all settings</string>

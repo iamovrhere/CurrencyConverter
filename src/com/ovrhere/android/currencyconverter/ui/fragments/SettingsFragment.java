@@ -30,6 +30,7 @@ import android.util.Log;
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.ui.fragments.dialogs.ConfirmationDialogFragment;
+import com.ovrhere.android.currencyconverter.utils.MarketIntentUtil;
 import com.ovrhere.android.currencyconverter.utils.ToastManager;
 
 /** 
@@ -39,7 +40,7 @@ import com.ovrhere.android.currencyconverter.utils.ToastManager;
  * <a href="https://github.com/kolavar/android-support-v4-preferencefragment" 
  * target="_blank">android-support-v4-preferencefragment</a>
  * @author Jason J.
- * @version 0.1.0-20140925
+ * @version 0.2.0-20140929
  */
 public class SettingsFragment extends PreferenceFragment 
  implements OnPreferenceClickListener, OnPreferenceChangeListener {
@@ -48,6 +49,8 @@ public class SettingsFragment extends PreferenceFragment
 			.getSimpleName();
 	/** Basic debugging bool. */
 	final static private boolean DEBUG = true;
+	/** The developer name for launching intent. */
+	final static private String DEVELOPER_NAME = "iamovrhere";
 	
 	/** Clear all request. */
 	final static private int REQUEST_CLEAR_ALL = 0x101;
@@ -131,6 +134,10 @@ public class SettingsFragment extends PreferenceFragment
 				getString(R.string.currConv_settings_KEY_CLEAR_SETTINGS)
 				).setOnPreferenceClickListener(this);
 		
+		getPreferenceManager().findPreference(
+				getString(R.string.currConv_settings_KEY_MORE_APPS)
+				).setOnPreferenceClickListener(this);
+		
 		Preference  softwareVersion =
 				getPreferenceManager().findPreference(
 						getString(R.string.currConv_settings_KEY_SOFTWARE_VERSION)
@@ -194,6 +201,11 @@ public class SettingsFragment extends PreferenceFragment
 					+SettingsFragment.class.getSimpleName());
 	}
 	
+	/** Launches more apps by this developer. */
+	private void launchMoreApps(){
+		MarketIntentUtil.launchDeveloper(getActivity(), DEVELOPER_NAME); 
+	}
+	
 	/** Returns the software build version. */
 	private String softwareVersionName(){
 		try {
@@ -205,7 +217,7 @@ public class SettingsFragment extends PreferenceFragment
 			if (DEBUG){
 				e.printStackTrace();
 			}
-			return "Unavailable";
+			return "Unavailable"; //show never happen
 		}
 	}
 	
@@ -218,8 +230,14 @@ public class SettingsFragment extends PreferenceFragment
 	public boolean onPreferenceClick(Preference preference) {
 		String clearSettings =  
 				getString(R.string.currConv_settings_KEY_CLEAR_SETTINGS);
+		String moreApps =
+				getString(R.string.currConv_settings_KEY_MORE_APPS);
+		
 		if (clearSettings.equals(preference.getKey())){
 			showClearSettingsDialog();
+			return true;
+		} else if (moreApps.equals(preference.getKey())){
+			launchMoreApps();
 			return true;
 		}
 		return false;

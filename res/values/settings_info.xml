@@ -17,9 +17,14 @@
 <resources>
     <!-- Keys that are not settings actually but it's just easier to use them -->
     <eat-comment />
-    <!-- Key for clear settings -->
+    <!-- Key for update interval handle -->
     <string name="currConv_settings_KEY_UPDATE_INTERVAL"
         >currConv_settings_KEY_UPDATE_INTERVAL</string>
+    
+    <!-- Key for more apps -->
+    <string name="currConv_settings_KEY_MORE_APPS"
+        >currConv_settings_KEY_MORE_APPS</string>
+    
     
     <!-- Key for clear settings -->
     <string name="currConv_settings_KEY_CLEAR_SETTINGS"
