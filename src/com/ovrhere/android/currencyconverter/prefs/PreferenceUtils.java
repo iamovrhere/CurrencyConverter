@@ -25,7 +25,7 @@ import com.ovrhere.android.currencyconverter.R;
  * Preference Utility for handling the preferences and the preference container.
  * Has ability to set defaults.
  * @author Jason J.
- * @version 0.3.0-20140925
+ * @version 0.4.0-20140929
  */
 public class PreferenceUtils {
 	/* The class name. */
@@ -72,6 +72,7 @@ public class PreferenceUtils {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility functions
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** Sets defaults. Does not commit.
 	 * @param r The {@link Resources} manager to use getting strings from 
 	 * res/values/preferences_info.xml
@@ -89,6 +90,11 @@ public class PreferenceUtils {
 		prefEdit.putInt(
 				r.getString(R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
+		);
+		
+		prefEdit.putBoolean(
+				r.getString(R.string.com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST),
+			r.getBoolean(R.bool.com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST)
 		);
 		
 		//first run has completed.

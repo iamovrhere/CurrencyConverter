@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <resources>
-    <!-- Version 0.2.0  -->
+    <!-- Version 0.3.0  -->
     <eat-comment />
     <!-- The string used as the preference file name. -->
     <string name="com_ovrhere_currConv_PREFERENCE_FILE_KEY" >
@@ -39,6 +39,12 @@
         com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
     </string>
     
+    <!-- Boolean key. Whether or not to use json request. 
+    See  com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST -->
+    <string name="com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST" >
+        com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST
+    </string>
+    
     <!-- Preference Default Values  -->
 	<eat-comment />
 	<!-- Default Value to com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX -->
@@ -51,5 +57,11 @@
 	currently 1 hour  -->
 	<item name="com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
 	    type="integer">3600000</item>
+	
+	<!-- Default value of com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST. -->
+	<item name="com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST" 
+	    type="bool">
+        1
+    </item>
 	
 </resources>
