@@ -34,19 +34,20 @@ import android.database.sqlite.SQLiteOpenHelper;
  * <p>It is suggested but not required to implement the 
  * {@link #onUpgrade(SQLiteDatabase, int, int)} function. </p>
  * @author Jason J.
- * @version 0.2.0-20140901
+ * @version 0.2.1-20140929
  * @see DatabaseSchema
  */
 public class DatabaseOpenHelper extends SQLiteOpenHelper {
 	/** Error message for read-only helpers trying to perform write work. */ 
-	private static final String DETAILED_EXCEPTION_READ_ONLY = 
+	final private static String DETAILED_EXCEPTION_READ_ONLY = 
 		"Helper is read-only. Cannot open a writable database.";
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Start static factory methods.
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** A map of database scheme names -> writerHelperInstances (such as with inheritance). */
-	static protected HashMap<String, DatabaseOpenHelper> writeHelperInstances 
+	final protected static HashMap<String, DatabaseOpenHelper> writeHelperInstances 
 		= new HashMap<String, DatabaseOpenHelper>();
 	
 	//http://stackoverflow.com/questions/10371233/where-to-close-the-sqliteopenhelper-if-i-am-using-a-singelton-one
@@ -69,9 +70,9 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
      */
 	public static DatabaseOpenHelper getWriteHelper(Context context, 
 			DatabaseSchema databaseSchema){
-		String name = databaseSchema.getName();
-		if (!writeHelperInstances.containsKey(name)){
-			synchronized (DatabaseOpenHelper.class) {
+		synchronized (DatabaseOpenHelper.class) {
+			String name = databaseSchema.getName();
+			if (!writeHelperInstances.containsKey(name)){
 				if (!writeHelperInstances.containsKey(name)){
 					writeHelperInstances.put(name, 
 							new DatabaseOpenHelper(
@@ -79,12 +80,16 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 									databaseSchema
 									)
 								);
-					
+						
 				}
 			}
-		}
-		writeHelperInstances.get(name).incrementReferenceCount();
-		return writeHelperInstances.get(name);
+			//synchronize the return as we don't know if someone is trying to 
+			//close between the above if and return
+			
+			//increments references on this instance
+			writeHelperInstances.get(name).incrementReferenceCount();
+			return writeHelperInstances.get(name);
+		}		
     }
 	
     
@@ -107,6 +112,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     									context.getApplicationContext(), 
     									databaseSchema, 
 										true);
+    	//we do not sync, because we are not sharing.
     	value.incrementReferenceCount();
     	return value;
     }
@@ -153,6 +159,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     private void incrementReferenceCount(){
     	openReferenceCount++;
     }
+    
     /** Attempts to close the helper. If there are no lingering open references
      * the helper is closed and any internal references removed. Otherwise,
      * the number of references is reduced. 
@@ -163,16 +170,19 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     		if (0 == openReferenceCount){
     			return true;
     		}
+    		//remove a reference from this helper; if last, close.
 			if(--openReferenceCount <= 0){
 	    		this.close();
 	    		DatabaseOpenHelper writeHelper = 
 	    				writeHelperInstances.get(dbSchema.getName());
-	    		//if this is currently the same instance of our writeHelper.
+	    		
+	    		//if this is currently the same instance of writeHelper within
+	    		//the same schema
 	    		if ( writeHelper != null && writeHelper.equals(this)){
 	    			writeHelperInstances.remove(dbSchema.getName());
 	    			//remove it.
-	    			return true;
 	    		}
+	    		return true;
 	    	}
 		}
     	return false;
@@ -204,6 +214,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 		if (readOnlyHelper){
 			throw new UnsupportedOperationException(DETAILED_EXCEPTION_READ_ONLY);
 		}
+		
 		return super.getWritableDatabase();
 	}
 }

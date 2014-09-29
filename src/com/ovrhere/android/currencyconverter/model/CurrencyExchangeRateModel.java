@@ -38,7 +38,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
 /**
  * The local model for the database for cached Exchange rates. 
  * @author Jason J.
- * @version 0.1.3-20140908
+ * @version 0.1.4-20140929
  */
 class CurrencyExchangeRateModel 
 	implements ReadWriteModel<CurrencyData, List<CurrencyData>> {
@@ -114,36 +114,44 @@ class CurrencyExchangeRateModel
 	public void insertRecord(CurrencyData record) throws SQLException {
 		validateRecord(record);		
 		DatabaseOpenHelper writer = 
-				CurrencyConvertDatabaseOpenHelper.getWriteHelper(mContext); 
-		SQLiteDatabase wDb = writer.getWritableDatabaseOrThrow();
-		
-		String sourceCode = record.getCurrencyCode();
-		HashMap<String, Double> rates = record.getRates();
-		ContentValues cv1 = new ContentValues();
-		List<ContentValues> cv2 = new ArrayList<ContentValues>();
-		
-		prepareRecordForCurrencyListDb(record, cv1);
-		prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
-		
-		
-		String recordName = record.toString();
-		wDb.beginTransaction();
-		try{
-			insertRecordIntoTable(
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
-					recordName, wDb, cv1);
-			for (ContentValues cv : cv2) {
-				insertRecordIntoTable(
-						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
-						recordName, wDb, cv);
+				CurrencyConvertDatabaseOpenHelper.getWriteHelper(mContext);
+				
+		SQLiteDatabase wDb = null; 
+		try {		
+			synchronized (writer) { //in case any other threads close it.
+				wDb = writer.getWritableDatabaseOrThrow();
+				
+				String sourceCode = record.getCurrencyCode();
+				HashMap<String, Double> rates = record.getRates();
+				ContentValues cv1 = new ContentValues();
+				List<ContentValues> cv2 = new ArrayList<ContentValues>();
+				
+				prepareRecordForCurrencyListDb(record, cv1);
+				prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
+				
+				
+				String recordName = record.toString();
+				wDb.beginTransaction();
+				try{
+					insertRecordIntoTable(
+							CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+							recordName, wDb, cv1);
+					for (ContentValues cv : cv2) {
+						insertRecordIntoTable(
+								CurrencyConvertDatabaseSchema
+									.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+								recordName, wDb, cv);
+					}
+					wDb.setTransactionSuccessful();
+				} finally {
+					wDb.endTransaction();
+				}
 			}
-			wDb.setTransactionSuccessful();
-		} finally {
-			wDb.endTransaction();
+		} finally{
+			//close isn't actually required, but nice.
+			wDb.close();
+			writer.softClose();
 		}
-		
-		wDb.close();
-		writer.softClose();
 	}
 	
 	
@@ -161,49 +169,62 @@ class CurrencyExchangeRateModel
 		validateRecord(record);		
 		DatabaseOpenHelper writer = 
 				CurrencyConvertDatabaseOpenHelper.getWriteHelper(mContext); 
-		SQLiteDatabase wDb = writer.getWritableDatabaseOrThrow();
-		
-		String sourceCode = record.getCurrencyCode();
-		HashMap<String, Double> rates = record.getRates();
-		ContentValues cv1 = new ContentValues();
-		List<ContentValues> cv2 = new ArrayList<ContentValues>();
-		
-		prepareRecordForCurrencyListDb(record, cv1);
-		List<String> targetCodes = 
-				prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
-		
-		cv1.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID, id);
-		String recordName = record.toString();
-		
-		wDb.beginTransaction();
-		try{
-			updateTableRecord(
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
-					recordName, 
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+" = ? ",
-					new String[]{ String.valueOf(id)}, 
-					wDb, cv1);
-			for (int index = 0; index < cv2.size(); index++) {
+			
+		SQLiteDatabase wDb = null;
+		try {
+			wDb = writer.getWritableDatabaseOrThrow();
+			
+			String sourceCode = record.getCurrencyCode();
+			HashMap<String, Double> rates = record.getRates();
+			ContentValues cv1 = new ContentValues();
+			List<ContentValues> cv2 = new ArrayList<ContentValues>();
+			
+			prepareRecordForCurrencyListDb(record, cv1);
+			
+			List<String> targetCodes = 
+					prepareRecordForExchangeRatesDb(sourceCode, rates, cv2);
+			
+			cv1.put(	CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID, id);
+			String recordName = record.toString();
+			
+			wDb.beginTransaction();
+			try{
+				//update the currency list records
 				updateTableRecord(
-						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+						CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
 						recordName, 
-						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
-						" = ? AND "+
-						CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE+
-						" = ? ", 
-						new String[]{
-								record.getCurrencyCode(), 
-								targetCodes.get(index)}, 
-						wDb, 
-						cv2.get(index));
+						CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+" = ? ",
+						new String[]{ String.valueOf(id)}, 
+						wDb, cv1);
+				
+				//update the exchange rates
+				for (int index = 0; index < cv2.size(); index++) {
+					updateTableRecord(
+							CurrencyConvertDatabaseSchema
+								.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+							recordName, 
+							CurrencyConvertDatabaseSchema
+								.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+							" = ? AND "+
+							CurrencyConvertDatabaseSchema
+								.CURRENCY_EXCHANGE_RATES.COL_DEST_CURRENCY_CODE+
+							" = ? ", 
+							new String[]{
+									record.getCurrencyCode(), 
+									targetCodes.get(index)}, 
+							wDb, 
+							cv2.get(index));
+				}
+				
+				wDb.setTransactionSuccessful();
+			} finally {
+				wDb.endTransaction();
 			}
-			wDb.setTransactionSuccessful();
 		} finally {
-			wDb.endTransaction();
+			//close isn't actually required, but nice.
+			wDb.close();
+			writer.softClose();
 		}
-		
-		wDb.close();
-		writer.softClose();
 	}
 	
 	
@@ -233,36 +254,44 @@ class CurrencyExchangeRateModel
 		CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
 		DatabaseOpenHelper reader = 
 				CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
-		SQLiteDatabase rDb = reader.getReadableDatabase();
 		
-		CurrencyData result = null; //the ultimate result.
-		
-		Cursor cursor = rDb.query(
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
-					COLUMNS_ALL_CURRENCY_LIST_DATA, 
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+
-					" = ? ",
-					new String[]{ String.valueOf(id) }, 
-					null, null, null);	
-		
-		List<CurrencyData> results = new ArrayList<CurrencyData>();
-		listCursorToCurrencyDataList(results, cursor);
-		if (!results.isEmpty()){
-			String code = results.get(0).getCurrencyCode();
-			Cursor cursor2 = rDb.query(
-					CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
-					COLUMNS_ALL_EXCHANGE_RATE_DATA, 
-					CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
-					" = ? ",
-					new String[]{ String.valueOf(code) }, 
-					null, null, null);	
-			results = rateCursorToCurrencyDataList(results, cursor2);	
-			result = results.get(0);
-		}				
-		
-		rDb.close();
-		reader.softClose();	
-		return result;
+		SQLiteDatabase rDb = null;
+		try {
+			rDb = reader.getReadableDatabase();
+			
+			CurrencyData result = null; //the ultimate result.
+			
+			Cursor cursor = rDb.query(
+						CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+						COLUMNS_ALL_CURRENCY_LIST_DATA, 
+						CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_ID+
+						" = ? ",
+						new String[]{ String.valueOf(id) }, 
+						null, null, null);	
+			
+			List<CurrencyData> results = new ArrayList<CurrencyData>();
+			listCursorToCurrencyDataList(results, cursor);
+			if (!results.isEmpty()){
+				String code = results.get(0).getCurrencyCode();
+				Cursor cursor2 = rDb.query(
+						CurrencyConvertDatabaseSchema
+							.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+						COLUMNS_ALL_EXCHANGE_RATE_DATA, 
+						CurrencyConvertDatabaseSchema
+							.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+						" = ? ",
+						new String[]{ String.valueOf(code) }, 
+						null, null, null);	
+				results = rateCursorToCurrencyDataList(results, cursor2);	
+				result = results.get(0);
+			}				
+			return result;
+			
+		} finally {
+			//close isn't actually required, but nice.
+			rDb.close();
+			reader.softClose();
+		}		
 	}
 	
 	/** Gets the single record based upon the requested key.
@@ -274,36 +303,45 @@ class CurrencyExchangeRateModel
 		CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
 		DatabaseOpenHelper reader = 
 				CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
-		SQLiteDatabase rDb = reader.getReadableDatabase();
 		
-		CurrencyData result =  null;
-		
-		Cursor cursor = rDb.query(
-				CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
-				COLUMNS_ALL_CURRENCY_LIST_DATA, 
-				CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE+
-				" = ? ",
-				new String[]{ key }, 
-				null, null, null);	
-
-		Cursor cursor2 = rDb.query(
-				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
-				COLUMNS_ALL_EXCHANGE_RATE_DATA, 
-				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
-				" = ? ",
-				new String[]{ key }, 
-				null, null, null);	
+		SQLiteDatabase rDb = null;
+		try {
+			rDb = reader.getReadableDatabase();
+			
+			CurrencyData result =  null;
+			
+			Cursor cursor = rDb.query(
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+					COLUMNS_ALL_CURRENCY_LIST_DATA, 
+					CurrencyConvertDatabaseSchema.CURRENCY_LIST.COL_CURRENCY_CODE+
+					" = ? ",
+					new String[]{ key }, 
+					null, null, null);	
 	
-		List<CurrencyData> results = new ArrayList<CurrencyData>();
-		listCursorToCurrencyDataList(results, cursor);
-		if (!results.isEmpty()){
-			results = rateCursorToCurrencyDataList(results, cursor2);	
-			result = results.get(0);
-		}
+			Cursor cursor2 = rDb.query(
+					CurrencyConvertDatabaseSchema
+						.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+					COLUMNS_ALL_EXCHANGE_RATE_DATA, 
+					CurrencyConvertDatabaseSchema
+						.CURRENCY_EXCHANGE_RATES.COL_SOURCE_CURRENCY_CODE+
+					" = ? ",
+					new String[]{ key }, 
+					null, null, null);	
 		
-		rDb.close();
-		reader.softClose();	
-		return result;
+			List<CurrencyData> results = new ArrayList<CurrencyData>();
+			listCursorToCurrencyDataList(results, cursor);
+			if (!results.isEmpty()){
+				results = rateCursorToCurrencyDataList(results, cursor2);	
+				result = results.get(0);
+			}
+			
+			
+			return result;
+		} finally {
+			//close isn't actually required, but nice.
+			rDb.close();
+			reader.softClose();	
+		}
 	}
 	
 	/**
@@ -315,23 +353,28 @@ class CurrencyExchangeRateModel
 		List<CurrencyData> list = new ArrayList<CurrencyData>();
 		DatabaseOpenHelper reader = 
 				CurrencyConvertDatabaseOpenHelper.getReadHelper(mContext);
-		SQLiteDatabase rDb = reader.getReadableDatabase();
-		
-		Cursor cursor = rDb.query(
-					CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
-					COLUMNS_ALL_CURRENCY_LIST_DATA, 
+		SQLiteDatabase rDb = null;
+		try {
+			rDb = reader.getReadableDatabase();
+			
+			Cursor cursor = rDb.query(
+						CurrencyConvertDatabaseSchema.CURRENCY_LIST.TABLE_NAME, 
+						COLUMNS_ALL_CURRENCY_LIST_DATA, 
+						null, null, null, null, null);	
+			Cursor cursor2 = rDb.query(
+					CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
+					COLUMNS_ALL_EXCHANGE_RATE_DATA, 
 					null, null, null, null, null);	
-		Cursor cursor2 = rDb.query(
-				CurrencyConvertDatabaseSchema.CURRENCY_EXCHANGE_RATES.TABLE_NAME, 
-				COLUMNS_ALL_EXCHANGE_RATE_DATA, 
-				null, null, null, null, null);	
-	
-		listCursorToCurrencyDataList(list, cursor);
-		list = rateCursorToCurrencyDataList(list, cursor2);
 		
-		rDb.close();
-		reader.softClose();		
-		return list;
+			listCursorToCurrencyDataList(list, cursor);
+			list = rateCursorToCurrencyDataList(list, cursor2);
+		
+			return list;
+		} finally {
+			//close isn't actually required, but nice.
+			rDb.close();
+			reader.softClose();
+		}		
 	}
 
 	
