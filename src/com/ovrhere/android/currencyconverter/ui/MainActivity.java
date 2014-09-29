@@ -30,7 +30,7 @@ import com.ovrhere.android.currencyconverter.ui.fragments.SettingsFragment;
 
 /** The main activity that manages it all.
  * @author Jason J.
- * @version 0.1.0-20140925
+ * @version 0.1.1-20140929
  */
 public class MainActivity extends ActionBarActivity 
  implements OnBackStackChangedListener {
@@ -116,6 +116,16 @@ public class MainActivity extends ActionBarActivity
 		}
 		return super.onOptionsItemSelected(item);
 	}	
+	
+	@Override
+	public void onBackPressed() {
+		if (canBack()){
+			//do what ever would be done for back actionbar
+			onSupportNavigateUp(); 
+		} else {
+			super.onBackPressed();
+		}
+	}
 	
 	@Override
 	public boolean onSupportNavigateUp() {
