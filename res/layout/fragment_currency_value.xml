@@ -16,7 +16,7 @@
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/com_ovrhere_currConv_frag_currVal"
+    android:id="@+id/currConv_frag_currVal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -28,7 +28,7 @@
      >
 
     <TextView
-        android:id="@+id/com_ovrhere_currConv_frag_currVal_text_symbol"
+        android:id="@+id/currConv_frag_currVal_text_symbol"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -38,12 +38,12 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
-        android:id="@+id/com_ovrhere_currConv_frag_currVal_text_currValue"
+        android:id="@+id/currConv_frag_currVal_text_currValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/com_ovrhere_currConv_frag_currVal_text_currCode"
-        android:layout_toRightOf="@+id/com_ovrhere_currConv_frag_currVal_text_symbol"
+        android:layout_toLeftOf="@+id/currConv_frag_currVal_text_currCode"
+        android:layout_toRightOf="@+id/currConv_frag_currVal_text_symbol"
         android:text="0.00" 
         android:lines="1"
         android:ellipsize="marquee"
@@ -52,7 +52,7 @@
         />
 
     <ImageView
-        android:id="@+id/com_ovrhere_currConv_frag_currVal_img_currFlag"
+        android:id="@+id/currConv_frag_currVal_img_currFlag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -62,12 +62,12 @@
         tools:ignore="ContentDescription" />
 
     <TextView
-        android:id="@+id/com_ovrhere_currConv_frag_currVal_text_currCode"
+        android:id="@+id/currConv_frag_currVal_text_currCode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginLeft="10dp"
-        android:layout_toLeftOf="@+id/com_ovrhere_currConv_frag_currVal_img_currFlag"
+        android:layout_toLeftOf="@+id/currConv_frag_currVal_img_currFlag"
         android:text="XYZ"
         android:textAppearance="?android:attr/textAppearanceLarge"
          />

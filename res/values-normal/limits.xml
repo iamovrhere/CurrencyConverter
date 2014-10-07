@@ -19,6 +19,6 @@
     This is the setting for LARGER devices -->
     <eat-comment />
     <!-- True for wider devices. -->
-    <item name="com_ovrhere_currConv_showFlags" type="bool"
+    <item name="currconv_showflags" type="bool"
         >1</item>
 </resources>

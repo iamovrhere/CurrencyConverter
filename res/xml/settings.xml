@@ -28,7 +28,7 @@
         />
 	
 	<CheckBoxPreference 
-	    android:key="@string/com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST"
+	    android:key="@string/currConv_pref_KEY_USE_JSON_REQUEST"
 	    android:title="@string/currConv_settings_useJson_title"
 	    android:summary="@string/currConv_settings_useJson_summary"
 	    />

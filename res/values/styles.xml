@@ -29,7 +29,7 @@
     </style>
 	<style name="CustomActionBarTheme"
            parent="@style/Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:windowBackground">@color/com_ovrhere_currConv_background</item>
+        <item name="android:windowBackground">@color/currconv_background</item>
         <item name="android:actionBarStyle" tools:targetApi="11">@style/MyActionBar</item>
 		
         <!-- Support library compatibility -->
@@ -39,11 +39,11 @@
     <!-- General styles for the action bar -->
     <style name="MyActionBar"
            parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="android:windowBackground">@color/com_ovrhere_currConv_background</item>
-        <item name="android:background">@color/com_ovrhere_currConv_actionBar</item>
+        <item name="android:windowBackground">@color/currconv_background</item>
+        <item name="android:background">@color/currconv_actionBar</item>
  		
         <!-- Support library compatibility -->
-        <item name="background">@color/com_ovrhere_currConv_actionBar</item>
+        <item name="background">@color/currconv_actionBar</item>
     </style>
     
     <!-- Application theme. -->

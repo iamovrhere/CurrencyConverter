@@ -69,10 +69,10 @@ implements Filterable {
 	 * @param context The current context
 	 * @param resource The layout resource to use. Expected to contain ids:
 	 * <ul>
-	 * <li><code>com_ovrhere_currConv_frag_currVal_text_symbol</code></li>
-	 * <li><code>com_ovrhere_currConv_frag_currVal_text_currValue</code></li>
-	 * <li><code>com_ovrhere_currConv_frag_currVal_img_currFlag</code></li>
-	 * <li><code>com_ovrhere_currConv_frag_currVal_text_currCode</code></li>
+	 * <li><code>currConv_frag_currVal_text_symbol</code></li>
+	 * <li><code>currConv_frag_currVal_text_currValue</code></li>
+	 * <li><code>currConv_frag_currVal_img_currFlag</code></li>
+	 * <li><code>currConv_frag_currVal_text_currCode</code></li>
 	 * </ul>
 	 */
 	public CurrencyDataFilterListAdapter(Context context, int resource) {
@@ -174,13 +174,13 @@ implements Filterable {
 			holder = new Holder();
 			
 			holder.symbol = (TextView)
-					convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_text_symbol);
+					convertView.findViewById(R.id.currConv_frag_currVal_text_symbol);
 			holder.value = (TextView)
-					convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_text_currValue);
+					convertView.findViewById(R.id.currConv_frag_currVal_text_currValue);
 			holder.flag = (ImageView)
-				convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_img_currFlag);
+				convertView.findViewById(R.id.currConv_frag_currVal_img_currFlag);
 			holder.code = (TextView)
-				convertView.findViewById(R.id.com_ovrhere_currConv_frag_currVal_text_currCode);
+				convertView.findViewById(R.id.currConv_frag_currVal_text_currCode);
 			convertView.setTag(holder);
 		} else {
 			holder = (Holder) convertView.getTag();
@@ -211,8 +211,8 @@ implements Filterable {
 	static void setRowColour(View convertView, int position){
 		int color = convertView.getResources().getColor(
 				position % 2 == 1 ? //zero-indexed 	
-				R.color.com_ovrhere_currConv_outputEven :
-				R.color.com_ovrhere_currConv_outputOdd);
+				R.color.currconv_outputEven :
+				R.color.currconv_outputOdd);
 		convertView.setBackgroundColor(color);
 	}
 	

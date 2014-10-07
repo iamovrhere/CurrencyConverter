@@ -30,28 +30,28 @@
     <!-- Short codes first. -->
     <eat-comment />
     <!-- The code for USD -->
-    <string name="com_ovrhere_currConv_USD_code" >USD</string>
+    <string name="currConv_USD_code" >USD</string>
     <!-- The code for CAD -->
-    <string name="com_ovrhere_currConv_CAD_code" >CAD</string>    
+    <string name="currConv_CAD_code" >CAD</string>    
     <!-- The code for EUR -->
-    <string name="com_ovrhere_currConv_EUR_code" >EUR</string>
+    <string name="currConv_EUR_code" >EUR</string>
     <!-- The code for GBP -->
-    <string name="com_ovrhere_currConv_GBP_code" >GBP</string>
+    <string name="currConv_GBP_code" >GBP</string>
     <!-- The code for JPY -->
-    <string name="com_ovrhere_currConv_JPY_code" >JPY</string>
+    <string name="currConv_JPY_code" >JPY</string>
     
     <!-- Symbols most symbols not required. -->
     <eat-comment />    
     <!-- The symbol for USD -->
-    <string name="com_ovrhere_currConv_USD_symbol" >$</string>
+    <string name="currConv_USD_symbol" >$</string>
     <!-- The symbol for CAD -->
-    <string name="com_ovrhere_currConv_CAD_symbol" >$</string>    
+    <string name="currConv_CAD_symbol" >$</string>    
     <!-- The symbol for EUR -->
-    <string name="com_ovrhere_currConv_EUR_symbol" >€</string>
+    <string name="currConv_EUR_symbol" >€</string>
     <!-- The symbol for GBP -->
-    <string name="com_ovrhere_currConv_GBP_symbol" >£</string>
+    <string name="currConv_GBP_symbol" >£</string>
     <!-- The symbol for JPY -->
-    <string name="com_ovrhere_currConv_JPY_symbol" >¥</string>
+    <string name="currConv_JPY_symbol" >¥</string>
     
     <!-- Long names. Migrated to strings.xml for translation purposes -->
     <eat-comment />  

@@ -22,16 +22,16 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     >
         <include layout="@layout/viewstub_main_input_views"
-            android:id="@+id/com_ovrhere_currConv_main_inputViews"
+            android:id="@+id/currConv_main_inputViews"
             android:layout_width="match_parent"
     		android:layout_height="wrap_content"
 		    android:layout_marginLeft="@dimen/activity_horizontal_margin"
 		    android:layout_marginRight="@dimen/activity_horizontal_margin" 
             />
         
-        <ListView  android:id="@+id/com_ovrhere_currConv_main_listView"
+        <ListView  android:id="@+id/currConv_main_listView"
             android:layout_width="match_parent"
     		android:layout_height="wrap_content" 
-    		android:layout_marginTop="@dimen/com_ovrhere_currConv_main_listView_topPadding"
-    		android:cacheColorHint="@color/com_ovrhere_currConv_listFade" />    
+    		android:layout_marginTop="@dimen/currConv_main_listView_topPadding"
+    		android:cacheColorHint="@color/currconv_listFade" />    
 </LinearLayout>

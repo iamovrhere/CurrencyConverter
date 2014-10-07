@@ -33,7 +33,7 @@
     
     <!-- Default vlues used with the update list. -->
     <integer-array name="currConv_spinner_updatePeriod_default" >
-        <item >@integer/com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL</item>
+        <item >@integer/currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL</item>
     </integer-array>
     
 </resources>

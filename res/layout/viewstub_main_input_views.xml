@@ -21,94 +21,94 @@
     >
 
     <TextView
-        android:id="@+id/com_ovrhere_currConv_main_text_currSymbol"
+        android:id="@+id/currConv_main_text_currSymbol"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         
         android:layout_alignParentLeft="true"
-        android:layout_alignBaseline="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
+        android:layout_alignBaseline="@+id/currConv_main_edittext_valueToConv"
         
-        android:text="@string/com_ovrhere_currConv_USD_symbol"
+        android:text="@string/currConv_USD_symbol"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <EditText
-            android:id="@+id/com_ovrhere_currConv_main_edittext_valueToConv"
+            android:id="@+id/currConv_main_edittext_valueToConv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:lines="1"
-            android:minWidth="@dimen/com_ovrhere_currConv_main_input_minWidth"
+            android:minWidth="@dimen/currConv_main_input_minWidth"
             android:inputType="numberDecimal"
-            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_generalPadding"
-            android:layout_alignTop="@+id/com_ovrhere_currConv_main_spinner_currencySource"
-            android:layout_alignBottom="@+id/com_ovrhere_currConv_main_spinner_currencySource"
-            android:layout_toRightOf="@+id/com_ovrhere_currConv_main_text_currSymbol"
-            android:layout_toLeftOf="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_marginTop="@dimen/currConv_main_generalPadding"
+            android:layout_alignTop="@+id/currConv_main_spinner_currencySource"
+            android:layout_alignBottom="@+id/currConv_main_spinner_currencySource"
+            android:layout_toRightOf="@+id/currConv_main_text_currSymbol"
+            android:layout_toLeftOf="@+id/currConv_main_spinner_currencySource"
             
-            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
+            android:layout_marginLeft="@dimen/currConv_main_generalPadding"
              
             android:maxLength="100000000001"
             />
         
          <ImageView
-            android:id="@+id/com_overhere_currConv_main_image_currFlag"
+            android:id="@+id/currConv_main_image_currFlag"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/com_ovrhere_currConv_main_sourceFlag_width"
+            android:layout_height="@dimen/currConv_main_sourceFlag_width"
             android:scaleType="fitCenter"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_flag_error" 
-            android:contentDescription="@string/com_ovrhere_currConv_USD_name"
+            android:contentDescription="@string/currConv_USD_name"
             
             />
          <!-- Work around to get the image view to appear + disappear
          without the spinner jumping left -->
-         <View 	android:id="@+id/com_ovrhere_currConv_main_dummyLeft"
+         <View 	android:id="@+id/currConv_main_dummyLeft"
              	android:layout_height="1dp"
              	android:layout_width="match_parent"
-             	android:layout_toLeftOf="@+id/com_overhere_currConv_main_image_currFlag"
+             	android:layout_toLeftOf="@+id/currConv_main_image_currFlag"
              />
          
         <Spinner
-            android:id="@+id/com_ovrhere_currConv_main_spinner_currencySource"
-            android:layout_width="@dimen/com_ovrhere_currConv_main_spinner_width"
-            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
-            android:layout_marginLeft="@dimen/com_ovrhere_currConv_main_generalPadding"
-            android:layout_marginRight="@dimen/com_ovrhere_currConv_main_generalPadding"
-            android:layout_alignTop="@+id/com_overhere_currConv_main_image_currFlag"
-            android:layout_alignRight="@+id/com_ovrhere_currConv_main_dummyLeft"
+            android:id="@+id/currConv_main_spinner_currencySource"
+            android:layout_width="@dimen/currConv_main_spinner_width"
+            android:layout_height="@dimen/currConv_main_spinner_height"
+            android:layout_marginLeft="@dimen/currConv_main_generalPadding"
+            android:layout_marginRight="@dimen/currConv_main_generalPadding"
+            android:layout_alignTop="@+id/currConv_main_image_currFlag"
+            android:layout_alignRight="@+id/currConv_main_dummyLeft"
             
             />
          
 
         <Spinner
-            android:id="@+id/com_ovrhere_currConv_main_spinner_currencyDest"
+            android:id="@+id/currConv_main_spinner_currencyDest"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/com_ovrhere_currConv_main_spinner_height"
-            android:minWidth="@dimen/com_ovrhere_currConv_main_spinner_width"
-            android:layout_below="@+id/com_ovrhere_currConv_main_progressSpin"
+            android:layout_height="@dimen/currConv_main_spinner_height"
+            android:minWidth="@dimen/currConv_main_spinner_width"
+            android:layout_below="@+id/currConv_main_progressSpin"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="@dimen/com_ovrhere_currConv_main_destSpinner_topPadding" />
+            android:layout_marginTop="@dimen/currConv_main_destSpinner_topPadding" />
 
        
 
         <TextView
-            android:id="@+id/com_ovrhere_currConv_main_text_warning"
+            android:id="@+id/currConv_main_text_warning"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/com_ovrhere_currConv_main_spinner_currencySource"
+            android:layout_below="@+id/currConv_main_spinner_currencySource"
             android:layout_centerHorizontal="true"
-            android:text="@string/com_ovrhere_currConv_cachedRate_warning"
+            android:text="@string/currConv_cachedRate_warning"
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/com_ovrhere_currConv_warningColor"
+            android:textColor="@color/currconv_warningColor"
              />
         
         <ProgressBar
-            android:id="@+id/com_ovrhere_currConv_main_progressSpin"
+            android:id="@+id/currConv_main_progressSpin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/com_ovrhere_currConv_main_text_warning"
+            android:layout_below="@+id/currConv_main_text_warning"
             android:layout_centerHorizontal="true" 
             style="@android:style/Widget.ProgressBar.Small"
             />

@@ -24,43 +24,43 @@
    	<!-- The warning to give when the value supplied is using a cached value. 
    		Formatted string takes the date to display 
    		(preferably, yyyy-mm-dd hh:mm:ss form) -->
-    <string name="com_ovrhere_currConv_cachedRate_warning">
+    <string name="currConv_cachedRate_warning">
     	Warning: Using cached values (fetched %1$s). Results accuracy may vary.    
     </string>
     <!-- The formatted string to use for currency long-click actions. -->
-    <string name="com_ovrhere_currConv_context_currencyAction">
+    <string name="currConv_context_currencyAction">
         Action on "%1$s"
     </string>
     <!-- The spinner option for selectioning all -->
-    <string name="com_ovrhere_currConv_spinner_dest_selectAll" >
+    <string name="currConv_spinner_dest_selectAll" >
         View All
     </string>
     
     <!-- The label for the clipboard action performed -->
-    <string name="com_ovrhere_currConv_clipboard_label_copiedCurrency">
+    <string name="currConv_clipboard_label_copiedCurrency">
         Copied Currency
     </string>
     <!-- String for the command to copy with multiple decimal places -->
-    <string name="com_ovrhere_currConv_context_detailedCopy">
+    <string name="currConv_context_detailedCopy">
         Detailed copy
     </string>
     
       <!-- Start Long current names. -->
     <eat-comment />    
     <!-- The name for USD -->
-    <string name="com_ovrhere_currConv_USD_name" 
+    <string name="currConv_USD_name" 
         >United States Dollar</string>
     <!-- The name for CAD -->
-    <string name="com_ovrhere_currConv_CAD_name" 
+    <string name="currConv_CAD_name" 
         >Canadian Dollar</string>    
     <!-- The name for EUR -->
-    <string name="com_ovrhere_currConv_EUR_name" 
+    <string name="currConv_EUR_name" 
         >Euro</string>
     <!-- The name for GBP -->
-    <string name="com_ovrhere_currConv_GBP_name" 
+    <string name="currConv_GBP_name" 
         >Great British Pound</string>
     <!-- The name for JPY -->
-    <string name="com_ovrhere_currConv_JPY_name" 
+    <string name="currConv_JPY_name" 
         >Japanese Yen</string>
     
     
@@ -87,21 +87,21 @@
     
     
     <!-- The plurals for the time display of hours. -->
-    <plurals name="com_ovrhere_currConv_hours">
+    <plurals name="currConv_hours">
         <item quantity="zero">0 hours ago</item>
         <item quantity="one">1 hour ago</item>
         <item quantity="other">%d hours ago</item>
     </plurals>
     
     <!-- The plurals for the time display of minutes. -->
-    <plurals name="com_ovrhere_currConv_minutes">
+    <plurals name="currConv_minutes">
         <item quantity="zero">0 minutes ago</item>
         <item quantity="one">1 minute ago</item>
         <item quantity="other">%d minutes ago</item>
     </plurals>
     
     <!-- The plurals for the time display of days. -->
-    <plurals name="com_ovrhere_currConv_days">
+    <plurals name="currConv_days">
         <item quantity="zero">0 days ago</item>
         <item quantity="one">1 day ago</item>
         <item quantity="other">%d days ago</item>

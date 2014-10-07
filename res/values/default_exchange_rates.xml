@@ -21,20 +21,20 @@
     
     <!-- The currency update time (UTC/GMT) for default values.
     Should be of the form "yyyy-mm-dd hh:mm:ss.SSS+0000" -->
-    <item name="com_ovrhere_currConv_defRate_updateTime" 
+    <item name="currConv_defRate_updateTime" 
        format="string" type="string" >2014-09-08 19:08:14.000+0000</item>
     
     <!-- The order of the rates given for all default rates. -->
-    <string-array name="com_ovrhere_currConv_rateOrder" >
-        <item >@string/com_ovrhere_currConv_USD_code</item>
-        <item >@string/com_ovrhere_currConv_CAD_code</item>
-        <item >@string/com_ovrhere_currConv_EUR_code</item>
-        <item >@string/com_ovrhere_currConv_GBP_code</item>
-        <item >@string/com_ovrhere_currConv_JPY_code</item>
+    <string-array name="currConv_rateOrder" >
+        <item >@string/currConv_USD_code</item>
+        <item >@string/currConv_CAD_code</item>
+        <item >@string/currConv_EUR_code</item>
+        <item >@string/currConv_GBP_code</item>
+        <item >@string/currConv_JPY_code</item>
     </string-array>
     
-    <!-- The rates from USD -> currencies in com_ovrhere_currConv_rateOrder  --> 
-	<string-array name="com_ovrhere_currConv_USD_defRates" >
+    <!-- The rates from USD -> currencies in currConv_rateOrder  --> 
+	<string-array name="currConv_USD_defRates" >
 	    <item format="float">1.00</item> <!-- USD -->
 	    <item format="float">1.0967</item> <!-- CAD -->
 	    <item format="float">0.7750</item> <!-- EUR -->
@@ -42,8 +42,8 @@
 	    <item format="float">105.9535</item> <!-- JPY -->
 	</string-array>
 	
-	<!-- The rates from CAD -> currencies in com_ovrhere_currConv_rateOrder  --> 
-	<string-array name="com_ovrhere_currConv_CAD_defRates" >
+	<!-- The rates from CAD -> currencies in currConv_rateOrder  --> 
+	<string-array name="currConv_CAD_defRates" >
 	    <item format="float">0.9118</item> <!-- USD -->
 	    <item format="float">1.00</item> <!-- CAD -->
 	    <item format="float">0.7067</item> <!-- EUR -->
@@ -52,8 +52,8 @@
 	</string-array>
 	
 	
-	<!-- The rates from EUR -> currencies in com_ovrhere_currConv_rateOrder  --> 
-	<string-array name="com_ovrhere_currConv_EUR_defRates" >
+	<!-- The rates from EUR -> currencies in currConv_rateOrder  --> 
+	<string-array name="currConv_EUR_defRates" >
 	    <item format="float">1.2903</item> <!-- USD -->
 	    <item format="float">1.4151</item> <!-- CAD -->
 	    <item format="float">1.00</item> <!-- EUR -->
@@ -62,8 +62,8 @@
 	</string-array>
 	
 	
-	<!-- The rates from GBP -> currencies in com_ovrhere_currConv_rateOrder  --> 
-	<string-array name="com_ovrhere_currConv_GBP_defRates" >
+	<!-- The rates from GBP -> currencies in currConv_rateOrder  --> 
+	<string-array name="currConv_GBP_defRates" >
 	    <item format="float">1.6116</item> <!-- USD -->
 	    <item format="float">1.7675</item> <!-- CAD -->
 	    <item format="float">1.2490</item> <!-- EUR -->
@@ -72,8 +72,8 @@
 	</string-array>
 	
 	
-	<!-- The rates from JPY -> currencies in com_ovrhere_currConv_rateOrder  --> 
-	<string-array name="com_ovrhere_currConv_JPY_defRates" >
+	<!-- The rates from JPY -> currencies in currConv_rateOrder  --> 
+	<string-array name="currConv_JPY_defRates" >
 	    <item format="float">0.0094</item> <!-- USD -->
 	    <item format="float">0.0104</item> <!-- CAD -->
 	    <item format="float">0.0073</item> <!-- EUR -->

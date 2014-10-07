@@ -68,7 +68,7 @@ public class SettingsFragment extends PreferenceFragment
 	public void onCreate(Bundle paramBundle) {
 		super.onCreate(paramBundle);
 		getPreferenceManager().setSharedPreferencesName(
-				getString(R.string.com_ovrhere_currConv_PREFERENCE_FILE_KEY));
+				getString(R.string.currConv_PREFERENCE_FILE_KEY));
 		
 		prefs = getPreferenceManager().getSharedPreferences();
 		tm = new ToastManager(getActivity());
@@ -116,7 +116,7 @@ public class SettingsFragment extends PreferenceFragment
 	/** Initializes the update interval, including label. */
 	private void initUpdateInterval(){
 		final String prefKey = getString(
-				R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL);
+				R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL);
 		final String settingKey = 
 				getString(R.string.currConv_settings_KEY_UPDATE_INTERVAL);
 		
@@ -251,7 +251,7 @@ public class SettingsFragment extends PreferenceFragment
 			int value = Integer.parseInt((String)newValue);
 			prefs.edit()
 				.putInt(
-						getString(R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL), 
+						getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL), 
 						value)
 				.commit();
 			findAndSetUpdateSummary(value, (ListPreference) preference);

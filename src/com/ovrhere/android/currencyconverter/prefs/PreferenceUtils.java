@@ -55,7 +55,7 @@ public class PreferenceUtils {
 		 * and thus will not leak.		 */
 		context = context.getApplicationContext();
 		return context.getSharedPreferences(
-				context.getResources().getString(R.string.com_ovrhere_currConv_PREFERENCE_FILE_KEY), 
+				context.getResources().getString(R.string.currConv_PREFERENCE_FILE_KEY), 
 				Context.MODE_PRIVATE); 
 	}
 	
@@ -80,21 +80,21 @@ public class PreferenceUtils {
 	static private void _setDefaults(Resources r, SharedPreferences.Editor prefEdit){
 		//Thought: Consider using parallel arrays in res to respect open-close?
 		prefEdit.putInt(
-				r.getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
-			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
+				r.getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
 		);
 		prefEdit.putInt(
-				r.getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX),
-			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
+				r.getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
 		);
 		prefEdit.putInt(
-				r.getString(R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-			r.getInteger(R.integer.com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
+				r.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
 		);
 		
 		prefEdit.putBoolean(
-				r.getString(R.string.com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST),
-			r.getBoolean(R.bool.com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST)
+				r.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
+			r.getBoolean(R.bool.currConv_pref_DEF_VALUE_USE_JSON_REQUEST)
 		);
 		
 		//first run has completed.

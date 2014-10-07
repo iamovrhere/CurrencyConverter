@@ -15,51 +15,51 @@
    limitations under the License.
 -->
 <resources>
-    <!-- Version 0.3.0  -->
+    <!-- Version 0.3.1  -->
     <eat-comment />
     <!-- The string used as the preference file name. -->
-    <string name="com_ovrhere_currConv_PREFERENCE_FILE_KEY" >
+    <string name="currConv_PREFERENCE_FILE_KEY" >
         com_ovrhere_currConv_PREFERENCE_FILE_KEY
-    </string>
+    </string> <!-- Cannot change internal values -->
     
     <!-- Preference keys:
 	BE WARY OF CHANGING KEY VALUES HERE.  -->
 	<eat-comment />
 	
     <!-- Int key. The index of the source currency to show.  -->
-    <string name="com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX" >
+    <string name="currConv_pref_KEY_SOURCE_CURRENCY_INDEX" >
         com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX
     </string>
     <!-- Int key. The index of the dest currency to show  -->
-    <string name="com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX" >
+    <string name="currConv_pref_KEY_DEST_CURRENCY_INDEX" >
         com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX
     </string>    
     <!-- Int key. The number of milliseconds before rechecking is necessary.  -->
-    <string name="com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" >
+    <string name="currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" >
         com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
     </string>
     
     <!-- Boolean key. Whether or not to use json request. 
     See  com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST -->
-    <string name="com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST" >
+    <string name="currConv_pref_KEY_USE_JSON_REQUEST" >
         com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST
     </string>
     
     <!-- Preference Default Values  -->
 	<eat-comment />
-	<!-- Default Value to com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX -->
-	<item name="com_ovrhere_currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX"
+	<!-- Default Value to currConv_pref_KEY_SOURCE_CURRENCY_INDEX -->
+	<item name="currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX"
 	    type="integer">0</item>
-	<!-- Default Value to com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX  -->
-	<item name="com_ovrhere_currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"
+	<!-- Default Value to currConv_pref_KEY_DEST_CURRENCY_INDEX  -->
+	<item name="currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"
 	    type="integer">0</item>
-	<!-- Default Value to com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL;
+	<!-- Default Value to currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL;
 	currently 1 hour  -->
-	<item name="com_ovrhere_currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
+	<item name="currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
 	    type="integer">3600000</item>
 	
-	<!-- Default value of com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST. -->
-	<item name="com_ovrhere_currConv_pref_DEF_VALUE_USE_JSON_REQUEST" 
+	<!-- Default value of currConv_pref_KEY_USE_JSON_REQUEST. -->
+	<item name="currConv_pref_DEF_VALUE_USE_JSON_REQUEST" 
 	    type="bool">
         1
     </item>

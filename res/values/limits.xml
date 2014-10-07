@@ -20,6 +20,6 @@
     <eat-comment />
     <!-- Whether to show the image view or not. 
     False for small devices. -->
-    <item name="com_ovrhere_currConv_showFlags" type="bool"
+    <item name="currconv_showflags" type="bool"
         >0</item>
 </resources>

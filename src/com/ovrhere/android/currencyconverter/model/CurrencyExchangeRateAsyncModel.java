@@ -151,7 +151,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 		this.res = activity.getResources();
 		this.currencyCodeList.addAll( 
 		Arrays.asList(
-					res.getStringArray(R.array.com_ovrhere_currConv_rateOrder))
+					res.getStringArray(R.array.currConv_rateOrder))
 					);
 		mfragManager = activity.getSupportFragmentManager();
 		//prepare the headless fragment in advance.
@@ -255,7 +255,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 		isUpdating = true;
 		//the lazy approach
 		usingJson = prefs.getBoolean(
-				res.getString(R.string.com_ovrhere_currConv_pref_KEY_USE_JSON_REQUEST), 
+				res.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST), 
 				false);
 		
 		if (records.isEmpty()){
@@ -306,38 +306,38 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 			notifyHandlers(NOTIFY_INITIALIZING_DATABASE, null);
 			mLocalModel.insertRecord(
 					createCurrencyData(
-							R.string.com_ovrhere_currConv_USD_symbol, 
-							R.string.com_ovrhere_currConv_USD_code,
-							R.string.com_ovrhere_currConv_USD_name,
-							R.array.com_ovrhere_currConv_USD_defRates)
+							R.string.currConv_USD_symbol, 
+							R.string.currConv_USD_code,
+							R.string.currConv_USD_name,
+							R.array.currConv_USD_defRates)
 					);
 			mLocalModel.insertRecord(
 					createCurrencyData(
-							R.string.com_ovrhere_currConv_CAD_symbol, 
-							R.string.com_ovrhere_currConv_CAD_code,
-							R.string.com_ovrhere_currConv_CAD_name,
-							R.array.com_ovrhere_currConv_CAD_defRates)
+							R.string.currConv_CAD_symbol, 
+							R.string.currConv_CAD_code,
+							R.string.currConv_CAD_name,
+							R.array.currConv_CAD_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
-							R.string.com_ovrhere_currConv_EUR_symbol, 
-							R.string.com_ovrhere_currConv_EUR_code,
-							R.string.com_ovrhere_currConv_EUR_name,
-							R.array.com_ovrhere_currConv_EUR_defRates)
+							R.string.currConv_EUR_symbol, 
+							R.string.currConv_EUR_code,
+							R.string.currConv_EUR_name,
+							R.array.currConv_EUR_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
-							R.string.com_ovrhere_currConv_GBP_symbol, 
-							R.string.com_ovrhere_currConv_GBP_code,
-							R.string.com_ovrhere_currConv_GBP_name,
-							R.array.com_ovrhere_currConv_GBP_defRates)
+							R.string.currConv_GBP_symbol, 
+							R.string.currConv_GBP_code,
+							R.string.currConv_GBP_name,
+							R.array.currConv_GBP_defRates)
 				);
 			mLocalModel.insertRecord(
 					createCurrencyData(
-							R.string.com_ovrhere_currConv_JPY_symbol, 
-							R.string.com_ovrhere_currConv_JPY_code,
-							R.string.com_ovrhere_currConv_JPY_name,
-							R.array.com_ovrhere_currConv_JPY_defRates)
+							R.string.currConv_JPY_symbol, 
+							R.string.currConv_JPY_code,
+							R.string.currConv_JPY_name,
+							R.array.currConv_JPY_defRates)
 				);
 		} catch (ParseException e) {
 			Log.e(LOGTAG, "Float parse error occurred");
@@ -382,7 +382,7 @@ implements YahooApiCurrencyRequest.OnRequestEventListener {
 							res.getString(codeId),
 							res.getString(nameId))
 			.setModifiedTimestamp(
-							res.getString(R.string.com_ovrhere_currConv_defRate_updateTime)
+							res.getString(R.string.currConv_defRate_updateTime)
 					)
 			.setExchangeRates(exchangeRates);
 		

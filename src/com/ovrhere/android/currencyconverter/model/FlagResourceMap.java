@@ -61,23 +61,23 @@ class FlagResourceMap {
 	/** Initializes the flag resources. */
 	static private void initFlagMap(Resources res){
 		flagMap.put(
-				res.getString(R.string.com_ovrhere_currConv_CAD_code)
+				res.getString(R.string.currConv_CAD_code)
 					.toLowerCase(Locale.US), 
 				R.drawable.ic_flag_cad);
 		flagMap.put(
-				res.getString(R.string.com_ovrhere_currConv_EUR_code)
+				res.getString(R.string.currConv_EUR_code)
 					.toLowerCase(Locale.US), 
 				R.drawable.ic_flag_eur);
 		flagMap.put(
-				res.getString(R.string.com_ovrhere_currConv_GBP_code)
+				res.getString(R.string.currConv_GBP_code)
 					.toLowerCase(Locale.US), 
 				R.drawable.ic_flag_gbp);
 		flagMap.put(
-				res.getString(R.string.com_ovrhere_currConv_JPY_code)
+				res.getString(R.string.currConv_JPY_code)
 					.toLowerCase(Locale.US), 
 				R.drawable.ic_flag_jpy);
 		flagMap.put(
-				res.getString(R.string.com_ovrhere_currConv_USD_code)
+				res.getString(R.string.currConv_USD_code)
 					.toLowerCase(Locale.US), 
 				R.drawable.ic_flag_usd);
 	}

@@ -162,11 +162,11 @@ implements Handler.Callback, OnItemLongClickListener {
 		super.onCreate(savedInstanceState);
 		
 		dateResUnits.put(DateFormatter.MINUTE_UNIT, 
-					R.plurals.com_ovrhere_currConv_minutes);
+					R.plurals.currConv_minutes);
 		dateResUnits.put(DateFormatter.HOUR_UNIT, 
-				R.plurals.com_ovrhere_currConv_hours);
+				R.plurals.currConv_hours);
 		dateResUnits.put(DateFormatter.DAY_UNIT, 
-				R.plurals.com_ovrhere_currConv_days);
+				R.plurals.currConv_days);
 		
 		if (PreferenceUtils.isFirstRun(getActivity())){
 			PreferenceUtils.setToDefault(getActivity());
@@ -210,19 +210,19 @@ implements Handler.Callback, OnItemLongClickListener {
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 				ContextMenuInfo menuInfo) {
-		  if (v.getId()==R.id.com_ovrhere_currConv_main_listView) {
+		  if (v.getId()==R.id.currConv_main_listView) {
 		    AdapterView.AdapterContextMenuInfo info = 
 		    		(AdapterView.AdapterContextMenuInfo)menuInfo;
 		    
 		    CurrencyData currency = outputListAdapter.getItem(info.position);
 		    if (currency != null){
 		    	String title = getString(
-		    			R.string.com_ovrhere_currConv_context_currencyAction,
+		    			R.string.currConv_context_currencyAction,
 		    			currency.getCurrencyCode());
 		    	menu.setHeaderTitle(title);
 			    menu.add(Menu.CATEGORY_SECONDARY, 0, 0, android.R.string.copy);
 			    menu.add(Menu.CATEGORY_SECONDARY, 1, 1, 
-			    		R.string.com_ovrhere_currConv_context_detailedCopy);
+			    		R.string.currConv_context_detailedCopy);
 		    }
 		  }
 	}
@@ -286,11 +286,11 @@ implements Handler.Callback, OnItemLongClickListener {
 	private void processSavedState(Bundle savedInstanceState) {
 		int sourceCurrSelect = 
 				prefs.getInt(
-						getString(R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
+						getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
 						0);
 		int destCurrSelect = 
 				prefs.getInt(
-						getString(R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX), 
+						getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
 						0);
 
 		sp_sourceCurr.setSelection(sourceCurrSelect);
@@ -315,25 +315,25 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @see #initAdapters()  */
 	private void initOutputViews(View rootView) {
 		ListView outputListView = (ListView) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_listView);
+				rootView.findViewById(R.id.currConv_main_listView);
 		outputListView.setAdapter(outputListAdapter);
 		outputListView.setOnItemLongClickListener(this);
 		registerForContextMenu(outputListView);
 		
 		updateProgressSpin =
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_progressSpin);
+				rootView.findViewById(R.id.currConv_main_progressSpin);
 		checkProgressBar();
 		
 		tv_currSymbol = (TextView)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_currSymbol);
+				rootView.findViewById(R.id.currConv_main_text_currSymbol);
 		tv_warning = (TextView)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_text_warning);
+				rootView.findViewById(R.id.currConv_main_text_warning);
 
 		img_currFlag = (ImageView)  
-				rootView.findViewById(R.id.com_overhere_currConv_main_image_currFlag);
+				rootView.findViewById(R.id.currConv_main_image_currFlag);
 		//show or hide flags, depending on bool.
 		boolean showFlags = 
-				getResources().getBoolean(R.bool.com_ovrhere_currConv_showFlags);
+				getResources().getBoolean(R.bool.currconv_showflags);
 		img_currFlag.setVisibility(showFlags ?  View.VISIBLE : View.GONE);
 	}
 	
@@ -342,17 +342,17 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @see #initAdapters()	 */
 	private void initInputViews(View rootView) {
 		sp_sourceCurr = (Spinner) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencySource);
+				rootView.findViewById(R.id.currConv_main_spinner_currencySource);
 		sp_sourceCurr.setAdapter(sourceCurrAdapter);
 		sp_sourceCurr.setOnItemSelectedListener(sourceItemSelectedListener);
 		
 		sp_destCurr = (Spinner) 
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_spinner_currencyDest);
+				rootView.findViewById(R.id.currConv_main_spinner_currencyDest);
 		sp_destCurr.setAdapter(destCurrAdapter);
 		sp_destCurr.setOnItemSelectedListener(destItemSelectListener);
 		
 		et_currInput = (EditText)
-				rootView.findViewById(R.id.com_ovrhere_currConv_main_edittext_valueToConv);
+				rootView.findViewById(R.id.currConv_main_edittext_valueToConv);
 		et_currInput.addTextChangedListener(valueInputListener);		
 	}
 	/** Initializes adapters for output list and spinners. */
@@ -366,7 +366,7 @@ implements Handler.Callback, OnItemLongClickListener {
 				new CurrencyDataSpinnerAdapter(getActivity(), 
 						android.R.layout.simple_list_item_1, true);
 		destCurrAdapter.setSelectAllText(
-				getString(R.string.com_ovrhere_currConv_spinner_dest_selectAll));
+				getString(R.string.currConv_spinner_dest_selectAll));
 	}
 	
 	
@@ -455,7 +455,7 @@ implements Handler.Callback, OnItemLongClickListener {
 					+" "+destCurrency.getCurrencyCode();
 			
 			String label = getString(
-					R.string.com_ovrhere_currConv_clipboard_label_copiedCurrency);
+					R.string.currConv_clipboard_label_copiedCurrency);
 			CompatClipboard.copyToClipboard(getActivity(), label, value);
 		}
 	}
@@ -473,7 +473,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	private void checkTimestampToUpdate(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
 							getString(
-									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+									R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 							0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
@@ -490,7 +490,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	private void checkTimestampWarning(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
 							getString(
-									R.string.com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+									R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 							0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
@@ -499,7 +499,7 @@ implements Handler.Callback, OnItemLongClickListener {
 					getActivity(), dateResUnits,
 					currencyData.getModifiedDate());
 			tv_warning.setText(
-					getString(R.string.com_ovrhere_currConv_cachedRate_warning, 
+					getString(R.string.currConv_cachedRate_warning, 
 							timestamp)
 							);
 			tv_warning.setVisibility(View.VISIBLE);
@@ -588,7 +588,7 @@ implements Handler.Callback, OnItemLongClickListener {
 				calculateOutput(et_currInput.getText().toString());
 			}
 			putIntPref(
-					R.string.com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX, 
+					R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX, 
 					position);
 		};
 		@Override
@@ -610,7 +610,7 @@ implements Handler.Callback, OnItemLongClickListener {
 						new String[]{data.getCurrencyCode()});
 			}
 			putIntPref(
-					R.string.com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX, 
+					R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX, 
 					position);
 		};
 		@Override

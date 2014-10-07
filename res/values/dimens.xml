@@ -24,26 +24,26 @@
     <eat-comment />
     
     <!-- The main general padding between items like the spinner views & input text -->
-    <dimen name="com_ovrhere_currConv_main_generalPadding">5dp</dimen>
+    <dimen name="currConv_main_generalPadding">5dp</dimen>
     <!-- The padding for the dest currency spinner. -->
-    <dimen name="com_ovrhere_currConv_main_destSpinner_topPadding">13dp</dimen>
+    <dimen name="currConv_main_destSpinner_topPadding">13dp</dimen>
     <!-- The padding for the listview top -->
-    <dimen name="com_ovrhere_currConv_main_listView_topPadding">6dp</dimen>
+    <dimen name="currConv_main_listView_topPadding">6dp</dimen>
     <!-- The padding for spinner imgs-->
-    <dimen name="com_ovrhere_currConv_main_spinner_imgPadding">10dp</dimen>
+    <dimen name="currConv_main_spinner_imgPadding">10dp</dimen>
     
     <!-- Widths for main -->
     <eat-comment />
     
     <!-- The min width of the spinners. -->
-    <dimen name="com_ovrhere_currConv_main_spinner_width">120dp</dimen>
+    <dimen name="currConv_main_spinner_width">120dp</dimen>
     <!-- The widths (and heighT) of the flag image -->
-    <dimen name="com_ovrhere_currConv_main_sourceFlag_width">50dp</dimen>
+    <dimen name="currConv_main_sourceFlag_width">50dp</dimen>
     <!-- The width of the spinners -->
-    <dimen name="com_ovrhere_currConv_main_spinner_height"
-        >@dimen/com_ovrhere_currConv_main_sourceFlag_width</dimen>
+    <dimen name="currConv_main_spinner_height"
+        >@dimen/currConv_main_sourceFlag_width</dimen>
     <!-- The minimum with of the currency input field -->
-    <dimen name="com_ovrhere_currConv_main_input_minWidth"
+    <dimen name="currConv_main_input_minWidth"
         >100dp</dimen>
 
 </resources>

@@ -200,7 +200,7 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 					drawablePadding = 
 							convertView.getResources()
 								.getDimensionPixelSize(
-										R.dimen.com_ovrhere_currConv_main_spinner_imgPadding);
+										R.dimen.currConv_main_spinner_imgPadding);
 				}
 			} else {
 				text =  data.getCurrencyCode();
