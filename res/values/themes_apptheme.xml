@@ -12,6 +12,8 @@
     <item name="android:textColorHighlight">#9933b5e5</item>
 
     <item name="android:spinnerStyle">@style/SpinnerAppTheme</item>
+    
+    <item name="android:checkboxStyle">@style/CheckBoxAppBaseTheme</item>
 
   </style>
 
