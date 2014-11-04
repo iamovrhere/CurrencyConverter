@@ -28,10 +28,11 @@
 		    android:layout_marginLeft="@dimen/activity_horizontal_margin"
 		    android:layout_marginRight="@dimen/activity_horizontal_margin" 
             />
-        
-        <ListView  android:id="@+id/currConv_main_listView"
-            android:layout_width="match_parent"
+                
+        <include  android:id="@+id/currConv_main_listView"
+            android:layout_width="wrap_content"
     		android:layout_height="wrap_content" 
-    		android:layout_marginTop="@dimen/currConv_main_listView_topPadding"
-    		android:cacheColorHint="@color/currconv_listFade" />    
+    		
+    		layout="@layout/viewstub_currency_listview"
+    		/>    
 </LinearLayout>
