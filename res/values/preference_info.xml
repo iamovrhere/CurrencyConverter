@@ -15,10 +15,10 @@
    limitations under the License.
 -->
 <resources>
-    <!-- Version 0.3.1  -->
+    <!-- Version 0.3.2  -->
     <eat-comment />
     <!-- The string used as the preference file name. -->
-    <string name="currConv_PREFERENCE_FILE_KEY" >
+    <string name="preferenceutil_PREFERENCE_FILE_KEY" >
         com_ovrhere_currConv_PREFERENCE_FILE_KEY
     </string> <!-- Cannot change internal values -->
     

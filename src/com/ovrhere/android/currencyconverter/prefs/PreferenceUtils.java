@@ -17,15 +17,16 @@ package com.ovrhere.android.currencyconverter.prefs;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
+import android.preference.PreferenceManager;
 
 import com.ovrhere.android.currencyconverter.R;
 
 /**
  * Preference Utility for handling the preferences and the preference container.
- * Has ability to set defaults.
+ * Has ability to set defaults. Requires <code>preference_info.xml</code> and
+ * <code>preference_defaults.xml</code>.
  * @author Jason J.
- * @version 0.4.0-20140929
+ * @version 0.5.0-20141104
  */
 public class PreferenceUtils {
 	/* The class name. */
@@ -43,6 +44,9 @@ public class PreferenceUtils {
 	 */
 	static public boolean isFirstRun(Context context){
 		SharedPreferences prefs = getPreferences(context);
+		//set any missing preferences if not set, ignores the rest
+		_setDefaults(context); 
+		
 		//if the default value not set, then true.
 		return (prefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) 
 				== !VALUE_PREFERENCES_SET);
@@ -54,50 +58,40 @@ public class PreferenceUtils {
 		/* This is safe as SharedPreferences is a shared instance for the application
 		 * and thus will not leak.		 */
 		context = context.getApplicationContext();
+		
 		return context.getSharedPreferences(
-				context.getResources().getString(R.string.currConv_PREFERENCE_FILE_KEY), 
+				context.getResources().getString(R.string.preferenceutil_PREFERENCE_FILE_KEY), 
 				Context.MODE_PRIVATE); 
 	}
 	
-	/** Sets the application's preferences using the default values. 
+	/** Resets application's preferences to the default values. 
 	 * @param context The current context to be used. 
 	 * @see res/values/preferences_info.xml */
 	static public void setToDefault(Context context){
 		SharedPreferences.Editor prefs = getPreferences(context).edit();
-		Resources r = context.getResources();		
-		_setDefaults(r, prefs);		
-		prefs.commit();
+		prefs.clear().commit();	
+		_setDefaults(context.getApplicationContext());
+		
+		//first run has completed.
+		prefs	.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET)
+				.commit();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility functions
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	/** Sets defaults. Does not commit.
-	 * @param r The {@link Resources} manager to use getting strings from 
-	 * res/values/preferences_info.xml
-	 * @param prefEdit The {@link SharedPreferences} editor to use to commit. */
-	static private void _setDefaults(Resources r, SharedPreferences.Editor prefEdit){
-		//Thought: Consider using parallel arrays in res to respect open-close?
-		prefEdit.putInt(
-				r.getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
-		);
-		prefEdit.putInt(
-				r.getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
-		);
-		prefEdit.putInt(
-				r.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
-		);
-		
-		prefEdit.putBoolean(
-				r.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
-			r.getBoolean(R.bool.currConv_pref_DEF_VALUE_USE_JSON_REQUEST)
-		);
-		
-		//first run has completed.
-		prefEdit.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET);
-	}		
+	/** Sets defaults. Requires  R.xml.preference_defaults xml file 
+	 * Note: does not overwrite them; must be cleared first.
+	 * @param context The current context */
+	static private void _setDefaults(Context context){
+		PreferenceManager.setDefaultValues(
+				context,
+				context.getResources().getString(
+						R.string.preferenceutil_PREFERENCE_FILE_KEY),
+				Context.MODE_PRIVATE,
+				R.xml.preference_defaults, 
+				true);
+	}
+
 }
