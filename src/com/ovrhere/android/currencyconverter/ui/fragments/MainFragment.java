@@ -18,8 +18,8 @@ package com.ovrhere.android.currencyconverter.ui.fragments;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -48,6 +48,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.model.CurrencyExchangeRateAsyncModel;
@@ -62,7 +63,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.5.0-20140925
+ * @version 0.5.1-20141106
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -92,8 +93,6 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** The handler for the model. */
 	private Handler asyncHandler = new Handler(this);
 	
-	/** Lists of resources used with {@link DateFormatter}.*/ 
-	private HashMap<String, Integer> dateResUnits = new HashMap<String, Integer>();
 	
 	/** The currency list to use. Should be synchronized. */
 	private List<CurrencyData> currencyList = new ArrayList<CurrencyData>();
@@ -161,13 +160,6 @@ implements Handler.Callback, OnItemLongClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		dateResUnits.put(DateFormatter.MINUTE_UNIT, 
-					R.plurals.currConv_minutes);
-		dateResUnits.put(DateFormatter.HOUR_UNIT, 
-				R.plurals.currConv_hours);
-		dateResUnits.put(DateFormatter.DAY_UNIT, 
-				R.plurals.currConv_days);
-		
 		if (PreferenceUtils.isFirstRun(getActivity())){
 			PreferenceUtils.setToDefault(getActivity());
 		}
@@ -216,9 +208,9 @@ implements Handler.Callback, OnItemLongClickListener {
 		    
 		    CurrencyData currency = outputListAdapter.getItem(info.position);
 		    if (currency != null){
-		    	String title = getString(
-		    			R.string.currConv_context_currencyAction,
+		    	String title = getString(R.string.currConv_context_currencyAction,
 		    			currency.getCurrencyCode());
+		    	
 		    	menu.setHeaderTitle(title);
 			    menu.add(Menu.CATEGORY_SECONDARY, 0, 0, android.R.string.copy);
 			    menu.add(Menu.CATEGORY_SECONDARY, 1, 1, 
@@ -285,22 +277,20 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @see #initOutputViews(View) 	 */
 	private void processSavedState(Bundle savedInstanceState) {
 		int sourceCurrSelect = 
-				prefs.getInt(
-						getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
-						0);
+				prefs.getInt( getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
+							0);
 		int destCurrSelect = 
-				prefs.getInt(
-						getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
-						0);
+				prefs.getInt( getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
+							0);
 
 		sp_sourceCurr.setSelection(sourceCurrSelect);
 		sp_destCurr.setSelection(destCurrSelect);
 		
 		String input = "";
 		if (savedInstanceState != null){
-			input = 
-				savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT) == null ?
-				input : savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT);
+			input = savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT) == null ?
+					input : savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT);
+			
 			et_currInput.setText(input);
 		}
 		CurrencyData cdata = (CurrencyData) sp_sourceCurr.getSelectedItem();
@@ -454,8 +444,7 @@ implements Handler.Callback, OnItemLongClickListener {
 							)
 					+" "+destCurrency.getCurrencyCode();
 			
-			String label = getString(
-					R.string.currConv_clipboard_label_copiedCurrency);
+			String label = getString(R.string.currConv_clipboard_label_copiedCurrency);
 			CompatClipboard.copyToClipboard(getActivity(), label, value);
 		}
 	}
@@ -472,9 +461,8 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @return The readable timestamp.	 */
 	private void checkTimestampToUpdate(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
-							getString(
-									R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-							0);
+							getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+								0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
 		if (updateInterval < interval ){
@@ -489,15 +477,14 @@ implements Handler.Callback, OnItemLongClickListener {
 	 * @return The readable timestamp.	 */
 	private void checkTimestampWarning(CurrencyData currencyData) {
 		long updateInterval = prefs.getInt(
-							getString(
-									R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+							getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
 							0);
 		long interval = 
 				new Date().getTime() - currencyData.getModifiedDate().getTime();
+		
 		if (updateInterval < interval){			
-			String timestamp = DateFormatter.dateToRelativeDate(
-					getActivity(), dateResUnits,
-					currencyData.getModifiedDate());
+			String timestamp = DateFormatter.dateToRelativeDate(getActivity(), 
+												currencyData.getModifiedDate());
 			tv_warning.setText(
 					getString(R.string.currConv_cachedRate_warning, 
 							timestamp)
@@ -512,7 +499,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	
 	/** Requests a fresh list of exchange rates from the model. 
 	 * @param forceUpdate <code>true</code> to force online update, 
-	 * <code>false</code> to forgo it. */
+	 * <code>false</code> to forego it. */
 	private void requestFreshExchangeRates(boolean forceUpdate) {
 		asyncModel.sendMessage(
 				CurrencyExchangeRateAsyncModel.REQUEST_GET_ALL_RECORDS, 
