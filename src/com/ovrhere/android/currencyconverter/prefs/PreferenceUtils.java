@@ -17,6 +17,7 @@ package com.ovrhere.android.currencyconverter.prefs;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
 import com.ovrhere.android.currencyconverter.R;
@@ -26,7 +27,7 @@ import com.ovrhere.android.currencyconverter.R;
  * Has ability to set defaults. Requires <code>preference_info.xml</code> and
  * <code>preference_defaults.xml</code>.
  * @author Jason J.
- * @version 0.5.0-20141104
+ * @version 0.5.1-20141109
  */
 public class PreferenceUtils {
 	/* The class name. */
@@ -72,6 +73,22 @@ public class PreferenceUtils {
 		prefs.clear().commit();	
 		_setDefaults(context.getApplicationContext());
 		
+		//TODO extend the preference classes to handle integers
+		Resources r = context.getResources();
+		
+		prefs.putInt(
+				r.getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
+		);
+		prefs.putInt(
+				r.getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
+		);
+		prefs.putInt(
+				r.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+			r.getInteger(R.integer.currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
+		);		
+		
 		//first run has completed.
 		prefs	.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET)
 				.commit();
@@ -91,7 +108,8 @@ public class PreferenceUtils {
 						R.string.preferenceutil_PREFERENCE_FILE_KEY),
 				Context.MODE_PRIVATE,
 				R.xml.preference_defaults, 
-				true);
+				true);		
+		
 	}
 
 }
