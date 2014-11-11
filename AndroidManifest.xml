@@ -16,9 +16,9 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ovrhere.android.currencyconverter"
-    android:versionCode="4"
+    android:versionCode="5"
     android:installLocation="auto"
-    android:versionName="0.3.0" >
+    android:versionName="0.3.1" >
 
     <uses-sdk
         android:minSdkVersion="10"
@@ -26,7 +26,10 @@
     
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <supports-screens android:largeScreens="true" android:xlargeScreens="true"/>
+    <supports-screens 
+        android:largeScreens="true" 
+        android:xlargeScreens="true"
+        android:anyDensity="true"  />
     
     <application
         android:allowBackup="true"
