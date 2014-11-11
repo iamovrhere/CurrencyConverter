@@ -63,7 +63,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.5.1-20141106
+ * @version 0.5.2-20141109
  */
 public class MainFragment extends Fragment 
 implements Handler.Callback, OnItemLongClickListener {
@@ -72,7 +72,7 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** The log tag for errors. */
 	final static private String LOGTAG = CLASS_NAME;
 	/** Whether or not to debug. */
-	final static private boolean DEBUG = true;
+	final static private boolean DEBUG = false;
 	
 	/** Bundle key: List<CurrencyData>/List<Parcellable>. The currently parsed list. */
 	final static private String KEY_CURRENCY_LIST = 
@@ -389,7 +389,8 @@ implements Handler.Callback, OnItemLongClickListener {
 	/** Updates source views to match source currency. */
 	private void updateSourceCurrency(){
 		if (sp_sourceCurr == null || tv_warning == null || 
-				tv_currSymbol == null || img_currFlag == null){
+				tv_currSymbol == null || img_currFlag == null ||
+				getActivity() == null){
 			return; //nothing can be set.
 		}
 		int position = sp_sourceCurr.getSelectedItemPosition();
