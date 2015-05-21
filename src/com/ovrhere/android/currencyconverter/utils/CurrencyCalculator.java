@@ -18,7 +18,7 @@ package com.ovrhere.android.currencyconverter.utils;
 import java.text.NumberFormat;
 import java.util.Currency;
 
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 
 /**
  * Performs calculations & formatting regarding currency. 

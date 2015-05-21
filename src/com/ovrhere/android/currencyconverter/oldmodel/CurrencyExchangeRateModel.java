@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model;
+package com.ovrhere.android.currencyconverter.oldmodel;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -28,11 +28,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
-import com.ovrhere.android.currencyconverter.model.database.CurrencyConvertDatabaseOpenHelper;
-import com.ovrhere.android.currencyconverter.model.database.CurrencyConvertDatabaseSchema;
-import com.ovrhere.android.currencyconverter.model.database.DatabaseOpenHelper;
-import com.ovrhere.android.currencyconverter.model.localmodel.ReadWriteModel;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.database.CurrencyConvertDatabaseOpenHelper;
+import com.ovrhere.android.currencyconverter.oldmodel.database.CurrencyConvertDatabaseSchema;
+import com.ovrhere.android.currencyconverter.oldmodel.database.DatabaseOpenHelper;
+import com.ovrhere.android.currencyconverter.oldmodel.localmodel.ReadWriteModel;
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
 
 /**
@@ -40,6 +40,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * @author Jason J.
  * @version 0.1.4-20140929
  */
+@Deprecated
 class CurrencyExchangeRateModel 
 	implements ReadWriteModel<CurrencyData, List<CurrencyData>> {
 	/** The log tag. */

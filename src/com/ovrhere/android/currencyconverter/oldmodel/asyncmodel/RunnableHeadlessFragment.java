@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.asyncmodel;
+package com.ovrhere.android.currencyconverter.oldmodel.asyncmodel;
 
 
 import android.os.Bundle;
@@ -28,6 +28,7 @@ import android.view.ViewGroup;
  * @author Jason J.
  * @version 0.1.0-20140905
  */
+@Deprecated
 public class RunnableHeadlessFragment extends Fragment {
 	/** The local reference to the request. */
 	private Runnable mRunnable = null;

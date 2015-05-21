@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model;
+package com.ovrhere.android.currencyconverter.oldmodel;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -21,13 +21,14 @@ import java.util.Locale;
 import android.content.res.Resources;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 
 /**
  * Maps flag resources onto currency data.
  * @author Jason J.
  * @version 0.1.0-20140620
  */
+@Deprecated
 class FlagResourceMap {
 	/** Map of all currencies to their flags.
 	 * Code->flag*/

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model;
+package com.ovrhere.android.currencyconverter.oldmodel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,13 +36,13 @@ import android.support.v4.app.FragmentManager;
 import android.util.Log;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
-import com.ovrhere.android.currencyconverter.dao.SimpleExchangeRates;
-import com.ovrhere.android.currencyconverter.model.asyncmodel.AsyncModel;
-import com.ovrhere.android.currencyconverter.model.asyncmodel.RunnableHeadlessFragment;
-import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyJsonParser;
-import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyRequest;
-import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiCurrencyXmlParser;
+import com.ovrhere.android.currencyconverter.oldmodel.asyncmodel.AsyncModel;
+import com.ovrhere.android.currencyconverter.oldmodel.asyncmodel.RunnableHeadlessFragment;
+import com.ovrhere.android.currencyconverter.oldmodel.currencyrequest.YahooApiCurrencyJsonParser;
+import com.ovrhere.android.currencyconverter.oldmodel.currencyrequest.YahooApiCurrencyRequest;
+import com.ovrhere.android.currencyconverter.oldmodel.currencyrequest.YahooApiCurrencyXmlParser;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.SimpleExchangeRates;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
 /**
@@ -53,6 +53,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * @author Jason J.
  * @version 0.4.1-20140929
  */
+@Deprecated
 public class CurrencyExchangeRateAsyncModel extends AsyncModel 
 implements YahooApiCurrencyRequest.OnRequestEventListener {
 	/** Class name for debugging purposes. */

@@ -13,22 +13,25 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.database;
+package com.ovrhere.android.currencyconverter.oldmodel.localmodel;
 
 /**
- * The basic outline for a database schema for use with 
- * {@link DatabaseOpenHelper}.
+ * Defines structure for models that perform single reads
+ * from storage.
+ * 
  * @author Jason J.
- * @version 0.1.0-20140416
+ * @version 0.1.0-20140425
+ *
+ * @param <R> The container/type for single records
  */
-abstract public class DatabaseSchema {
-	/** @return The name of the database.	 */
-	abstract public String getName();
-	/** String used to generate the sql-lite tables. 
-	 * @return An array of the table creation strings. */
-	abstract public String[] getTableCreates();
-	/** @return The database schema version number. Default is 1. */
-	public int getVersion(){
-		return 1;
-	}	
+@Deprecated
+public interface ReadModel <R> {
+	/** Returns a single record from storage.
+	 * @param id The id that identifies the record.
+	 * @return The record in type R.	 */
+	public R getRecord(int id);
+	/** Returns a single record from storage.
+	 * @param key The key that identifies the record.
+	 * @return The record in type R.	 */
+	public R getRecord(String key);
 }

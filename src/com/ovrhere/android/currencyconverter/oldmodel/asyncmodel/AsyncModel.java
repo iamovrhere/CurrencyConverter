@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.asyncmodel;
+package com.ovrhere.android.currencyconverter.oldmodel.asyncmodel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,7 @@ import android.os.Message;
  * @author Jason J.
  * @version 0.1.2-20140919 
  */
+@Deprecated
 abstract public class AsyncModel {
 	
 	/** Generic error given if request fails. */

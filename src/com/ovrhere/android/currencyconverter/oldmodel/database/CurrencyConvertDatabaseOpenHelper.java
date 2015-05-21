@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.database;
+package com.ovrhere.android.currencyconverter.oldmodel.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,6 +26,7 @@ import android.database.sqlite.SQLiteDatabase;
  * @version 0.2.0-20140901
  * @see CurrencyConvertDatabaseSchema
  */
+@Deprecated
 public class CurrencyConvertDatabaseOpenHelper extends DatabaseOpenHelper {
 	/** The schema for the sms filter database helper. */
 	static private DatabaseSchema currConvDatabaseSchema = 

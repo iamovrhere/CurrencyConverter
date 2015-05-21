@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.database;
+package com.ovrhere.android.currencyconverter.oldmodel.database;
 
 import java.util.Locale;
 
@@ -22,6 +22,7 @@ import java.util.Locale;
  * @author Jason J.
  * @version 0.3.0-20140907
  */
+@Deprecated
 public class CurrencyConvertDatabaseSchema extends DatabaseSchema {
 	/** The database name. This should be unique to the application. */
 	final static public String DATABASE_NAME = "Ovrhere_Currency_Converter";

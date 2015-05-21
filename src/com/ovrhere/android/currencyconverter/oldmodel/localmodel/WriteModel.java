@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.localmodel;
+package com.ovrhere.android.currencyconverter.oldmodel.localmodel;
 
 import java.sql.SQLException;
 
@@ -25,6 +25,7 @@ import java.sql.SQLException;
  *
  * @param <R> The container/type for single records
  */
+@Deprecated
 public interface WriteModel<R> {
 	/**
 	 * Removes a record from storage.

@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.dao;
+package com.ovrhere.android.currencyconverter.oldmodel.dao;
 
 import java.text.ParseException;
 import java.util.Currency;
@@ -33,6 +33,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * @author Jason J.
  * @version 0.4.0-20140907
  */ 
+@Deprecated
 public class CurrencyData implements Parcelable {
 	/** The current ISO standard for this currency based upon the currency code. 
 	 * Default is <code>null</code>. */

@@ -31,7 +31,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 
 /** The currency data with a filter adapter. 

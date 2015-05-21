@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.localmodel;
+package com.ovrhere.android.currencyconverter.oldmodel.localmodel;
 
 /**
  * Defines structure for models that perform reads & writes.
@@ -24,6 +24,7 @@ package com.ovrhere.android.currencyconverter.model.localmodel;
  * @param <R1> The container/type for single records
  * @param <R2> The container/type for multiple records.
  */
+@Deprecated
 public interface ReadWriteModel<R1, R2>
 	extends ReadModel<R1>, WriteModel<R1> {
 	/** Returns all records from storage.

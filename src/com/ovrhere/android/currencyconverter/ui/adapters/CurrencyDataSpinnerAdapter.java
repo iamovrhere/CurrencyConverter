@@ -26,7 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 
 /** /** The spinner adapter for currencies.
  * <ul>

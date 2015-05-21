@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.dao;
+package com.ovrhere.android.currencyconverter.oldmodel.dao;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,6 +33,7 @@ import android.os.Parcelable;
  * @author Jason J.
  * @version 0.1.0-20140907
  */
+@Deprecated
 public class SimpleExchangeRates implements Parcelable {
 	/** The exception message to give for invalid codes. */
 	final static private String DETAILED_EXCEPTION_CURRENCY_CODE_SHORT = 

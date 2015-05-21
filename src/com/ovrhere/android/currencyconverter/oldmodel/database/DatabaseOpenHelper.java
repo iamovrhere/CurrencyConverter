@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.ovrhere.android.currencyconverter.model.database;
+package com.ovrhere.android.currencyconverter.oldmodel.database;
 
 import java.util.HashMap;
 
@@ -37,6 +37,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * @version 0.2.1-20140929
  * @see DatabaseSchema
  */
+@Deprecated
 public class DatabaseOpenHelper extends SQLiteOpenHelper {
 	/** Error message for read-only helpers trying to perform write work. */ 
 	final private static String DETAILED_EXCEPTION_READ_ONLY = 

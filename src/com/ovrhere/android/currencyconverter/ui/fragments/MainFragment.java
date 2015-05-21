@@ -50,8 +50,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.dao.CurrencyData;
-import com.ovrhere.android.currencyconverter.model.CurrencyExchangeRateAsyncModel;
+import com.ovrhere.android.currencyconverter.oldmodel.CurrencyExchangeRateAsyncModel;
+import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataFilterListAdapter;
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyDataSpinnerAdapter;
