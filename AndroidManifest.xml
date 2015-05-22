@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Copyright 2014 Jason J.
+   Copyright 2015 Jason J. (iamovrhere)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 
     <uses-sdk
         android:minSdkVersion="10"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="22" />
     
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -48,6 +48,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <provider
+            android:authorities="@string/content_provider_authority"
+	        android:name=".model.data.CurrencyConverterProvider"
+	        android:exported="false"
+	        />
+                
     </application>
 
 </manifest>
