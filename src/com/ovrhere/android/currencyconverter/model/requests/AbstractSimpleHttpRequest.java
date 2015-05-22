@@ -23,6 +23,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
+import android.net.Uri;
 import android.util.Log;
 
 /** Outlines the basics of a simple GET http request. The request is set via
@@ -32,9 +33,9 @@ import android.util.Log;
  * <p>Do not forget to 
  * call {@link #setOnRequestEventListener(OnRequestEventListener)}.</p>
  * @author Jason J.
- * @version 0.2.0-20140920
+ * @version 0.3.0-20150521
  */
-public abstract class AbstractSimpleHttpRequest implements Runnable{
+public abstract class AbstractSimpleHttpRequest implements Runnable {
 	/** The logtag for debugging. */
 	final static private String LOGTAG = AbstractSimpleHttpRequest.class
 			.getSimpleName();
@@ -67,8 +68,7 @@ public abstract class AbstractSimpleHttpRequest implements Runnable{
 		
 	/** Sets a request event listener. 
 	 * @param onRequestEventListener The implementer of this interface	 */
-	public void setOnRequestEventListener(
-			OnRequestEventListener onRequestEventListener) {
+	public void setOnRequestEventListener(OnRequestEventListener onRequestEventListener) {
 		this.mRequestEventListener = onRequestEventListener;
 	}
 	/** Sets how long in milliseconds before the request gives up. Will not 
@@ -98,9 +98,10 @@ public abstract class AbstractSimpleHttpRequest implements Runnable{
 		}
 	}
 	
+	
 	/** Returns the prepared request to perform in {@link #run()}
 	 * @return A valid request to run.	 */
-	abstract protected String getPreparedRequest();
+	abstract protected Uri getUriRequest();
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Overridden methods
@@ -109,14 +110,14 @@ public abstract class AbstractSimpleHttpRequest implements Runnable{
 	@Override
 	public String toString() {
 		return super.toString()+
-				String.format("[request: %s]", getPreparedRequest());
+				String.format("[request: %s]", getUriRequest().toString());
 	}
 	
 	@Override
 	public void run() {
 		synchronized (reqLock) {
 			final int QUERY_TIMEOUT = requestTimeout;
-			final String preparedRequest = getPreparedRequest();
+			final String preparedRequest = getUriRequest().toString();
 			
 			int responseCode = 0;
 			if (Thread.interrupted()){

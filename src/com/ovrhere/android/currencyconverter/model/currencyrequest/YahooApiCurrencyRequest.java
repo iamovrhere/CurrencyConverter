@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import android.net.Uri;
+
 import com.ovrhere.android.currencyconverter.model.requests.AbstractSimpleHttpRequest;
 
 /**
@@ -36,36 +38,46 @@ import com.ovrhere.android.currencyconverter.model.requests.AbstractSimpleHttpRe
  * Note that an instance of {@link YahooApiCurrencyRequest} will only run 
  * one request at a time and that requests are blocking</p>
  * @author Jason J.
- * @version 0.4.1-20140929
+ * @version 0.5.0-20150521
  */
 public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
-	/** The logtag for debuggin. */
+	/** The logtag for debugging. */
 	@SuppressWarnings("unused")
 	final static private String LOGTAG = YahooApiCurrencyRequest.class
 			.getSimpleName();
 	
-	/** The API url to  base the query on.  
+	/** The API base url. */
+	final static private String API_BASE = "http://query.yahooapis.com/v1/public/yql";
+		
+	/** Format query String. */
+	final static private String QUERY_FORMAT = "format";
+	/** Env query String. */
+	final static private String QUERY_ENV = "env";	
+	/** Prepared Select query String. */
+	final static private String QUERY_PREPARED_SELECT = "q";	
+	
+	/** The API query.  
 	 *  Use {@link String#format(java.util.Locale, String, Object...)  
 	 *  to replace this with the actual request form. 
 	 *  Note the form is: <code>"USDEUR","USDJPY","USDGBP",...</code> 
 	 *  where USD is the starting currency. */
-	final static private String PREPARED_API_URL =
-			"http://query.yahooapis.com/v1/public/yql?"
-			+ "q=select * from yahoo.finance.xchange where pair in (" +
-			"%s"+
-			")&env=store://datatables.org/alltableswithkeys";
-	/** Append to {@link #PREPARED_API_URL}/{@link #preparedRequest} to get 
-	 * json format. */
-	final static private String JSON_API_APPEND = "&format=json";
+	final static private String VALUE_PREPARED_SELECT =
+			"select * from yahoo.finance.xchange where pair in (%s)";
+			
+	final static private String VALUE_ENV_TABLE = "store://datatables.org/alltableswithkeys";
+	
+	/** The format type. */
+	final static private String VALUE_FORMAT_JSON = "json";
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/** The prepared request ready for execution. */
-	private String preparedRequest = "";
+		
 	/** Whether not to use json format. */
 	private boolean jsonFormat = false;
+	
+	/** The select query for the query {@link #QUERY_PREPARED_SELECT}. */
+	final private String selectQuery;
 	
 	
 	/** Creates and prepares a new request.
@@ -73,10 +85,15 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	 * @param destCodes The list of destination codes  in ISO 4217 form.
 	 * @param onRequestEventListener The listener to process the results and errors.
 	 */
-	public YahooApiCurrencyRequest(String[] sourceCode, String[] destCodes,
+	public YahooApiCurrencyRequest(String[] sourceCodes, String[] destCodes,
 			OnRequestEventListener onRequestEventListener) {
 		super();
-		prepareRequest(Arrays.asList(sourceCode), Arrays.asList(destCodes));
+		List<String> dstCodes = new ArrayList<String>();
+		dstCodes.addAll(Arrays.asList(destCodes));
+		List<String> srcCodes = new ArrayList<String>();
+		srcCodes.addAll(Arrays.asList(sourceCodes));
+		
+		this.selectQuery = prepareQuery(srcCodes, dstCodes);
 		this.setOnRequestEventListener(onRequestEventListener);
 	}
 	
@@ -85,12 +102,11 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	 * @param destCodes The list of destination codes in ISO 4217 form.
 	 * @param onRequestEventListener The listener to process the results and errors.
 	 */
-	public YahooApiCurrencyRequest
-			(List<String> sourceCodes, List<String> destCodes, 
+	public YahooApiCurrencyRequest (List<String> sourceCodes, List<String> destCodes, 
 			OnRequestEventListener onRequestEventListener) {
-		List<String> mDestCodes = new ArrayList<String>();
-		mDestCodes.addAll(destCodes);
-		prepareRequest(sourceCodes, mDestCodes);
+		List<String> dstCodes = new ArrayList<String>();
+		dstCodes.addAll(destCodes);
+		this.selectQuery = prepareQuery(sourceCodes, dstCodes);
 		this.setOnRequestEventListener(onRequestEventListener);
 	}
 	
@@ -99,19 +115,19 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	 */
 	public void setJsonFormat(boolean jsonFormat) {
 		this.jsonFormat = jsonFormat;
-		if (jsonFormat){
-			if (!preparedRequest.contains(JSON_API_APPEND)){
-				//add json string
-				preparedRequest += JSON_API_APPEND;
-			}
-		} else { //remove json string
-			preparedRequest.replaceAll(JSON_API_APPEND, "");
-		}	
 	}
 	
 	@Override
-	protected String getPreparedRequest() {
-		return preparedRequest;
+	protected Uri getUriRequest() {
+		Uri.Builder builder = Uri.parse(API_BASE).buildUpon();
+		builder	.appendQueryParameter(QUERY_PREPARED_SELECT, selectQuery)
+				.appendQueryParameter(QUERY_ENV, VALUE_ENV_TABLE);
+		
+		if (jsonFormat) {
+			builder.appendQueryParameter(QUERY_FORMAT, VALUE_FORMAT_JSON);
+		}
+		
+		return builder.build();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,10 +140,11 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 	 * @param destCodes The list of destination codes 
 	 * (note: will remove elements from this; cannot be same list as sourceCodes)
 	 */
-	private void prepareRequest(List<String> sourceCodes, List<String> destCodes){
+	private String prepareQuery(List<String> sourceCodes, List<String> destCodes){
 		String codeList = "";
 		for (String sCode : sourceCodes){
-			for (int index = 0; index < destCodes.size(); index++){
+			final int SIZE = destCodes.size();
+			for (int index = 0; index < SIZE; index++){
 				String dCode = destCodes.get(index);
 				if (sCode.equalsIgnoreCase(dCode)){
 					continue;
@@ -141,11 +158,6 @@ public class YahooApiCurrencyRequest extends AbstractSimpleHttpRequest {
 		}
 		//insert records & replace spaces (as the api does not handle spaces well)
 		//We could also use URLEncoder.encode(String, Locale);
-		preparedRequest  = String.format(Locale.US, PREPARED_API_URL, codeList)
-								.replaceAll(" ", "%20");
-		
-		if (jsonFormat){
-			preparedRequest += JSON_API_APPEND;
-		}
+		return String.format(Locale.US, VALUE_PREPARED_SELECT, codeList);
 	}
 }
