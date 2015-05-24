@@ -16,21 +16,27 @@
 package com.ovrhere.android.currencyconverter.model.currencyrequest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import android.content.ContentValues;
 import android.util.Log;
 
-import com.ovrhere.android.currencyconverter.dao.SimpleExchangeRates;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract;
 import com.ovrhere.android.currencyconverter.model.parsers.AbstractJsonParser;
 
 /**
- * The JSON parser for the yahoo currency exchange api.
- * Found at: <code>http://query.yahooapis.com/v1/public/yql?...&format=json</code>
+ * <p>The JSON parser for the yahoo currency exchange api.
+ * Found at: <code>http://query.yahooapis.com/v1/public/yql?...&format=json</code></p>
+ * 
+ * Note that this will create double values from compact results;
+ * i.e. take USD -> CAD rates and manufacture CAD -> USD rates. 
+ * 
  * @author Jason J.
- * @version 0.1.0-20140929
- *  @see YahooApiCurrencyRequest
+ * @version 0.2.0-20150523
+ * @see YahooApiCurrencyRequest
  */
-public class YahooApiCurrencyJsonParser 
-	extends AbstractJsonParser<SimpleExchangeRates>{
+public class YahooApiCurrencyJsonParser extends AbstractJsonParser<ContentValues[]>{
 	/** For debugging purposes. */
 	final static private String LOGTAG = YahooApiCurrencyJsonParser.class
 			.getSimpleName();
@@ -69,118 +75,130 @@ public class YahooApiCurrencyJsonParser
 	/// End constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	
 	@Override
-	protected SimpleExchangeRates parseJsonToReturnData() throws IOException {
-		SimpleExchangeRates results = new SimpleExchangeRates(false);
-		jsonReader.beginObject();
+	protected ContentValues[] parseJsonToReturnData() throws IOException {
+		ContentValues[] results = new ContentValues[]{};
+		mJsonReader.beginObject();
 		
-		while (jsonReader.hasNext()){
-			final String ROOT = jsonReader.nextName();
+		while (mJsonReader.hasNext()){
+			final String ROOT = mJsonReader.nextName();
 			
 			if (ROOT.equals(TAG_QUERY_ROOT)){ //arrived at: "query":{
 				if (nextNotNull()){
-					parseJsonAtRoot(results);
+					List<ContentValues> res = parseJsonAtRoot();
+					results = new ContentValues[res.size()];
+					res.toArray(results);
 				}
 			} else {
-				jsonReader.skipValue();
+				mJsonReader.skipValue();
 			}
 		}
 		
-		jsonReader.endObject();
+		mJsonReader.endObject();
 		return results;
 	} 
 	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//// Helper methods
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** Parses the root of JSON to the data.
-	 * @param results The return data
 	 * @throws IOException Re-thrown exception
+	 * @return The content values populated using the keys in 
+	 * {@link CurrencyConverterContract.ExchangeRateEntry}
 	 */
-	private void parseJsonAtRoot(SimpleExchangeRates results) 
-			throws IOException {
-		jsonReader.beginObject();
+	private List<ContentValues> parseJsonAtRoot() throws IOException {
+		List<ContentValues> results = new ArrayList<ContentValues>();
+		mJsonReader.beginObject();
 		
-		while (jsonReader.hasNext()){
-			final String RESULTS = jsonReader.nextName();
+		while (mJsonReader.hasNext()) {
+			final String RESULTS = mJsonReader.nextName();
 			
-			if (RESULTS.equals(TAG_RESULTS)){ //arrived at: "results":{
-				if (nextNotNull()){
+			if (RESULTS.equals(TAG_RESULTS)) { //arrived at: "results":{
+				if (nextNotNull()) {
 					parseJsonAtRate(results);
 				}
-			} else {
-				jsonReader.skipValue();
+			} else { //we are not interesting in other values
+				mJsonReader.skipValue();
 			}
 		}
 		
-		jsonReader.endObject();
+		mJsonReader.endObject();
+		return results;		
 	}
 	
 	/** Parses the Json stream starting at {@link #TAG_RATE}.
 	 * @param results The results to return
 	 * @throws IOException Re-thrown
 	 */
-	private void parseJsonAtRate(SimpleExchangeRates results)
+	private void parseJsonAtRate(List<ContentValues> results)
 			throws IOException {
-		jsonReader.beginObject();
+		mJsonReader.beginObject();
 		
-		while (jsonReader.hasNext()){
-			final String RATES = jsonReader.nextName();
+		while (mJsonReader.hasNext()){
+			final String RATES = mJsonReader.nextName();
 			
 			if (RATES.equals(TAG_RATE)){ //arrived at: "rate":[
 				if (nextNotNull()){
-					jsonReader.beginArray();					
-					while (jsonReader.hasNext()){
-						CodeRatePair pair = parseCodeRatePair();
-						if (pair == null){
-							continue; //cannot add
-						} 
-						results.addRate(pair.srcCode, pair.destCode, pair.rate);
+					mJsonReader.beginArray();					
+					while (mJsonReader.hasNext()){
+						
+						CodeRatePair ratePair = null;
+						try {
+							ratePair = parseCodeRatePair();
+							results.add(ratePair.toContentValues());
+							results.add(ratePair.toReverseContentValues());
+							
+						} catch (IllegalArgumentException badPair ) {
+							Log.w(LOGTAG, "Failed to parse pair: " + badPair);
+						}
 					}					
-					jsonReader.endArray();
+					mJsonReader.endArray();
 				}
 			} else {
-				jsonReader.skipValue();
+				mJsonReader.skipValue();
 			}
 		}
 		
-		jsonReader.endObject();
+		mJsonReader.endObject();
 	}
-	
+
 	/** Parses the rate pair from the json stream.
-	 * @return The rate pair if sucessfully parsed or <code>null</code>
+	 * @return The rate pair if successfully parsed or <code>null</code>
 	 * @throws IOException Re-thrown
+	 * @throws NumberFormatException Re-thrown during parsing
+	 * @throws IllegalArgumentException Re-thrown
 	 */
-	private CodeRatePair parseCodeRatePair() throws IOException {
-		jsonReader.beginObject();
+	private CodeRatePair parseCodeRatePair() throws IOException, 
+		IllegalArgumentException, NumberFormatException {
+		mJsonReader.beginObject();
 		//arrived at: {"id":"USDEUR",...,"Rate":"0.7876",...},
 		
-		CodeRatePair ratePair = new CodeRatePair();
-		
-		while (jsonReader.hasNext()){
-			final String TAG = jsonReader.nextName();
+		String idText = "";
+		double rate = 0.0d;
+		while (mJsonReader.hasNext()){
+			final String TAG = mJsonReader.nextName();
 			if (TAG.equals(TAG_RATE_ID) && nextNotNull()){
-				String idText = jsonReader.nextString();
-				if (!ratePair.extractCurrencyCodes(idText)){
-					//if we cannot extract the pair
-					ratePair = null; //we have failed
-					break;
-				}				
+				idText = mJsonReader.nextString();
+					
 			} else if (TAG.equals(TAG_EXCHANGE_RATE)  && nextNotNull()){
 				try {
-					ratePair.rate = jsonReader.nextDouble();
+					rate = mJsonReader.nextDouble();
 				} catch (NumberFormatException e){
 					Log.w(LOGTAG, 
 							"Rate was not parsed correctly for currency \""+
-							ratePair.destCode+"\"; skipping. ");
-					ratePair = null; //we have failed
-					break;
+									idText+"\"; skipping. ");
+					throw e;
 				}
 			} else {
-				jsonReader.skipValue();
+				mJsonReader.skipValue();
 			}
 		}
 		
-		jsonReader.endObject();
-		
-		return ratePair;
+		mJsonReader.endObject();
+				
+		return new CodeRatePair(idText, rate); 
 	}
 	
 }

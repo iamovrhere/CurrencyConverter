@@ -16,21 +16,27 @@
 package com.ovrhere.android.currencyconverter.model.currencyrequest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.ContentValues;
 import android.util.Log;
 
-import com.ovrhere.android.currencyconverter.dao.SimpleExchangeRates;
 import com.ovrhere.android.currencyconverter.model.parsers.AbstractXmlParser;
 
-/** The xml parser for the yahoo currency exchange api.
- * Found at: <code>http://query.yahooapis.com/v1/public/yql?...</code>
+/** <p>The xml parser for the yahoo currency exchange api.
+ * Found at: <code>http://query.yahooapis.com/v1/public/yql?...</code></p>
+ * 
+ * Note that this will create double values from compact results;
+ * i.e. take USD -> CAD rates and manufacture CAD -> USD rates.
+ * 
  * @author Jason J.
  * @version 0.3.1-20140929 
  * @see YahooApiCurrencyRequest */
-public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeRates> {
+public class YahooApiCurrencyXmlParser extends AbstractXmlParser<ContentValues[]> {
 		/** The tag for debugging purposes. */
 	final static private String LOGTAG = YahooApiCurrencyXmlParser.class
 			.getSimpleName();
@@ -61,7 +67,7 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 	 */
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// End contants
+	/// End constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/** Initializes parser.
@@ -76,8 +82,8 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	@Override
-	protected SimpleExchangeRates parseXmlToReturnData()
-		throws XmlPullParserException, IOException {
+	protected ContentValues[] parseXmlToReturnData() throws XmlPullParserException, 
+		IOException {
 		return parseXmlToExchangeRatesDao();
 	}
 	
@@ -89,78 +95,74 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<SimpleExchangeR
 	/** Parses the xml to a list using prepared PullParser 
 	 * @throws XmlPullParserException  re-thrown from next
 	 * @throws IOException  re-thrown from next */
-	private SimpleExchangeRates parseXmlToExchangeRatesDao() 
-			throws XmlPullParserException, IOException {
-		//hashmap for ISO currency codes -> USD rates
-		SimpleExchangeRates results = new SimpleExchangeRates(false);
+	private ContentValues[] parseXmlToExchangeRatesDao() throws XmlPullParserException, 
+		IOException {
+		List<ContentValues> results = new ArrayList<ContentValues>();
 		
-		pullParser.nextTag();
-		pullParser.require(XmlPullParser.START_TAG, null, TAG_QUERY_ROOT);
-		pullParser.nextTag();
-		pullParser.require(XmlPullParser.START_TAG, null, TAG_RESULTS);
+		mPullParser.nextTag();
+		mPullParser.require(XmlPullParser.START_TAG, null, TAG_QUERY_ROOT);
+		mPullParser.nextTag();
+		mPullParser.require(XmlPullParser.START_TAG, null, TAG_RESULTS);
 				
-		while (pullParser.next() != XmlPullParser.END_TAG) {
-			if (pullParser.getEventType() != XmlPullParser.START_TAG) {
-				continue;
+		while (mPullParser.next() != XmlPullParser.END_TAG) {
+			if (mPullParser.getEventType() != XmlPullParser.START_TAG) {
+				continue; //skip end tags
 	        }
-			String name = pullParser.getName();
+			
+			String name = mPullParser.getName();
 			if (name.equalsIgnoreCase(TAG_RATE_ID)){
 				CodeRatePair ratePair = parseRateBlock();
 				if (ratePair == null){
 					continue;
 				}
-				results.addRate(
-						ratePair.srcCode, 
-						ratePair.destCode, 
-						ratePair.rate );
+				
+				results.add(ratePair.toContentValues());
+				results.add(ratePair.toReverseContentValues());
+				
 			} else {
 				skipTag(); //skip all other tags
 			}
 		}
-
-		return results;
+		
+		ContentValues[] resultsArray = new ContentValues[results.size()];
+		results.toArray(resultsArray);
+		
+		return resultsArray;
 	}
 	/** Parses the currency rate block (e.g. USDEUR) 
 	 * @return The currency code + rate pair or <code>null</code> if unsuccessful.
 	 * @throws XmlPullParserException re-thrown from next
 	 * @throws IOException re-thrown from next
+	 * @throws IllegalArgumentException re-thrown if there's a parsing error
 	 */
-	private CodeRatePair parseRateBlock() 
-			throws XmlPullParserException, IOException {
-		CodeRatePair ratePair = new CodeRatePair();
+	private CodeRatePair parseRateBlock() throws XmlPullParserException, IOException,
+		IllegalArgumentException {
 		
-		String idText = (String) pullParser.getAttributeValue(null, "id");
-		if (ratePair.extractCurrencyCodes(idText) == false){
-			return null;
-		}
+		String idText = (String) mPullParser.getAttributeValue(null, "id");
+		double rate = 0.0d;
 		
-		while (pullParser.next() != XmlPullParser.END_TAG) {
-			if (pullParser.getEventType() != XmlPullParser.START_TAG) {
+		while (mPullParser.next() != XmlPullParser.END_TAG) {
+			if (mPullParser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 	        }
-			String name = pullParser.getName();
+			String name = mPullParser.getName();
 			if (name.equalsIgnoreCase(TAG_EXCHANGE_RATE)){
-				String rateText = readText();	
+				String rateText = readText();
+				
 				try {
-					ratePair.rate = Float.parseFloat(rateText);
-				} catch (NumberFormatException e){
+					rate = Double.parseDouble(rateText);
+				} catch (NumberFormatException rateFailedToParse){
 					Log.w(LOGTAG, 
 							"Rate was not parsed correctly for currency \""+
-							ratePair.destCode+"\"; skipping. ");
-					return null;
+									idText+"\"; skipping. ");
+					throw rateFailedToParse;
 				}
 			} else {
 				skipTag(); //skip all other tags at this level.
 			}
 		}
-		return ratePair;
-	}
-
-	
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// CodeRatePair - Moved to package directory
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
+		
+		return new CodeRatePair(idText, rate);
+	}	
 	
 }

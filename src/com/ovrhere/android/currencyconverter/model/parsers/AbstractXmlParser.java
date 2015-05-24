@@ -27,10 +27,10 @@ import android.util.Log;
 
 
 
-/** The basic outline for an xml parser. Note that this is thread blocking.
+/** The basic outline for an xml parser. 
  * @author Jason J.
- * @version 0.2.1-20140925
- * @param R1 The return value to use for the methods <code>parseXmlStream</code>
+ * @version 0.3.0-20150523
+ * @param R1 The return value to use for {@link #parseXmlStream(Reader)}
  */
 abstract public class AbstractXmlParser <R1> {
 	/** The tag for debugging purposes. */
@@ -43,36 +43,29 @@ abstract public class AbstractXmlParser <R1> {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End contants
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** The boolean for determining if paused. */ 
-	volatile boolean paused = false;
 	
 	/** The {@link XmlPullParser} factory for this object. */
-	private XmlPullParserFactory factory = null;
+	private XmlPullParserFactory mFactory = null;
 	/** The pull parser for this object. */
-	protected XmlPullParser pullParser = null;
+	protected XmlPullParser mPullParser = null;
+	
+	/** @return The current {@link #mPullParser} to use. */
+	final protected XmlPullParser getPullParser() {
+		return mPullParser;
+	}
 	
 	/** Initializes parser.
 	 * @throws XmlPullParserException  if parser or factory fails 
 	 * to be created. */
 	public AbstractXmlParser() throws XmlPullParserException {
 		try {
-			this.factory = XmlPullParserFactory.newInstance();
-			pullParser = factory.newPullParser();
+			this.mFactory = XmlPullParserFactory.newInstance();
+			this.mPullParser = mFactory.newPullParser();
 		} catch (XmlPullParserException e) {
 			Log.e(LOGTAG, "Unexpected error creating parser: " + e);
 			throw e;
 		}
 	}	
-	
-	/** Pauses the thread based on value. */
-	public void pause() {
-		paused = true; 
-	}
-	/** Resumes the thread based on value. */
-	public void resume(){
-		paused = false;
-	}
-
 	
 	/** Parses the xml stream and returns it described return type.
 	 * @param in The input reading
@@ -84,12 +77,11 @@ abstract public class AbstractXmlParser <R1> {
 			throws XmlPullParserException, IOException{
 		parserNullCheck();
 		try {
-			pullParser.setInput(in);
+			mPullParser.setInput(in);
 		} catch (XmlPullParserException e) {
 			Log.e(LOGTAG, "Parser failed to be created: "+e);
 			throw e;
 		}
-		checkPause();
 		
 		return parseXmlToReturnData();
 	}
@@ -104,12 +96,11 @@ abstract public class AbstractXmlParser <R1> {
 			throws XmlPullParserException, IOException{
 		parserNullCheck();
 		try {
-			pullParser.setInput(in, null);
+			mPullParser.setInput(in, null);
 		} catch (XmlPullParserException e) {
 			Log.e(LOGTAG, "Parser failed to be created: "+e);
 			throw e;
 		}
-		checkPause();
 		
 		return parseXmlToReturnData();
 	}
@@ -117,9 +108,9 @@ abstract public class AbstractXmlParser <R1> {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Abstract methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** Parses the xml to a list using prepared PullParser  {@link #pullParser}.
-	 * Remember to use {@link #checkPause()} for proper thread control.
-	 * Additionally, consider the use of {@link Thread#yield()} for throttling.
+	/** Parses the xml to a list using prepared PullParser  {@link #mPullParser}.
+	 * 
+	 * Consider using {@link Thread#yield()} for throttling large data?
 	 * @return The parsed group of values
 	 * @throws XmlPullParserException  re-thrown from next
 	 * @throws IOException  re-thrown from next */
@@ -129,31 +120,12 @@ abstract public class AbstractXmlParser <R1> {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** Checks to see if to yield the thread based on
-	 * If so, it:
-	 * <ol><li>Sets priority to lowest</li>
-	 * <li>Sleeps for 50 milliseconds</li>
-	 * <li>Rechecks</li>
-	 * <li>Repeats step 2.</li></ul>
-	 * After exiting this loop it is restored to its former priority. */
-	protected void checkPause(){
-		final Thread t = Thread.currentThread();
-		final int priority = t.getPriority();
-		if (paused){
-			t.setPriority(Thread.MIN_PRIORITY);
-		}
-		while (paused){
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {}
-		}
-		t.setPriority(priority);
-	}
+	
 	
 	/** Checks if #pullParser is <code>null</code>, if so throw.
 	 * @throws XmlPullParserException If the pull parser not previously initialized.	 */
 	final protected void parserNullCheck() throws XmlPullParserException {
-		if (pullParser == null){ //should never happen
+		if (mPullParser == null){ //should never happen
 			Log.w(LOGTAG, "Parser not built; check error log.");
 			throw new XmlPullParserException(DETAILED_EXCEPTION_PARSER_NOT_BUILT);
 		}
@@ -168,9 +140,9 @@ abstract public class AbstractXmlParser <R1> {
 	final protected String readText() 
 			throws IOException, XmlPullParserException {
 	    String text = "";
-	    if (pullParser.next() == XmlPullParser.TEXT) {
-	        text = pullParser.getText();
-	        pullParser.nextTag();
+	    if (mPullParser.next() == XmlPullParser.TEXT) {
+	        text = mPullParser.getText();
+	        mPullParser.nextTag();
 	    }
 	    return text;
 	}
@@ -181,12 +153,12 @@ abstract public class AbstractXmlParser <R1> {
 	 * @throws IllegalStateException If not called on a starting tag.
 	 */
 	final protected void skipTag() throws XmlPullParserException, IOException {
-		if (pullParser.getEventType() != XmlPullParser.START_TAG) {
+		if (mPullParser.getEventType() != XmlPullParser.START_TAG) {
 			throw new IllegalStateException();
 		}
 		int depth = 1;
 		while (depth != 0) {
-			switch (pullParser.next()) {
+			switch (mPullParser.next()) {
 				case XmlPullParser.START_TAG:
 				depth++;
 				break;
