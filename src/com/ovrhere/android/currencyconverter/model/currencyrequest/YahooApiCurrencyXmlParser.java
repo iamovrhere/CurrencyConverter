@@ -81,6 +81,11 @@ public class YahooApiCurrencyXmlParser extends AbstractXmlParser<ContentValues[]
 	/// Override methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * {@inheritDoc}
+	 * @return The array of {@link ContentValues}. 
+	 * @throws XmlPullParserException If the XML does not parse correctly (due to poor form).
+	 */
 	@Override
 	protected ContentValues[] parseXmlToReturnData() throws XmlPullParserException, 
 		IOException {

@@ -226,7 +226,7 @@ public abstract class AbstractSimpleHttpRequest implements Runnable {
 		 * <ul><li> {@link MalformedURLException} - Poorly formed request</li>
 		 * <li> {@link SocketTimeoutException} - Request timed out according
 		 * to value set</li>
-		 * <li> {@link IOException} - During exception an IO error occurred </li> 
+		 * <li> {@link IOException} - During request an IO exception occurred </li> 
 		 * <li> {@link Exception} - Unknown exception </li>
 		 * </ul>	 */
 		public void onException(Exception e);

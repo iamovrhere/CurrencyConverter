@@ -75,7 +75,10 @@ public class YahooApiCurrencyJsonParser extends AbstractJsonParser<ContentValues
 	/// End constants
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	
+	/**
+	 * {@inheritDoc}
+	 * @return The array of {@link ContentValues}. 
+	 */
 	@Override
 	protected ContentValues[] parseJsonToReturnData() throws IOException {
 		ContentValues[] results = new ContentValues[]{};
