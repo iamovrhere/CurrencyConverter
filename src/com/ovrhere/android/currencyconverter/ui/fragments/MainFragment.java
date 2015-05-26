@@ -15,8 +15,6 @@
  */
 package com.ovrhere.android.currencyconverter.ui.fragments;
 
-import java.util.Currency;
-import java.util.Date;
 import java.util.Locale;
 
 import android.annotation.SuppressLint;
@@ -65,7 +63,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.6.0-20150525
+ * @version 0.6.1-20150526
  */
 public class MainFragment extends Fragment implements 
 	OnItemLongClickListener {
@@ -151,11 +149,12 @@ public class MainFragment extends Fragment implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		if (PreferenceUtils.isFirstRun(getActivity())){
-			PreferenceUtils.setToDefault(getActivity());
+
+		if (PreferenceUtils.isFirstRun(getActivity())) { //TODO move to activity
+			PreferenceUtils.resetToDefault(getActivity());
 		}
 		
-		mPrefs = PreferenceUtils.getPreferences(getActivity());
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		
 		//set to the first one.
 		mStartingCurrency = getResources().getStringArray(R.array.currConv_rateOrder)[0];
@@ -183,6 +182,7 @@ public class MainFragment extends Fragment implements
 		if (checkUpdateInterval()){
 			fetchNewExchangeRates();
 		};
+		updateOutput();
 		mViewBuilt = true; 
 		return rootView;
 	}
@@ -260,14 +260,8 @@ public class MainFragment extends Fragment implements
 		sp_destCurr.setSelection(destCurrSelect);
 		
 		String input = et_currInput.getText().toString();
-		/*if (savedInstanceState != null){
-			input = savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT) == null ?
-					input : savedInstanceState.getString(KEY_CURRENCY_VALUE_INPUT);
-			
-			et_currInput.setText(input);
-		}*/
-		
-		//mOutputListAdapter.updateCurrentValue(convertToDouble(input));
+				
+		mOutputListAdapter.updateCurrentValue(convertToDouble(input));
 	}
 	
 	/** Initializes the output views such as textviews, images & listview.
@@ -356,12 +350,7 @@ public class MainFragment extends Fragment implements
 		
 		final String sourceCode = (String) sp_sourceCurr.getSelectedItem();
 		final CurrencyResourceMap map = CurrencyResourceMap.valueOf(sourceCode.toUpperCase(Locale.US)); 
-		
-		if (sourceCode == null){
-			Log.w(LOGTAG, "Irregular behaviour skipping change.");
-			return;
-		}
-				
+						
 		tv_currSymbol.setText(map.mSymbol);
 		int flagId = map.mFlagResId; 
 		if (flagId >= 0){
@@ -387,14 +376,12 @@ public class MainFragment extends Fragment implements
 		if (output != null){
 			String currencyCode = output.getString(CurrencyCursorAdapter.COL_DESTINATION_CODE);
 			
-			Currency currency = Currency.getInstance(currencyCode);
 			double inputAmount = convertToDouble(et_currInput.getText().toString());
 			double rate = output.getDouble(CurrencyCursorAdapter.COL_EXCHANGE_RATE); 
 			
 			//produces: $ [converted value] CODE
-			String value = getString(CurrencyResourceMap.valueOf(currencyCode).mSymbol) +  
-					CurrencyCalculator.format(currency, inputAmount * rate, detailed) +
-					" " + currencyCode;
+			String value = 
+					CurrencyCalculator.calculateAndFormat(currencyCode, inputAmount, rate, detailed);
 			
 			String label = getString(R.string.currConv_clipboard_label_copiedCurrency);
 			CompatClipboard.copyToClipboard(getActivity(), label, value);
@@ -412,28 +399,22 @@ public class MainFragment extends Fragment implements
 	 * @return <code>true</code> if an update is needed, <code>false</code> otherwise.
 	 * */
 	private boolean checkUpdateInterval() {
-		final long updateInterval = mPrefs.getInt( //TODO change to long
-							getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-							0);
+		final long updateInterval = PreferenceUtils.getUpdateInterval(getActivity());
 		
-		final long interval =  //TODO update preferences
-				System.currentTimeMillis() - PreferenceManager.getDefaultSharedPreferences(getActivity())
-													.getLong(getString(R.string.currConv_pref_KEY_LAST_UPDATE), 0);
+		final long lastUpdate = PreferenceUtils.getLastUpdateTime(getActivity());
+		final long interval =  System.currentTimeMillis() - lastUpdate;
 		
-		if (updateInterval < interval) {
-			//TODO redo the timestamp
-			String timestamp = DateFormatter.dateToRelativeDate(getActivity(), 
-												new Date());
+		if (updateInterval < interval && lastUpdate > 1) {
+			String timestamp = DateFormatter.dateToRelativeDate(getActivity(), lastUpdate);
 			tv_warning.setText(
 					getString(R.string.currConv_cachedRate_warning, 
 							timestamp)
 							);
 			tv_warning.setVisibility(View.VISIBLE);
-			return true;
 		} else {
 			tv_warning.setVisibility(View.GONE);
-			return false;
 		}
+		return updateInterval < interval;
 	}
 	
 	
@@ -582,7 +563,7 @@ public class MainFragment extends Fragment implements
 			}
 			
 
-			Log.d(LOGTAG, "Uri: " + request.toString());
+			//Log.d(LOGTAG, "Uri: " + request.toString());
 			
 			return new CursorLoader(
 					getActivity(), 

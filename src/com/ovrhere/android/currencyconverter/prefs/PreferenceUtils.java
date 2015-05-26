@@ -23,11 +23,11 @@ import android.preference.PreferenceManager;
 import com.ovrhere.android.currencyconverter.R;
 
 /**
- * Preference Utility for handling the preferences and the preference container.
+ * Preference Utility for handling the preferences .
  * Has ability to set defaults. Requires <code>preference_info.xml</code> and
  * <code>preference_defaults.xml</code>.
  * @author Jason J.
- * @version 0.5.1-20141109
+ * @version 0.6.0-2010525
  */
 public class PreferenceUtils {
 	/* The class name. */
@@ -38,78 +38,149 @@ public class PreferenceUtils {
 	 * @see {@link #KEY_PREFERENCES_SET} */
 	final static protected boolean VALUE_PREFERENCES_SET	 = true;
 	
-	/** Used to determine if the preferences have been set to default or if this
-	 * the first run.
+	/** Used to determine if {@link #resetToDefault(Context)} has been called before.
 	 * @param context The current context.
-	 * @return <code>true</code> if the first run, <code>false</code> otherwise.
+	 * @return <code>true</code> only on the first run, <code>false</code> otherwise.
 	 */
 	static public boolean isFirstRun(Context context){
-		SharedPreferences prefs = getPreferences(context);
-		//set any missing preferences if not set, ignores the rest
-		_setDefaults(context); 
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 		
-		//if the default value not set, then true.
-		return (prefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) 
+		//set any missing preferences if not set, ignores the rest
+		boolean isFirstRun = (prefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) 
 				== !VALUE_PREFERENCES_SET);
+		
+		if (isFirstRun == false) {
+			SharedPreferences oldPrefs = getOldPreferences(context);
+			checkAndTransferOldToNew(oldPrefs, prefs, context);
+		}
+				
+		//if the default value not set, then true.
+		return isFirstRun;
 	}
 	
-	/** Returns the {@link SharedPreferences} file  using private mode. 
-	 * @param context The current context to be used. */
+	/** 
+	 * Returns the {@link SharedPreferences} file  using private mode. 
+	 * @param context The current context to be used. 
+	 * @deprecated Use {@link PreferenceManager#getDefaultSharedPreferences(Context)} instead */
+	@Deprecated
 	static public SharedPreferences getPreferences(Context context){
-		/* This is safe as SharedPreferences is a shared instance for the application
-		 * and thus will not leak.		 */
 		context = context.getApplicationContext();
 		
 		return context.getSharedPreferences(
-				context.getResources().getString(R.string.preferenceutil_PREFERENCE_FILE_KEY), 
+				context.getResources().getString(R.string.preferenceutil_OLDPREFERENCE_FILE_KEY), 
 				Context.MODE_PRIVATE); 
 	}
 	
-	/** Resets application's preferences to the default values. 
+	/** <b>Clears</b> and resets application's preferences to the default values. 
 	 * @param context The current context to be used. 
 	 * @see res/values/preferences_info.xml */
-	static public void setToDefault(Context context){
-		SharedPreferences.Editor prefs = getPreferences(context).edit();
-		prefs.clear().commit();	
-		_setDefaults(context.getApplicationContext());
+	static public void resetToDefault(Context context){
+		SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(context)
+											.edit();
+		edit.clear().commit();		
+		PreferenceManager.setDefaultValues(context, R.xml.preference_defaults, true);	
 		
-		//TODO extend the preference classes to handle integers
-		Resources r = context.getResources();
-		
-		prefs.putInt(
-				r.getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX)
-		);
-		prefs.putInt(
-				r.getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX)
-		);
-		prefs.putInt(
-				r.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
-			r.getInteger(R.integer.currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL)
-		);		
-		
-		//first run has completed.
-		prefs	.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET)
-				.commit();
+		edit.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET).commit();
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//// Helper mutators and accessors
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/** 
+	 * Gets the update interval as a long.
+	 * @param context The context of the value.
+	 * @return The update interval parsed as a long.
+	 */
+	public static long getUpdateInterval(Context context) {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		return Long.parseLong(
+				pref.getString(
+					context.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL), "0")
+			);
+	}
+	
+	/**
+	 * Gets the last update time.
+	 * @param context The activity context
+	 * @return Returns the time in milliseconds (since epoch) the last updat was on.
+	 */
+	public static long getLastUpdateTime(Context context) {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		final long lastUpdate = pref.getLong(
+				context.getString(R.string.currConv_pref_KEY_LAST_UPDATE), 0);
+		return lastUpdate;
+	}
+	
+	/**
+	 * Convenience method for {@link #setLastUpdateTime(Context, long)} 
+	 * with time set to now.
+	 * @param context The activity context
+	 */
+	public static void setLastUpdateTimeToNow(Context context) {
+		final long epochTime = System.currentTimeMillis();
+		setLastUpdateTime(context, epochTime);
+	}
+	
+	/**
+	 * Sets the last update time to the value of time
+	 * @param context The activity context
+	 * @param time the GMT time in millis since epoch
+	 */
+	public static void setLastUpdateTime(Context context, long time) {
+		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+		editor.putLong( context.getString(R.string.currConv_pref_KEY_LAST_UPDATE), 
+						time);	
+		editor.commit();
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Utility functions
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	/** Sets defaults. Requires  R.xml.preference_defaults xml file 
-	 * Note: does not overwrite them; must be cleared first.
-	 * @param context The current context */
-	static private void _setDefaults(Context context){
-		PreferenceManager.setDefaultValues(
-				context,
-				context.getResources().getString(
-						R.string.preferenceutil_PREFERENCE_FILE_KEY),
-				Context.MODE_PRIVATE,
-				R.xml.preference_defaults, 
-				true);		
+	private static SharedPreferences getOldPreferences(Context context){
+		/* This is safe as SharedPreferences is a shared instance for the application
+		 * and thus will not leak.		 */
+		context = context.getApplicationContext();
 		
+		return context.getSharedPreferences(
+				context.getResources().getString(R.string.preferenceutil_OLDPREFERENCE_FILE_KEY), 
+				Context.MODE_PRIVATE); 
+	}
+	
+	/**
+	 * Checks if old preferences exists and migrates them to the new one, if they do.
+	 * @param oldPrefs
+	 * @param newPrefs
+	 * @param context
+	 */
+	private static void checkAndTransferOldToNew(SharedPreferences oldPrefs, 
+			SharedPreferences newPrefs, Context context) {
+		boolean oldPrefsExist = (oldPrefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) == VALUE_PREFERENCES_SET);
+		
+		if (!oldPrefsExist) {
+			return; //if the older preferences do not exist, exit.
+		} //otherwise, transfer them.
+		
+		Resources res = context.getResources();
+		SharedPreferences.Editor prefs = newPrefs.edit();
+		
+		prefs.putInt(
+				res.getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX),
+				oldPrefs.getInt(res.getString(R.string.currConv_pref_OLDKEY_SOURCE_CURRENCY_INDEX), 0)
+		);
+		prefs.putInt(
+				res.getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX),
+				oldPrefs.getInt(res.getString(R.string.currConv_pref_OLDKEY_DEST_CURRENCY_INDEX), 0)
+		);
+		
+		prefs.putString(
+				res.getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL),
+				""+oldPrefs.getInt(res.getString(R.string.currConv_pref_OLDKEY_UPDATE_CURRENCY_INTERVAL), 0)
+		);
+		
+		oldPrefs.edit().clear().commit();		
+		prefs.commit();
 	}
 
 }

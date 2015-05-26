@@ -40,7 +40,7 @@
     <!-- The code for JPY -->
     <string name="currConv_JPY_code" >JPY</string>
     
-    <!-- Symbols most symbols not required. -->
+    <!-- Symbols have veen kept as Currency symbols is cumbersome to deal with. -->
     <eat-comment />    
     <!-- The symbol for USD -->
     <string name="currConv_USD_symbol" >$</string>

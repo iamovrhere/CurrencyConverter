@@ -17,15 +17,14 @@ package com.ovrhere.android.currencyconverter.ui.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceManager;
 import android.support.v4.preference.PreferenceFragment;
-import android.util.Log;
 
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
@@ -40,13 +39,14 @@ import com.ovrhere.android.currencyconverter.utils.ToastManager;
  * <a href="https://github.com/kolavar/android-support-v4-preferencefragment" 
  * target="_blank">android-support-v4-preferencefragment</a>
  * @author Jason J.
- * @version 0.2.0-20140929
+ * @version 0.3.0-20150526
  */
-public class SettingsFragment extends PreferenceFragment 
- implements OnPreferenceClickListener, OnPreferenceChangeListener {
-	/** Class name for debugging purposes. */
-	final static private String CLASS_NAME = SettingsFragment.class
-			.getSimpleName();
+public class SettingsFragment extends PreferenceFragment implements 
+	OnPreferenceClickListener, OnPreferenceChangeListener {
+	
+	/* Class name for debugging purposes. */
+	//final static private String CLASS_NAME = SettingsFragment.class .getSimpleName();
+	
 	/** Basic debugging bool. */
 	final static private boolean DEBUG = true;
 	/** The developer name for launching intent. */
@@ -61,16 +61,11 @@ public class SettingsFragment extends PreferenceFragment
 	
 	/** The toast manager for this frag. */
 	private ToastManager tm = null;
-	/** The shared preferences to get. */
-	private SharedPreferences prefs = null;
 	
 	@Override
 	public void onCreate(Bundle paramBundle) {
 		super.onCreate(paramBundle);
-		getPreferenceManager().setSharedPreferencesName(
-				getString(R.string.preferenceutil_PREFERENCE_FILE_KEY));
-		
-		prefs = getPreferenceManager().getSharedPreferences();
+				
 		tm = new ToastManager(getActivity());
 		
 		refreshPreferences();
@@ -115,16 +110,11 @@ public class SettingsFragment extends PreferenceFragment
 	
 	/** Initializes the update interval, including label. */
 	private void initUpdateInterval(){
-		final String prefKey = getString(
-				R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL);
-		final String settingKey = 
-				getString(R.string.currConv_settings_KEY_UPDATE_INTERVAL);
+		final String prefKey = getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL);
 		
-		Preference updateInt = getPreferenceManager().findPreference(settingKey);
-		updateInt.setOnPreferenceChangeListener(this);
+		Preference updateInt = getPreferenceManager().findPreference(prefKey);		
 		
-		int value = prefs.getInt(prefKey, 0);
-		findAndSetUpdateSummary(value, (ListPreference) updateInt);
+		bindPreferenceSummaryToValue((ListPreference) updateInt, this);
 	}
 
 	
@@ -150,39 +140,10 @@ public class SettingsFragment extends PreferenceFragment
 	/// Misc. Helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
-
-	/** Finds and sets the update summary. Additionally sets default
-	 * value based on interval 
-	 * @param interval The interval to show 
-	 * @param updateList The preference to update the summary */ 
-	private void findAndSetUpdateSummary(final int interval, 
-			ListPreference updateList) {
-		CharSequence[] labels = updateList.getEntries(); 
-		CharSequence[] values = updateList.getEntryValues();
-		
-		if (labels.length != values.length){
-			Log.w(CLASS_NAME, "Labels and values mismatch!");
-			//if there is a mismatch, we know nothing.
-			return;
-		}
-		final int SIZE = labels.length;
-		for (int index = 0; index < SIZE; index++) {
-			if (values[index].equals(String.valueOf(interval))){
-				//same value, so label it as such.
-				updateList.setSummary(labels[index]);
-				updateList.setValueIndex(index);
-				return;
-			}
-		}
-	}
 	
 	/** Resets all settings then toasts it. */
 	private void resetSettings() {
-		PreferenceUtils.getPreferences(getActivity())
-						.edit()
-						.clear()
-						.commit(); //empty all settings
-		PreferenceUtils.setToDefault(getActivity()); //reset
+		PreferenceUtils.resetToDefault(getActivity()); //reset
 		refreshPreferences();
 		tm.toastLong(getString(R.string.currConv_toast_clearedSettings));
 	}
@@ -221,6 +182,22 @@ public class SettingsFragment extends PreferenceFragment
 		}
 	}
 	
+    /**
+     * Binds a preference's summary to its value, such that  when the
+     * preference's value is changed, its summary is updated to reflect the value.
+     */
+    private static void bindPreferenceSummaryToValue(Preference preference, 
+    		OnPreferenceChangeListener listener) {
+        // Set the listener to watch for value changes.
+        preference.setOnPreferenceChangeListener(listener);
+
+        // Trigger the listener immediately with the preference's
+        // current value.
+        listener.onPreferenceChange(preference,
+                PreferenceManager.getDefaultSharedPreferences(preference.getContext())
+                        .getString(preference.getKey(), ""));
+    }
+	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Implemented listeners
@@ -245,19 +222,25 @@ public class SettingsFragment extends PreferenceFragment
 	
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
-		String updateKey = 
-				getString(R.string.currConv_settings_KEY_UPDATE_INTERVAL);
-		if (updateKey.equals(preference.getKey())){
-			int value = Integer.parseInt((String)newValue);
-			prefs.edit()
-				.putInt(
-						getString(R.string.currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL), 
-						value)
-				.commit();
-			findAndSetUpdateSummary(value, (ListPreference) preference);
-			return false;
-		}
-		return true;
+		String stringValue = newValue.toString();
+
+        if (preference instanceof ListPreference) {
+            // For list preferences, look up the correct display value in
+            // the preference's 'entries' list.
+            ListPreference listPreference = (ListPreference) preference;
+            
+            //note: this line may not work for integer-arrays
+            int index = listPreference.findIndexOfValue(stringValue); 
+
+            // Set the summary to reflect the new value.
+            preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
+
+        } else {
+            // For all other preferences, set the summary to the value's
+            // simple string representation.
+            preference.setSummary(stringValue);
+        }
+        return true;
 	}
 	
 }

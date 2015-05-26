@@ -22,13 +22,13 @@ import java.util.Currency;
 /**
  * Performs calculations & formatting regarding currency. 
  * @author Jason J.
- * @version 0.4.0-20150524
+ * @version 0.6.0-20150526
  */
 public class CurrencyCalculator {
 	/** The minimal format precision. */
-	final static private int FORMAT_MIN_PRECISION = 4;	
+	private static final int FORMAT_MIN_PRECISION = 4;	
 	/** The detailed format precision. */
-	final static private int FORMAT_DETAILED_PRECISION = 6;
+	private static final int FORMAT_DETAILED_PRECISION = 6;
 
 	/** Convenience function for {@link #format(CurrencyData, double, boolean)}.
 	 * Same as calling with <code>detailed</code> <code>false</code>.
@@ -36,7 +36,7 @@ public class CurrencyCalculator {
 	 * @param amount The amount to format
 	 * @return The formatted currency string.
 	 */
-	static public String format(Currency currency, 
+	public static String format(Currency currency, 
 			double amount){
 		return format(currency, amount, false);
 	}
@@ -49,7 +49,7 @@ public class CurrencyCalculator {
 	 * <code>false</code> to give the default currency digits. 
 	 * @return The formatted currency string.	 
 	 * */
-	static public String format(Currency currency, double amount, boolean detailed){
+	public static String format(Currency currency, double amount, boolean detailed){
 		final NumberFormat numFormat = NumberFormat.getInstance();
 		
 		numFormat.setCurrency(currency);
@@ -65,6 +65,47 @@ public class CurrencyCalculator {
 		numFormat.setMaximumFractionDigits(fracDigits);
 		
 		return numFormat.format(amount);
+	}
+	
+	/**
+	 * Does the simple conversion and formatting of currency.
+	 * @param currencyCode The ISO 4217 currency code 
+	 * @param inputAmount The amount to convert from
+	 * @param conversionRate The rate to use to convert
+	 * @param detailed How detailed to give the output. 
+	 * @return the value formatted by {@link #format(Currency, double, boolean)}
+	 */
+	public static String calculateAndFormat(String currencyCode, double inputAmount, 
+			double conversionRate, boolean detailed) {
+		Currency currency = Currency.getInstance(currencyCode);
+		
+		return calculateAndFormat(currencyCode, currency, inputAmount, conversionRate, detailed);
+	}
+	
+	/*public static String calculateAndFormat(Currency currency, double inputAmount, 
+			double conversionRate, boolean detailed) {
+		String currencyCode = currency.getCurrencyCode().toUpperCase(Locale.US);
+		
+		return calculateAndFormat(currencyCode, currency, inputAmount, conversionRate, detailed);
+	}*/
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//// Private methods
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Uses format to calculate the new value and output the formatted results. 
+	 * @param currencyCode
+	 * @param currency
+	 * @param inputAmount
+	 * @param rate
+	 * @param detailed
+	 * @return
+	 */
+	private static String calculateAndFormat(String currencyCode, Currency currency, 
+			double inputAmount, double rate, boolean detailed) {
+		return CurrencyCalculator.format(currency, inputAmount * rate, detailed) +
+		" " + currencyCode;
 	}
 	
 }

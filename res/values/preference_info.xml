@@ -17,28 +17,25 @@
 <resources>
     <!-- Version 0.4.0-20150525  -->
     <eat-comment />
-    <!-- The string used as the preference file name. -->
-    <string name="preferenceutil_PREFERENCE_FILE_KEY" >
-        com_ovrhere_currConv_PREFERENCE_FILE_KEY
-    </string> <!-- Cannot change internal values -->
-    
+       
+    <!-- Cannot change internal values -->
     <!-- Preference keys:
 	BE WARY OF CHANGING KEY **VALUES** HERE.  -->
 	<eat-comment />
 	
-    <!-- Int key. The index of the source currency to show.  -->
+	<!-- Int key. The index of the source currency to show  -->
     <string name="currConv_pref_KEY_SOURCE_CURRENCY_INDEX" >
-        com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX
+        currConv_pref_KEY_SOURCE_CURRENCY_INDEX
     </string>
     <!-- Int key. The index of the dest currency to show  -->
     <string name="currConv_pref_KEY_DEST_CURRENCY_INDEX" >
-        com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX
+        currConv_pref_KEY_DEST_CURRENCY_INDEX
     </string>
         
-    <!-- Long key. The number of milliseconds before rechecking is necessary.  -->
+    <!-- String (parsed as a long) key. The number of milliseconds before rechecking is necessary.  -->
     <string name="currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" >
-        com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
-    </string>
+        currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
+    </string>	
     
     <!-- Long key. The number of milliseconds since the epoch GMT. Default is 0.  -->
     <string name="currConv_pref_KEY_LAST_UPDATE" >
@@ -59,15 +56,35 @@
 	<!-- Default Value to currConv_pref_KEY_DEST_CURRENCY_INDEX  -->
 	<item name="currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"
 	    type="integer">0</item>
+	
 	<!-- Default Value to currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL;
 	currently 1 hour  -->
-	<item name="currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
-	    type="integer">3600000</item>
+	<string name="currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"
+	    type="integer" >3600000</string>
 	
 	<!-- Default value of currConv_pref_KEY_USE_JSON_REQUEST. -->
 	<item name="currConv_pref_DEF_VALUE_USE_JSON_REQUEST" 
-	    type="bool">
-        1
-    </item>
+	    type="bool">1</item>
+    
+	<!-- Old string keys which may/may not be removed in the future -->
+	<eat-comment />
+	 <!-- The string used as the preference file name. -->
+    <string name="preferenceutil_OLDPREFERENCE_FILE_KEY" >
+        com_ovrhere_currConv_PREFERENCE_FILE_KEY
+    </string> 
+	
+    <!-- Int key. The index of the source currency to show.  -->
+    <string name="currConv_pref_OLDKEY_SOURCE_CURRENCY_INDEX" >
+        com_ovrhere_currConv_pref_KEY_SOURCE_CURRENCY_INDEX
+    </string>
+    <!-- Int key. The index of the dest currency to show  -->
+    <string name="currConv_pref_OLDKEY_DEST_CURRENCY_INDEX" >
+        com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX
+    </string>
+            
+    <!-- Int key. The number of milliseconds before rechecking is necessary.  -->
+    <string name="currConv_pref_OLDKEY_UPDATE_CURRENCY_INTERVAL" >
+        com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
+    </string>
 	
 </resources>

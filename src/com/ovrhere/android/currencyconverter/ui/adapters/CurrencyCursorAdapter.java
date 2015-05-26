@@ -21,7 +21,6 @@ import java.util.Locale;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,12 +38,11 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
  * Remember to use {@link #CURRENCY_LIST_COLUMNS} order.
  * 
  * @author Jason J.
- * @version 0.1.0-20150525
+ * @version 0.1.1-20150525
  */
 public class CurrencyCursorAdapter extends CursorAdapter {
-	/** Class name for debugging purposes. */
-	final static private String LOGTAG = CurrencyCursorAdapter.class
-			.getSimpleName();
+	/* Class name for debugging purposes. */
+	//final static private String LOGTAG = CurrencyCursorAdapter.class.getSimpleName();
 	
 	/** The expected column order; anything else will throw an exception. */
 	public static final String[] CURRENCY_LIST_COLUMNS = new String[]{
@@ -130,12 +128,12 @@ public class CurrencyCursorAdapter extends CursorAdapter {
 		final double rate = cursor.getDouble(COL_EXCHANGE_RATE);
 		
 		final CurrencyResourceMap map  = CurrencyResourceMap.valueOf(destCode.toUpperCase(Locale.US));
-		final Currency currency = Currency.getInstance(destCode);
 		
-		final String fullCurrencyName = holder.value.getResources().getString(map.mNameResId); 
+		final String fullCurrencyName = holder.value.getResources().getString(map.mNameResId);
+		final String convertedValue = calculateAndFormat(destCode, rate);
 		
 		holder.symbol.setText(map.mSymbol);
-		holder.value.setText(calculatedValue(currency, rate));
+		holder.value.setText(convertedValue);
 		holder.code.setText(destCode);		
 		
 		int flagResource  = map.mFlagResId;
@@ -151,15 +149,16 @@ public class CurrencyCursorAdapter extends CursorAdapter {
 	}
 	
 	/** Calculates values of currencies.
-	 * @param destCurrency The final destination currency.
+	 * @param destCode The final destination currency.
 	 * @param rate The rate to convert at.
 	 * @return The formatted currency string
 	 */
-	private String calculatedValue(Currency currency, double rate){
+	private String calculateAndFormat(String destCode, double rate){
 		if (rate <= 0){
 			//Log.w(LOGTAG, "Unexpected behaviour, rate is \""+rate+"\"");
 			rate = 0.0d;
 		}
+		final Currency currency = Currency.getInstance(destCode);
 		return CurrencyCalculator.format(currency, rate * mInputValue);
 	}
 	

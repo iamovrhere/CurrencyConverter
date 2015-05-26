@@ -15,9 +15,15 @@
    limitations under the License.
 -->
 <resources>
+    <!-- A list of non-translatable string for use in configuration -->
+    
+    <!-- Content provider authority used in the manifest -->
+    <string name="content_provider_authority">com.ovrhere.android.currencyconverter</string>
+    
     
     <!--  The values for the spinner of update times (in milliseconds!)
-    Parallel to currConv_spinner_updatePeriod_labels  -->
+    Parallel to currConv_spinner_updatePeriod_labels. 
+    These will be parsed to longs at run time. -->
     <string-array name="currConv_spinner_updatePeriod_values">
         <item>300000</item><!-- 5 minutes -->
 		<item>900000</item><!-- 15 minutes -->
@@ -31,9 +37,21 @@
 		<item>604800000</item><!-- 1 week -->        
     </string-array>
     
-    <!-- Default vlues used with the update list. -->
-    <integer-array name="currConv_spinner_updatePeriod_default" >
-        <item >@integer/currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL</item>
-    </integer-array>
+    <!-- Keys that are not settings actually but it's just easier to use them -->
+    <eat-comment />
+    <!-- Key for update interval handle -->
+    <string name="currConv_settings_KEY_UPDATE_INTERVAL"
+        >currConv_settings_KEY_UPDATE_INTERVAL</string>
     
+    <!-- Key for more apps -->
+    <string name="currConv_settings_KEY_MORE_APPS"
+        >currConv_settings_KEY_MORE_APPS</string>
+    
+    
+    <!-- Key for clear settings -->
+    <string name="currConv_settings_KEY_CLEAR_SETTINGS"
+        >currConv_settings_KEY_CLEAR_SETTINGS</string>
+    <!-- Key for app version -->
+    <string name="currConv_settings_KEY_SOFTWARE_VERSION"
+        >currConv_settings_KEY_SOFTWARE_VERSION</string>       
 </resources>

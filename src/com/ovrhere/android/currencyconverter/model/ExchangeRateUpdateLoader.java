@@ -1,11 +1,11 @@
 package com.ovrhere.android.currencyconverter.model;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.preference.PreferenceManager;
@@ -17,12 +17,13 @@ import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiExcha
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
+import com.ovrhere.android.currencyconverter.utils.Timestamp;
 
 /**
  * Simple loader to provide abstraction from the back end.
  * 
  * @author Jason J. 
- * @version 0.1.0-20150525
+ * @version 0.2.0-20150526
  */
 public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 	/** Class name for debugging purposes. */
@@ -33,10 +34,10 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 	
 	public ExchangeRateUpdateLoader(Context context, String[] currencyList) {
 		super(context);
-		//TODO change preference fetching
-		boolean json = PreferenceUtils.getPreferences(context).getBoolean(
-				context.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
-				true);
+		boolean json = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+							context.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
+							true);
+		
 		mUpdate = new YahooApiExchangeRatesUpdate(context.getContentResolver(), currencyList, json);
 	}
 
@@ -47,12 +48,13 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 	
 	@Override
 	public Void loadInBackground() {
-		final long lastUpdate = getLastUpdateTime();
+		final long lastUpdate = PreferenceUtils.getLastUpdateTime(getContext());
 		
-		checkAndConfigFirstRun(lastUpdate);		
+		checkAndConfigFirstRun(lastUpdate);
+		
 		mUpdate.run();
 		if (mUpdate.isUpdateSuccessful()) {
-			setLastUpdateTime();
+			PreferenceUtils.setLastUpdateTimeToNow(getContext());
 		}
 		
 		
@@ -63,21 +65,7 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 	//// Helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	private long getLastUpdateTime() {
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getContext());
-		final long lastUpdate = pref.getLong(
-				getContext().getString(R.string.currConv_pref_KEY_LAST_UPDATE), 0);
-		return lastUpdate;
-	}
 	
-	private void setLastUpdateTime() {
-		SharedPreferences.Editor editor = 
-				PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
-		long epochTime = System.currentTimeMillis();
-		editor.putLong( getContext().getString(R.string.currConv_pref_KEY_LAST_UPDATE), 
-						epochTime);	
-		editor.commit();
-	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	//// Helper initializers
@@ -118,6 +106,13 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 		getContext().getContentResolver()
 					.bulkInsert(ExchangeRateEntry.CONTENT_URI, returnValues.toArray(input));
 		
+		long time = 0;
+		try {
+			time = Timestamp.parse(getContext().getString(R.string.currConv_defRate_updateTime)).getTime();
+		} catch (ParseException e) {
+			Log.w(LOGTAG, "Oops! Default timestamp did not parse.");
+		}
+		PreferenceUtils.setLastUpdateTime(getContext(), time);
 	}
 
 	

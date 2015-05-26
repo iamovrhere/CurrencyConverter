@@ -14,27 +14,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<PreferenceScreen  xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen  	xmlns:android="http://schemas.android.com/apk/res/android" 
+    				xmlns:app="http://schemas.android.com/apk/res-auto" >
     
-    <!-- These will not "work" for my current implementation as I'm using
-    getInt(). The solutions are: 
-    	1. Use Integer.parseInt(getString(key) - which is ugly and unsafe
-    	2. Override the perference classes to allow for integers
-    	such as done here: 
-    	http://stackoverflow.com/questions/3721358/preferenceactivity-save-value-as-integer/3755608#3755608    -->
-	<!--	 
-	<ListPreference 
+    <!-- See: 
+    http://stackoverflow.com/questions/3721358/preferenceactivity-save-value-as-integer/3755608#3755608    -->
+		 
+	<com.ovrhere.android.currencyconverter.utils.IntEditTextPreference 
         android:key="@string/currConv_pref_KEY_SOURCE_CURRENCY_INDEX" 
         android:defaultValue="@integer/currConv_pref_DEF_VALUE_SOURCE_CURRENCY_INDEX"/>
 	
-	<ListPreference 
+	<com.ovrhere.android.currencyconverter.utils.IntEditTextPreference 
         android:key="@string/currConv_pref_KEY_DEST_CURRENCY_INDEX" 
         android:defaultValue="@integer/currConv_pref_DEF_VALUE_DEST_CURRENCY_INDEX"/>
 		 
-	<ListPreference 
+	<EditTextPreference 
         android:key="@string/currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" 
-        android:defaultValue="@integer/currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL"/>
-    -->
+        android:defaultValue="@string/currConv_pref_DEF_VALUE_UPDATE_CURRENCY_INTERVAL" />
+    
     
     <CheckBoxPreference 
         android:key="@string/currConv_pref_KEY_USE_JSON_REQUEST"

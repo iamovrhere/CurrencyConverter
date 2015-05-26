@@ -16,13 +16,16 @@
 -->
 <resources>
     <!-- A list of default values to populat the database with should there
-    be no connection at start. -->
+    be no connection at start. 
+    
+    Source: http://query.yahooapis.com/v1/public/yql/?q=select * from yahoo.finance.xchange where pair in ("USDCAD", "USDEUR", "USDGBP", "USDJPY", "CADEUR", "CADGBP", "CADJPY", "EURGBP", "EURJPY", "GBPJPY")&env=store://datatables.org/alltableswithkeys&format=json
+    -->
     <eat-comment />
     
     <!-- The currency update time (UTC/GMT) for default values.
     Should be of the form "yyyy-mm-dd hh:mm:ss.SSS+0000" -->
     <item name="currConv_defRate_updateTime" 
-       format="string" type="string" >2014-09-08 19:08:14.000+0000</item>
+       format="string" type="string" >2015-05-26 04:27:27.000+0000</item>
     
     <!--  String array. The order of the rates given for all default rates. -->
     <string-array name="currConv_rateOrder" >
@@ -46,48 +49,48 @@
     <!-- The rates from USD -> currencies in currConv_rateOrder  --> 
 	<array name="currConv_USD_defRates" >
 	    <item name="USD" format="float">1.00</item>
-	    <item name="CAD" format="float">1.0967</item>
-	    <item name="EUR" format="float">0.7750</item>
-	    <item name="GBP" format="float">0.6205</item>
-	    <item name="JPY" format="float">105.9535</item>
+	    <item name="CAD" format="float">1.2307</item>
+	    <item name="EUR" format="float">0.9134</item>
+	    <item name="GBP" format="float">0.6470</item>
+	    <item name="JPY" format="float">121.7695</item>
 	</array>
 	
 	<!-- The rates from CAD -> currencies in currConv_rateOrder  --> 
 	<array name="currConv_CAD_defRates" >
-	    <item name="USD" format="float">0.9118</item>
+	    <item name="USD" format="float">0.8125</item>
 	    <item name="CAD" format="float">1.00</item>
-	    <item name="EUR" format="float">0.7067</item>
-	    <item name="GBP" format="float">0.5658</item>
-	    <item name="JPY" format="float">96.6134</item>
+	    <item name="EUR" format="float">0.7421</item>
+	    <item name="GBP" format="float">0.5257</item>
+	    <item name="JPY" format="float">98.9437</item>
 	</array>
 	
 	
 	<!-- The rates from EUR -> currencies in currConv_rateOrder  --> 
 	<array name="currConv_EUR_defRates" >
-	    <item name="USD" format="float">1.2903</item>
-	    <item name="CAD" format="float">1.4151</item>
+	    <item name="USD" format="float">1.0948</item>
+	    <item name="CAD" format="float">1.3475</item>
 	    <item name="EUR" format="float">1.00</item>
-	    <item name="GBP" format="float">0.8006</item>
-	    <item name="JPY" format="float">136.7171</item>
+	    <item name="GBP" format="float">0.7083</item>
+	    <item name="JPY" format="float">133.3050</item>
 	</array>
 	
 	
 	<!-- The rates from GBP -> currencies in currConv_rateOrder  --> 
 	<array name="currConv_GBP_defRates" >
-	    <item name="USD" format="float">1.6116</item>
-	    <item name="CAD" format="float">1.7675</item>
-	    <item name="EUR" format="float">1.2490</item>
+	    <item name="USD" format="float">1.5456</item>
+	    <item name="CAD" format="float">1.9022</item>
+	    <item name="EUR" format="float">1.4118</item>
 	    <item name="GBP" format="float">1.00</item>
-	    <item name="JPY" format="float">170.7594</item>
+	    <item name="JPY" format="float">188.2150</item>
 	</array>
 	
 	
 	<!-- The rates from JPY -> currencies in currConv_rateOrder  --> 
 	<array name="currConv_JPY_defRates" >
-	    <item name="USD" format="float">0.0094</item>
-	    <item name="CAD" format="float">0.0104</item>
-	    <item name="EUR" format="float">0.0073</item>
-	    <item name="GBP" format="float">0.0059</item>
+	    <item name="USD" format="float">0.0082</item>
+	    <item name="CAD" format="float">0.0101</item>
+	    <item name="EUR" format="float">0.0075</item>
+	    <item name="GBP" format="float">0.0053</item>
 	    <item name="JPY" format="float">1.00</item>
 	</array>
 </resources>

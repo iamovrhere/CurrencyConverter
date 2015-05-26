@@ -19,12 +19,12 @@
       >
     
 	<ListPreference 
-		android:key="@string/currConv_settings_KEY_UPDATE_INTERVAL"
+		android:key="@string/currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL"
         android:title="@string/currConv_settings_updateInterval_title"
         android:entries="@array/currConv_spinner_updatePeriod_labels"
         android:entryValues="@array/currConv_spinner_updatePeriod_values"
         android:dialogTitle="@string/currConv_settings_updateInterval_title"
-        android:persistent="false"
+        
         />
 	
 	<CheckBoxPreference 
