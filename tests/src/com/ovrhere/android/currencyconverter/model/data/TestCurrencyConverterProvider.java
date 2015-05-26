@@ -6,16 +6,13 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
-import android.database.ContentObserver;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.test.AndroidTestCase;
 
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
+import com.ovrhere.android.currencyconverter.test.UtilityTestContentObserver;
 import com.ovrhere.android.currencyconverter.test.UtilityTestMethods;
 
 public class TestCurrencyConverterProvider extends AndroidTestCase {
@@ -30,6 +27,17 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
                 null
         );
 	}
+	
+	@Override
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		mContext.getContentResolver().delete(
+                ExchangeRateEntry.CONTENT_URI,
+                null,
+                null
+        );
+	}
+
 
 	
 	public void testProviderRegistry() {
@@ -100,13 +108,10 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
 
 	
 	public void testBasicCurrencyQuery() {
-		// insert our test records into the database
-        CurrencyConverterDbHelper dbHelper = new CurrencyConverterDbHelper(mContext);
-        SQLiteDatabase wDb = dbHelper.getWritableDatabase();
+		
+        mContext.getContentResolver()
+        		.insert(ExchangeRateEntry.CONTENT_URI, getTestInputs_CAD_BBD());
         
-        wDb.insert(ExchangeRateEntry.TABLE_NAME, null, getTestInputs_CAD_BBD());
-        
-        wDb.close();
         // Test the basic content provider query
         Cursor resultCursor = mContext.getContentResolver().query(
                 ExchangeRateEntry.CONTENT_URI,
@@ -126,12 +131,53 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
         
         resultCursor.close();
 	}
+	
+	public void testComplexCurrencyQuery() {
+		mContext.getContentResolver()
+        		.insert(ExchangeRateEntry.CONTENT_URI, getTestInputs_CAD_BBD());
+		mContext.getContentResolver()
+				.insert(ExchangeRateEntry.CONTENT_URI, getTestInputs_CAD_GBP());
+        
+        // Test dir query
+        Cursor resultCursor = mContext.getContentResolver().query(
+                ExchangeRateEntry.buildExchangeRateWithSourceCurrency("CAD"),
+                null,
+                null,
+                null,
+                null
+        );
+        
+        assertEquals("Expected different count for dir query", 2, resultCursor.getCount());
+        
+        resultCursor.moveToFirst();
+        UtilityTestMethods.validateSingleCursor("CAD -> BBD cursor failed to match", 
+        		getTestInputs_CAD_BBD(), resultCursor);
+        resultCursor.moveToNext();
+        UtilityTestMethods.validateSingleCursor("CAD -> GBP cursor failed to match", 
+        		getTestInputs_CAD_GBP(), resultCursor);
+        resultCursor.close();
+        
+        //testing item query
+        resultCursor = mContext.getContentResolver().query(
+                ExchangeRateEntry.buildExchangeRateFromSourceToDest("CAD", "GBP"),
+                null,
+                null,
+                null,
+                null
+        );
+        
+        assertEquals("Expected single record for item query", 1, resultCursor.getCount());
+        
+        UtilityTestMethods.validateCursor("CAD -> GBP cursor failed to match", 
+        		getTestInputs_CAD_GBP(), resultCursor);
+        
+	}
 
 	
 	public void testInsertReadContentProvider() {
 		ContentValues testValues = getTestInputs_USD_CAD();
 		
-        TestContentObserver observer = TestContentObserver.newTestContentObserver();
+        UtilityTestContentObserver observer = UtilityTestContentObserver.newTestContentObserver();
         mContext.getContentResolver()
         		.registerContentObserver(ExchangeRateEntry.CONTENT_URI, true, observer);
         Uri resultUri = mContext.getContentResolver()
@@ -196,17 +242,17 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
 	
 	public void testDeleteContentProvider() {
 		//insert manually in case our insert provider is broken
-		CurrencyConverterDbHelper dbHelper = new CurrencyConverterDbHelper(mContext);
-        SQLiteDatabase wDb = dbHelper.getWritableDatabase();
-        
-		long id1 = wDb.insert(ExchangeRateEntry.TABLE_NAME, null, getTestInputs_CAD_GBP());
-		long id2 = wDb.insert(ExchangeRateEntry.TABLE_NAME, null, getTestInputs_CAD_BBD());
+		Uri uri1 = mContext.getContentResolver()
+					.insert(ExchangeRateEntry.CONTENT_URI, getTestInputs_CAD_GBP());
+        Uri uri2 = mContext.getContentResolver()
+					.insert(ExchangeRateEntry.CONTENT_URI, getTestInputs_CAD_BBD());
 		
-		wDb.close();
+        long id1 = ContentUris.parseId(uri1);
+        long id2 = ContentUris.parseId(uri2);
 
 		assertFalse("One or more records did not insert correctly", id1 == -1 || id2 == -1);
 		
-        TestContentObserver deleteObserver = TestContentObserver.newTestContentObserver();
+        UtilityTestContentObserver deleteObserver = UtilityTestContentObserver.newTestContentObserver();
         mContext.getContentResolver()
         		.registerContentObserver(ExchangeRateEntry.CONTENT_URI, true, deleteObserver);
 
@@ -232,7 +278,7 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
 		};
 		final int RECORD_COUNT = bulkCV.length;
 		
-		TestContentObserver observer = TestContentObserver.newTestContentObserver();
+		UtilityTestContentObserver observer = UtilityTestContentObserver.newTestContentObserver();
         mContext.getContentResolver()
         		.registerContentObserver(ExchangeRateEntry.CONTENT_URI, true, observer);
 
@@ -292,42 +338,5 @@ public class TestCurrencyConverterProvider extends AndroidTestCase {
 	
 
 	
-    private static class TestContentObserver extends ContentObserver {
-        final HandlerThread mHT;
-        boolean mContentChanged;
-
-        static TestContentObserver newTestContentObserver() {
-            HandlerThread ht = new HandlerThread("ContentObserverThread");
-            ht.start();
-            return new TestContentObserver(ht);
-        }
-
-        private TestContentObserver(HandlerThread ht) {
-            super(new Handler(ht.getLooper()));
-            mHT = ht;
-        }
-
-        // On earlier versions of Android, this onChange method is called
-        @Override
-        public void onChange(boolean selfChange) {
-            onChange(selfChange, null);
-        }
-
-        @Override
-        public void onChange(boolean selfChange, Uri uri) {
-            mContentChanged = true;
-        }
-
-        public void waitForNotificationOrFail() {
-            // Note: The PollingCheck class is taken from the Android CTS (Compatibility Test Suite).
-            new PollingCheck(5000) {
-                @Override
-                protected boolean check() {
-                    return mContentChanged;
-                }
-            }.run();
-            mHT.quit();
-        }
-    }
 	
 }

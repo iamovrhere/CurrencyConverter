@@ -38,7 +38,7 @@ import android.net.Uri;
  * is NOT compact (requires both A -> B and B -> A). 
  *
  * @author Jason J.
- * @version 0.1.0-20150521
+ * @version 0.1.1-20150525
  */
 public class CurrencyConverterProvider extends ContentProvider {
 
@@ -69,14 +69,14 @@ public class CurrencyConverterProvider extends ContentProvider {
     }
     
 
-    /** Prepared statement. source_code = ? */
+    /** Prepared statement. source_code = ?  (case insensitive) */
     final private static String SELECTION_SOURCE_CURRENCY =
-            CurrencyConverterContract.ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + " = ? ";
+            CurrencyConverterContract.ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + " LIKE ? ";
 
-    /** Prepared statement. source_code = ? AND dest_code = ? */
+    /** Prepared statement. source_code = ? AND dest_code = ?  (case insensitive) */
     final private static String SELECTION_SOURCE_TO_DEST =
-    		CurrencyConverterContract.ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + " = ?  AND " +
-			CurrencyConverterContract.ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE + " = ? ";
+    		CurrencyConverterContract.ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + " LIKE ?  AND " +
+			CurrencyConverterContract.ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE + " LIKE ? ";
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +237,7 @@ public class CurrencyConverterProvider extends ContentProvider {
                 int insertCount = 0;
                 try {
                         for (ContentValues value : values) {
-	                        long id = wDb.insert(
+                        	long id = wDb.insert(
 	                        		CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME, 
 	                        		null, value);
 	                        

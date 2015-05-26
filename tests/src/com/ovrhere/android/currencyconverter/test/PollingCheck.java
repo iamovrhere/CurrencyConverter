@@ -15,7 +15,7 @@
  *
  * Note: This file copied from the Android CTS Tests
  */
-package com.ovrhere.android.currencyconverter.model.data;
+package com.ovrhere.android.currencyconverter.test;
 
 import junit.framework.Assert;
 
