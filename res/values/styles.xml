@@ -16,18 +16,33 @@
 <resources  xmlns:tools="http://schemas.android.com/tools" 
     		xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-        Base application theme, dependent on API level. This theme is replaced
-        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
-    -->
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!--
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        -->
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        
+        <item name="colorAccent">@color/colorAccent</item>
+        
+        <item name="android:windowBackground">@color/windowBackground</item>
+        
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        	
     </style>
-	<style name="CustomActionBarTheme"
+
+    <!-- Main activity theme. -->
+    <style name="PrimaryTheme" parent="AppTheme">
+        <item name="actionBarStyle">@style/ActionBar.Solid.CurrConv</item>
+    </style>
+
+    <!-- main activity action bar styles -->
+    <style name="ActionBar.Solid.CurrConv" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <!-- <item name="displayOptions">useLogo|showHome</item>
+        <item name="logo">@mipmap/ic_launch</item> -->
+        <item name="android:textColorPrimary">@color/currConv_white</item>
+    </style>
+    
+	<!-- <style name="CustomActionBarTheme"
            parent="@style/Theme.AppCompat.Light.DarkActionBar">
         <item name="android:windowBackground">@color/currconv_background</item>
         <item name="android:actionBarStyle" tools:targetApi="11">@style/MyActionBar</item>
@@ -35,23 +50,11 @@
         <item name="android:textColorPrimary">@color/currConv_black</item>		
         <item name="android:textColorSecondary">@color/currConv_darkgrey</item>
         
-        <!-- Support library compatibility -->
+        
         <item name="actionBarStyle">@style/MyActionBar</item>
-    </style>
+    </style> -->
 
-    <!-- General styles for the action bar -->
-    <style name="MyActionBar"
-           parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <item name="android:windowBackground">@color/currconv_background</item>
-        <item name="android:background">@color/currconv_actionBar</item>
- 		
-        <!-- Support library compatibility -->
-        <item name="background">@color/currconv_actionBar</item>
-    </style>
     
-    <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-    </style>
+    
 
 </resources>

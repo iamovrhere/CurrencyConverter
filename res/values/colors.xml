@@ -16,24 +16,31 @@
 -->
 <resources>
     <!-- The approximation of black for this project.  -->
-   <color name="currConv_black">#080808</color>
-   <!-- The dark grey for this project -->
-   <color name="currConv_darkgrey">#888888</color>
-   
-   <!-- Background color -->
-   <color name="currconv_background">#e8f6f7</color>
-   <!-- Action bar color -->
-   <!-- <color name="currConv_actionBar">#BAE6EA</color>  -->
-   <color name="currconv_actionBar">#333</color>  
-   
-   
+   <color name="currConv_black">#212121</color>
+   <color name="currConv_white">#efefef</color>
+      
    <!-- The colour used for warnings. -->
    <color name="currconv_warningColor">#aa1111</color>
    
    <!-- Currency output list colours: The colour for even rows. 
    Starting at 2nd row. -->
-   <color name="currconv_outputEven">#99c6f1f4</color>
+   <color name="currconv_outputEven">#bfd8e3</color>
    <!-- Currency output list colours: The colour for odd rows. 
    Starting in first row. Transparent-->
    <color name="currconv_outputOdd">@android:color/transparent</color>
+   
+   <!-- Easy reference through the app, if needed.  -->
+   <!-- <eat-comment />
+   
+   <color name="windowBackground">#eceff1</color> -->
+   <color name="colorPrimary">#4b86a1</color>
+   <color name="colorPrimaryDark">#366074</color>
+   
+   <color name="colorAccent">#00bed4</color>
+   
+   <color name="windowBackground">#dceaf4</color>
+   
+   <color name="textColorPrimary">@color/currConv_black</color>
+   <color name="textColorSecondary">#727272</color>
+        
 </resources>

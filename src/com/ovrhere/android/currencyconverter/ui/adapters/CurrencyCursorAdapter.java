@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +39,7 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
  * Remember to use {@link #CURRENCY_LIST_COLUMNS} order.
  * 
  * @author Jason J.
- * @version 0.1.1-20150525
+ * @version 0.1.2-20150526
  */
 public class CurrencyCursorAdapter extends CursorAdapter {
 	/* Class name for debugging purposes. */
@@ -100,7 +101,7 @@ public class CurrencyCursorAdapter extends CursorAdapter {
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = LayoutInflater.from(context)
-        			.inflate(R.layout.fragment_currency_value, parent, false);        
+        			.inflate(R.layout.list_item_currency_value, parent, false);        
         return view;
     }
 	
@@ -112,10 +113,12 @@ public class CurrencyCursorAdapter extends CursorAdapter {
 	 * @param view The view to set
 	 * @param position The current position of row 	 */
 	private static void setRowColour(View view, int position){
-		int color = view.getResources() 
-				.getColor( position % 2 == 0 ? //zero-indexed  
-						R.color.currconv_outputEven : R.color.currconv_outputOdd);
-		view.setBackgroundColor(color);
+		Drawable background = view.getResources() 
+				.getDrawable(//zero-indexed, and documentation has it that odd is first row, even is 2nd.
+					position % 2 != 0 ? 
+					R.drawable.list_item_background_even : R.drawable.list_item_background_odd);
+		
+		view.setBackgroundDrawable(background);
 	}
 	
 	
