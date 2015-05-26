@@ -16,9 +16,12 @@
 package com.ovrhere.android.currencyconverter.ui.adapters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,89 +29,79 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
+import com.ovrhere.android.currencyconverter.model.CurrencyResourceMap;
 
-/** /** The spinner adapter for currencies.
+/** The spinner adapter for currencies.
+ * Use cases:
  * <ul>
  * <li>In spinner only the currency code is shown</li>
  * <li>During selection popup: Full currency name, currency code & Flags are shown.</li>
  * </ul>
  * @author Jason J.
- * @version 0.2.0-20140903
+ * @version 0.1.0-20150525
  */
-public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
+public class CurrencySpinnerAdapter extends ArrayAdapter<String> {
 	
-	/** List of possible currencies */
-	private List<CurrencyData> currencyList = new ArrayList<CurrencyData>();
-	/** Whether or not there is an "All" option. See {@link #setSelectAllOption(boolean)}. */
-	private boolean selectAllOption = false;
 	/** The text for select all. */ 
-	private String allText = "Select All";
+	final private String mSelectAllText;
 	
 	/** The inflater used to inflate the row layouts. */
-	private LayoutInflater inflater = null;
+	final private LayoutInflater mInflater;
 	/** The selected resource. */
-	private int layoutResource = -1;
+	final private int mLayoutResource;
+	
+	/** List of possible currencies */
+	final private List<String> mCurrencyList = new ArrayList<String>();
+
+	
+	/** Convenience method; calls {@link #CurrencySpinnerAdapter(Context, int, String)} 
+	 * with string set to <code>null</code>.
+	 * @param context The current context.
+	 * @param resource A layout resource containing the id:
+	 * <code>android.R.id.text1</code>
+	 * currencyCodes The current data to populate the adapter with.
+	 */	
+	public CurrencySpinnerAdapter(Context context, int resource, String[] currencyCodes){
+		this(context, resource, currencyCodes, null);			
+	}
 	
 	/** Initializes the adapter for use.
 	 * @param context The current context.
 	 * @param resource A layout resource containing the id:
 	 * <code>android.R.id.text1</code>
-	 */
-	public CurrencyDataSpinnerAdapter(Context context, int resource) {
-		super(context, resource);
-		init(context, resource, selectAllOption);
-	}
-
-	/** Initializes the adapter for use.
-	 * @param context The current context.
-	 * @param resource A layout resource containing the id:
-	 * <code>android.R.id.text1</code>
-	 * @param selectAllOption Whether or not to show a "select all" option.
+	 * @param selectAllString The string to set the selectAllOption to; <code>null</code>
+	 * skips omits it and removes the option.
 	 */	
-	public CurrencyDataSpinnerAdapter(Context context, int resource, 
-			boolean selectAllOption){
+	public CurrencySpinnerAdapter(Context context, int resource, String[] currencyCodes,
+			@Nullable String selectAllString){
 		super(context, resource);
-		init(context, resource, selectAllOption);
-		
-	}
-	/** Simple init function.
-	 * @param context The current context.
-	 * @param resource A layout resource containing the id:
-	 * <code>android.R.id.text1</code> 
-	 * @param selectAllOption Whether or not to show a "select all" option. */
-	private void init(Context context, int resource, boolean selectAllOption) {
-		this.inflater = (LayoutInflater) 
-				context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		this.layoutResource = resource;
-		this.selectAllOption = selectAllOption;
+		this.mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		this.mLayoutResource = resource;
+		this.mSelectAllText = selectAllString;	
+		List<String> list = Arrays.asList(currencyCodes);
+		this.mCurrencyList.addAll(list);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Mutators
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	/** Sets the text that will be viewed when select all is set
-	 * @param selectAllText The text to use
-	 * @see #setSelectAllOption(boolean)	 */
-	public void setSelectAllText(String selectAllText){
-		this.allText = selectAllText;
+	
+	/** @param currencyCodes The current data to populate the adapter with. */
+	public void updateCurrencyData(String[] currencyCodes){
+		this.mCurrencyList.clear();		
+		List<String> list = Arrays.asList(currencyCodes);
+		this.mCurrencyList.addAll(list);
 		notifyDataSetChanged();
 	}
 	
-	/** @param list The current data to populate the adapter with. */
-	public void setCurrencyData(List<CurrencyData> list){
-		this.currencyList.clear();
-		this.currencyList.addAll(list);
+	
+	/** @param currencyCodes The current data to populate the adapter with. */
+	public void updateCurrencyData(List<String> currencyCodes){
+		this.mCurrencyList.clear();
+		this.mCurrencyList.addAll(currencyCodes);
 		notifyDataSetChanged();
 	}
-	/** Sets whether or not there is an "All" option as the first time. 
-	 * Default is <code>false</code>
-	 * @param allOption <code>true</code> to set all option, 
-	 * <code>false</code> to remove option.	 */
-	public void setSelectAllOption(boolean allOption){
-		this.selectAllOption = allOption;
-		notifyDataSetChanged();
-	}
+	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Start methods
@@ -127,26 +120,28 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 	/**
      * {@inheritDoc}
      * @return The data at this position, note: can be <code>null</code> if 
-     * {@link #setSelectAllOption(boolean)} is set <code>true</code>.
+     * there is a selection all option.
      */
 	@Override
-	public CurrencyData getItem(int position) {
-		if (selectAllOption){
-			position-=1;
+	public String getItem(int position) {
+		if (selectAllOptionExists()){
+			position -= 1;
 		}
 		if (position < 0){
 			return null;
 		}
-		return currencyList.get(position);
+		return mCurrencyList.get(position);
 	}
 	
 	@Override
 	public int getCount() {
-		if (selectAllOption){
-			return currencyList.size() + 1;
+		if (selectAllOptionExists()){
+			return mCurrencyList.size() + 1;
 		}
-		return currencyList.size();
+		return mCurrencyList.size();
 	}
+
+	
 	
 	@Override
 	public View getDropDownView(int position, View convertView, ViewGroup parent) {
@@ -161,6 +156,14 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/** 
+	 * Simple method for readability.
+	 * @return <code>true</code> when #mSelectAllText != <code>null</code>
+	 */
+	private boolean selectAllOptionExists() {
+		return mSelectAllText != null;
+	}
 
 	/** Populates view(s) from the data set. 
 	 * @param position The postion of the item being shown
@@ -170,55 +173,64 @@ public class CurrencyDataSpinnerAdapter extends ArrayAdapter<CurrencyData> {
 	 * to use currency code only.
 	 * @return The view corresponding to the given position.
 	 */
-	private View getPopulatedView(int position, View convertView,
-			ViewGroup parent, boolean verbose) {
-		if(selectAllOption){
-			position-=1; //decrement the additional item.			
-		}
-		Holder holder = null;
+	private View getPopulatedView(int position, View convertView, ViewGroup parent, 
+			boolean verbose) {
 		
+		if(selectAllOptionExists()){
+			position -= 1; //decrement the additional item.			
+		}
+		
+		Holder holder = null;
 		if (convertView == null){
-			convertView = inflater.inflate(layoutResource, parent, false);
-			holder =  new Holder();
-			holder.text = (TextView) convertView.findViewById(android.R.id.text1);			
+			convertView = mInflater.inflate(mLayoutResource, parent, false);
+			holder =  new Holder(convertView);						
 			convertView.setTag(holder); 
 		} else { //if created, getTag
 			holder = (Holder) convertView.getTag();
 		}
 		
-		String text = "";
 		int flagRes = 0;
 		int drawablePadding = 0;
-		if (position < 0){
-			text = allText;
+		
+		if (position < 0) {
+			holder.text.setText(mSelectAllText);
+			
 		} else {
-			CurrencyData data = currencyList.get(position);
+			final String currencyCode = mCurrencyList.get(position);
+			final Resources res = convertView.getResources();
+			
+			CurrencyResourceMap map  = CurrencyResourceMap.valueOf(currencyCode);
+			String currencyName = res.getString(map.mNameResId);
+			
 			if (verbose){
-				text =  data.getCurrencyName() + " ("+data.getCurrencyCode() +")";
-				if (data.getFlagResource() > flagRes){
-					flagRes = data.getFlagResource();
-					drawablePadding = 
-							convertView.getResources()
-								.getDimensionPixelSize(
-										R.dimen.currConv_main_spinner_imgPadding);
-				}
+				holder.text.setText(currencyName);
+				flagRes = map.mFlagResId;
+				drawablePadding = res.getDimensionPixelSize(
+									R.dimen.currConv_main_spinner_imgPadding);
+				
 			} else {
-				text =  data.getCurrencyCode();
+				holder.text.setText(currencyCode);
+				holder.text.setContentDescription(currencyName);
 			}			
 		}		
 		
-		holder.text.setText(text);
+		
 		holder.text.setCompoundDrawablePadding(drawablePadding);
 		holder.text.setCompoundDrawablesWithIntrinsicBounds(flagRes, 0, 0, 0);
 		return convertView;
 	}	
 	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Holder pattern
 	////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/** Internal holder for optimizing adapter. */
 	private class Holder {
-		public TextView text = null;
+		final public TextView text;
+		public Holder(View convertView) {
+			this.text = (TextView) convertView.findViewById(android.R.id.text1);
+		}
 	}
 	
 }

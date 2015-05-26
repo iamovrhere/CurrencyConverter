@@ -24,7 +24,7 @@
     <item name="currConv_defRate_updateTime" 
        format="string" type="string" >2014-09-08 19:08:14.000+0000</item>
     
-    <!-- The order of the rates given for all default rates. -->
+    <!--  String array. The order of the rates given for all default rates. -->
     <string-array name="currConv_rateOrder" >
         <item >@string/currConv_USD_code</item>
         <item >@string/currConv_CAD_code</item>
@@ -33,51 +33,61 @@
         <item >@string/currConv_JPY_code</item>
     </string-array>
     
+    <!-- Array of array ids. Parallel to currConv_rateOrder. -->
+    <array name="currConv_rateArray_array" >
+	    <item name="USD" format="array">@array/currConv_USD_defRates</item>
+	    <item name="CAD" format="float">@array/currConv_CAD_defRates</item>
+	    <item name="EUR" format="float">@array/currConv_EUR_defRates</item>
+	    <item name="GBP" format="float">@array/currConv_GBP_defRates</item>
+	    <item name="JPY" format="float">@array/currConv_JPY_defRates</item>
+	</array>
+	
+    
     <!-- The rates from USD -> currencies in currConv_rateOrder  --> 
-	<string-array name="currConv_USD_defRates" >
-	    <item format="float">1.00</item> <!-- USD -->
-	    <item format="float">1.0967</item> <!-- CAD -->
-	    <item format="float">0.7750</item> <!-- EUR -->
-	    <item format="float">0.6205</item> <!-- GBP -->
-	    <item format="float">105.9535</item> <!-- JPY -->
-	</string-array>
+	<array name="currConv_USD_defRates" >
+	    <item name="USD" format="float">1.00</item>
+	    <item name="CAD" format="float">1.0967</item>
+	    <item name="EUR" format="float">0.7750</item>
+	    <item name="GBP" format="float">0.6205</item>
+	    <item name="JPY" format="float">105.9535</item>
+	</array>
 	
 	<!-- The rates from CAD -> currencies in currConv_rateOrder  --> 
-	<string-array name="currConv_CAD_defRates" >
-	    <item format="float">0.9118</item> <!-- USD -->
-	    <item format="float">1.00</item> <!-- CAD -->
-	    <item format="float">0.7067</item> <!-- EUR -->
-	    <item format="float">0.5658</item> <!-- GBP -->
-	    <item format="float">96.6134</item> <!-- JPY -->
-	</string-array>
+	<array name="currConv_CAD_defRates" >
+	    <item name="USD" format="float">0.9118</item>
+	    <item name="CAD" format="float">1.00</item>
+	    <item name="EUR" format="float">0.7067</item>
+	    <item name="GBP" format="float">0.5658</item>
+	    <item name="JPY" format="float">96.6134</item>
+	</array>
 	
 	
 	<!-- The rates from EUR -> currencies in currConv_rateOrder  --> 
-	<string-array name="currConv_EUR_defRates" >
-	    <item format="float">1.2903</item> <!-- USD -->
-	    <item format="float">1.4151</item> <!-- CAD -->
-	    <item format="float">1.00</item> <!-- EUR -->
-	    <item format="float">0.8006</item> <!-- GBP -->
-	    <item format="float">136.7171</item> <!-- JPY -->
-	</string-array>
+	<array name="currConv_EUR_defRates" >
+	    <item name="USD" format="float">1.2903</item>
+	    <item name="CAD" format="float">1.4151</item>
+	    <item name="EUR" format="float">1.00</item>
+	    <item name="GBP" format="float">0.8006</item>
+	    <item name="JPY" format="float">136.7171</item>
+	</array>
 	
 	
 	<!-- The rates from GBP -> currencies in currConv_rateOrder  --> 
-	<string-array name="currConv_GBP_defRates" >
-	    <item format="float">1.6116</item> <!-- USD -->
-	    <item format="float">1.7675</item> <!-- CAD -->
-	    <item format="float">1.2490</item> <!-- EUR -->
-	    <item format="float">1.00</item> <!-- GBP -->
-	    <item format="float">170.7594</item> <!-- JPY -->
-	</string-array>
+	<array name="currConv_GBP_defRates" >
+	    <item name="USD" format="float">1.6116</item>
+	    <item name="CAD" format="float">1.7675</item>
+	    <item name="EUR" format="float">1.2490</item>
+	    <item name="GBP" format="float">1.00</item>
+	    <item name="JPY" format="float">170.7594</item>
+	</array>
 	
 	
 	<!-- The rates from JPY -> currencies in currConv_rateOrder  --> 
-	<string-array name="currConv_JPY_defRates" >
-	    <item format="float">0.0094</item> <!-- USD -->
-	    <item format="float">0.0104</item> <!-- CAD -->
-	    <item format="float">0.0073</item> <!-- EUR -->
-	    <item format="float">0.0059</item> <!-- GBP -->
-	    <item format="float">1.00</item> <!-- JPY -->
-	</string-array>
+	<array name="currConv_JPY_defRates" >
+	    <item name="USD" format="float">0.0094</item>
+	    <item name="CAD" format="float">0.0104</item>
+	    <item name="EUR" format="float">0.0073</item>
+	    <item name="GBP" format="float">0.0059</item>
+	    <item name="JPY" format="float">1.00</item>
+	</array>
 </resources>

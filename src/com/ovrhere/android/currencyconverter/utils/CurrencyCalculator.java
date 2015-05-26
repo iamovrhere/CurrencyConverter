@@ -18,12 +18,11 @@ package com.ovrhere.android.currencyconverter.utils;
 import java.text.NumberFormat;
 import java.util.Currency;
 
-import com.ovrhere.android.currencyconverter.oldmodel.dao.CurrencyData;
 
 /**
  * Performs calculations & formatting regarding currency. 
  * @author Jason J.
- * @version 0.4.0-20140908
+ * @version 0.4.0-20150524
  */
 public class CurrencyCalculator {
 	/** The minimal format precision. */
@@ -33,82 +32,39 @@ public class CurrencyCalculator {
 
 	/** Convenience function for {@link #format(CurrencyData, double, boolean)}.
 	 * Same as calling with <code>detailed</code> <code>false</code>.
-	 * @param currencyData The currency data to get decimal data from.
+	 * @param currency The currency type we are formating
 	 * @param amount The amount to format
 	 * @return The formatted currency string.
 	 */
-	static public String format(CurrencyData currencyData, 
+	static public String format(Currency currency, 
 			double amount){
-		return format(currencyData, amount, false);
+		return format(currency, amount, false);
 	}
 	
-	/** Formats currents according the currency data
-	 * @param currencyData The currency data to get decimal data from.
+	/** 
+	 * Formats money amounts according to locale.
+	 * @param currency The currency type we are formating
 	 * @param amount The amount to format
 	 * @param detailed <code>true</code> to give more decimal points, 
 	 * <code>false</code> to give the default currency digits. 
-	 * @return The formatted currency string.	 */
-	static public String format(CurrencyData currencyData, 
-			double amount, boolean detailed){
-		NumberFormat numFormat = NumberFormat.getInstance();
-		Currency currency = currencyData.getCurrency();
+	 * @return The formatted currency string.	 
+	 * */
+	static public String format(Currency currency, double amount, boolean detailed){
+		final NumberFormat numFormat = NumberFormat.getInstance();
+		
 		numFormat.setCurrency(currency);
-		int fracDigits = 
-				currency.getDefaultFractionDigits() > FORMAT_MIN_PRECISION ?
-				currency.getDefaultFractionDigits() : FORMAT_MIN_PRECISION;
+		
+		int fracDigits =  currency.getDefaultFractionDigits() > FORMAT_MIN_PRECISION ?
+							currency.getDefaultFractionDigits() : FORMAT_MIN_PRECISION;
 		if (detailed){
-			//as most currencies supported will have at least 2 decimals, so add two more
+			// most currencies supported will have at least 2 decimals, 
+			// so we can say our calculation should be within 6 decimals accurate enough.
 			fracDigits = FORMAT_DETAILED_PRECISION;
 		}
 		numFormat.setMinimumFractionDigits(fracDigits);
 		numFormat.setMaximumFractionDigits(fracDigits);
 		
 		return numFormat.format(amount);
-	}
-	
-	/**
-	 * Converts an amount of currency <code>source</code> 
-	 * from currency <code>source</code> to currency <code>dest</code>
-	 * @param source The currency to convert from (must have valid positive rate).
-	 * @param dest The currency to convert to (must have valid positive rate)
-	 * @param amount The amount of currency <code>source</code> to convert
-	 * @return The amount of currency <code>dest</code>.
-	 * @throws IllegalArgumentException If one of the currencies does not contain
-	 * a valid rate.
-	 */
-	static public double convert(CurrencyData source, CurrencyData dest, 
-			double amount){
-		String sourceCurrency = source.getCurrencyCode();
-		String destCurrency = dest.getCurrencyCode();
-		double fromToRate = source.getRate(destCurrency); //try the best choice
-		if (dest.getRate(sourceCurrency) > 0){
-			fromToRate = 1.0d/dest.getRate(sourceCurrency); //try the next best thing
-		} 
-		if (fromToRate <= 0) { //we give up.
-			throw new IllegalArgumentException(
-					"Currency Data must contain valid rates.");
-		}
-		
-		return fromToRate * amount;		
-	}
-	
-	/**
-	 * Converts an amount of currency <code>source</code> 
-	 * from currency <code>source</code> to currency <code>dest</code>
-	 * @param sourceUSD The uSD rate for source currency (must be positive)
-	 * @param dest The currency to convert to (must have valid rate)
-	 * @param amount The amount of currency <code>source</code> to convert
-	 * @return The amount of currency <code>dest</code>.
-	 */
-	@Deprecated
-	static public double convert(double sourceUSD, 
-			CurrencyData dest, double amount){
-		if (sourceUSD <= 0 || dest.getRateFromUSD() <= 0){
-			throw new IllegalArgumentException(
-					"Rates must be valid postive values");
-		}
-		double fromToRate = dest.getRateFromUSD()/sourceUSD;
-		return fromToRate * amount;
 	}
 	
 }

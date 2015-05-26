@@ -15,7 +15,7 @@
    limitations under the License.
 -->
 <resources>
-    <!-- Version 0.3.2  -->
+    <!-- Version 0.4.0-20150525  -->
     <eat-comment />
     <!-- The string used as the preference file name. -->
     <string name="preferenceutil_PREFERENCE_FILE_KEY" >
@@ -23,7 +23,7 @@
     </string> <!-- Cannot change internal values -->
     
     <!-- Preference keys:
-	BE WARY OF CHANGING KEY VALUES HERE.  -->
+	BE WARY OF CHANGING KEY **VALUES** HERE.  -->
 	<eat-comment />
 	
     <!-- Int key. The index of the source currency to show.  -->
@@ -33,10 +33,16 @@
     <!-- Int key. The index of the dest currency to show  -->
     <string name="currConv_pref_KEY_DEST_CURRENCY_INDEX" >
         com_ovrhere_currConv_pref_KEY_DEST_CURRENCY_INDEX
-    </string>    
-    <!-- Int key. The number of milliseconds before rechecking is necessary.  -->
+    </string>
+        
+    <!-- Long key. The number of milliseconds before rechecking is necessary.  -->
     <string name="currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL" >
         com_ovrhere_currConv_pref_KEY_UPDATE_CURRENCY_INTERVAL
+    </string>
+    
+    <!-- Long key. The number of milliseconds since the epoch GMT. Default is 0.  -->
+    <string name="currConv_pref_KEY_LAST_UPDATE" >
+        currConv_pref_KEY_LAST_UPDATE
     </string>
     
     <!-- Boolean key. Whether or not to use json request. 
