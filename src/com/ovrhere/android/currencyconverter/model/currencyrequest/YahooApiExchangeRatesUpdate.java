@@ -30,17 +30,23 @@ import com.ovrhere.android.currencyconverter.model.requests.AbstractSimpleHttpRe
 
 /**
  * The currency update with requests, parses, and database update. Use {@link #run()} to
- * run.
+ * run. Will retry {@value #RETRY_LIMIT} times every {@value #RETRY_INTERVAL} milliseconds
+ * if not successful on the first attempt.
  * 
  * @author Jason J.
- * @version 0.1.0-20150524
+ * @version 0.2.0-20150525
  */
 public class YahooApiExchangeRatesUpdate implements Runnable,  OnRequestEventListener{
 	/** Class name for debugging purposes. */
 	final static private String LOGTAG = YahooApiExchangeRatesUpdate.class
 			.getSimpleName();
 	/** Verbose debug; for when we want all the excessive details. */
-	final static private boolean VERBOSE_DEBUG = false;
+	final static private boolean VERBOSE_DEBUG = false;	
+
+	/** The number of times to retry the connection. */
+	private static final int RETRY_LIMIT = 3;
+	/** The wait time between attempts. */
+	private static final long RETRY_INTERVAL = 1000; //ms
 
 	/** Resolver used to insert into the database.  */
 	private final ContentResolver mContentResolver; 
@@ -51,6 +57,10 @@ public class YahooApiExchangeRatesUpdate implements Runnable,  OnRequestEventLis
 	
 	/** The value for if the update was successful. */
 	private boolean mUpdateSuccessful = false;
+	
+	
+	/** the number of attempts thus far. */
+	private int mRetryAttempts = 0;
 	
 	/**
 	 * Uses request & parses together to update the content provider.
@@ -66,6 +76,8 @@ public class YahooApiExchangeRatesUpdate implements Runnable,  OnRequestEventLis
 		this.mRequest.setJsonFormat(useJson);
 	}
 	
+
+	
 	@Override
 	public void run() {
 		mRequest.run();
@@ -77,6 +89,20 @@ public class YahooApiExchangeRatesUpdate implements Runnable,  OnRequestEventLis
 	 */
 	public boolean isUpdateSuccessful() {
 		return mUpdateSuccessful;
+	}
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	//// Helper methods.
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	private void retry(){
+		if (mRetryAttempts++ < RETRY_LIMIT) {
+			try {
+				Thread.sleep(RETRY_INTERVAL);
+			} catch (InterruptedException e) {}
+			run();
+		}
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,8 +150,10 @@ public class YahooApiExchangeRatesUpdate implements Runnable,  OnRequestEventLis
 	public void onException(Exception e) {
 		if (e instanceof SocketTimeoutException) {
 			Log.w(LOGTAG, "Connection timed out");
+			retry();
 		} else if (e instanceof IOException) {
 			Log.w(LOGTAG, "IO issue: Could not connect to server:" + e);
+			retry();
 		} else {
 			Log.e(LOGTAG, "Unexpected error during update: " + e);
 		}
