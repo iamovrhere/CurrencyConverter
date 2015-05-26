@@ -15,221 +15,68 @@
  */
 package com.ovrhere.android.currencyconverter.ui;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentManager.BackStackEntry;
-import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import com.ovrhere.android.currencyconverter.R;
-import com.ovrhere.android.currencyconverter.ui.fragments.MainFragment;
-import com.ovrhere.android.currencyconverter.ui.fragments.SettingsFragment;
+import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 
-/** The main activity that manages it all.
+/** The main activity.
  * @author Jason J.
- * @version 0.1.1-20140929
+ * @version 0.2.0-20150526
  */
-public class MainActivity extends ActionBarActivity 
- implements OnBackStackChangedListener {
-	/** Class name for debugging purposes. */
-	final static private String CLASS_NAME = MainActivity.class.getSimpleName();
-	
-	/** Bundle Key. The last fragment to be attached and so re-attached. String. */ 
-	final static private String KEY_LAST_FRAG = 
-			CLASS_NAME + ".KEY_LAST_FRAG";
-	
-	/** Bundle Key. The current action bar title. String. */
-	final static private String KEY_ACTIONBAR_TITLE = 
-			CLASS_NAME + ".KEY_ACTIONBAR_TITLE";
-	
-	
-	/** The settings tag. */
-	final static private String TAG_SETTINGS_FRAG = 
-			SettingsFragment.class.getName();
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// End contstants
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/** The current fragment to attached/re-attach. */
-	private String currFragTag = null;
-	/** The current actionbar title. */
-	private String actionBarTitle = "";
-	
-	/** The last built menu. */
-	private Menu menu = null;
-	
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putString(KEY_ACTIONBAR_TITLE, actionBarTitle);
-		outState.putString(KEY_LAST_FRAG, currFragTag);
-	}
+public class MainActivity extends ActionBarActivity  {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		if (savedInstanceState == null) {
-			loadFragment(new MainFragment(), MainFragment.class.getName(), false);
-			actionBarTitle = getString(R.string.app_name);
-		} else {
-			currFragTag = savedInstanceState.getString(KEY_LAST_FRAG);
-			actionBarTitle = savedInstanceState.getString(KEY_ACTIONBAR_TITLE);
-			reattachLastFragment();
+		if (PreferenceUtils.isFirstRun(this)) { //TODO move to activity
+			PreferenceUtils.resetToDefault(this);
 		}
-		getSupportActionBar().setTitle(actionBarTitle);
 		
-		getSupportFragmentManager().addOnBackStackChangedListener(this);
+		if (getSupportActionBar() != null){ //make actionbar flat
+			getSupportActionBar().setElevation(0.0f);
+		}
 	}
 	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		getSupportFragmentManager().removeOnBackStackChangedListener(this);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		this.menu = menu;
-		checkSettings();
+		getMenuInflater().inflate(R.menu.main, menu);		
 		return true;
 	}
 	
 
+	@SuppressLint("NewApi")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
-			loadFragment(new SettingsFragment(), 
-					TAG_SETTINGS_FRAG, 
-					true);
-			setActionBarTitle(getString(R.string.action_settings));
-			checkSettings(); //hide menu
+			Intent settings = new Intent(this, SettingsActivity.class);
+			startActivity(settings);
+			
+			//TODO complete animations
+			/*if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+				startActivity(settings, //only support JellyBean and up
+		              ActivityOptionsCompat.makeSceneTransitionAnimation(this).toBundle());
+			} else {
+				startActivity(settings);
+			}*/
+			 
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}	
-	
-	@Override
-	public void onBackPressed() {
-		if (canBack()){
-			//do what ever would be done for back actionbar
-			onSupportNavigateUp(); 
-		} else {
-			super.onBackPressed();
-		}
 	}
-	
-	@Override
-	public boolean onSupportNavigateUp() {
-	    //This method is called when the up button is pressed. Just the pop back stack.
-		setActionBarTitle(getString(R.string.app_name));
-		FragmentManager fm = getSupportFragmentManager();
-	    fm.popBackStack();
-	    int index = fm.getBackStackEntryCount()-1;
-	    if (index >= 0 ){
-		    BackStackEntry entry  = getSupportFragmentManager()
-		    					.getBackStackEntryAt(index);
-		    currFragTag = entry.getName();
-	    }
-	    checkSettings(); //show menu
-	    return true;
-	}
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Misc. Helpers
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/** Checks to see if the current fragment is the settings fragment.
-	 * If so deactivate menu, if not, re-enable it. Must be called after
-	 * {@link #onCreateOptionsMenu(Menu)} 
-	 */
-	private void checkSettings(){
-		if (menu == null){
-			return;
-		}
-		if (TAG_SETTINGS_FRAG.equals(currFragTag)){
-			menu.setGroupVisible(0, false);
-		} else {
-			menu.setGroupVisible(0, true);
-		}
-	}
-	
-	/** Sets actionbar title in {@link #actionBarTitle} & sets title to it. */
-	private void setActionBarTitle(String title) {
-		actionBarTitle = title;
-		getSupportActionBar().setTitle(actionBarTitle);
-	}
-	
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Fragment method
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/** Re-attaches the last fragment. And resets back button. 
-	 * If no tag is found, main is attached. */
-	private void reattachLastFragment() {
-		if (currFragTag == null){
-			currFragTag = MainFragment.class.getName();
-		}
-		Fragment frag = getSupportFragmentManager()
-				.findFragmentByTag(currFragTag);
-		getSupportFragmentManager().beginTransaction()
-				.attach(frag).commit();
-		
-		checkHomeButtonBack();
-	}
-	
-	/** Returns whether or not there is a backstack. */
-	private boolean canBack(){
-		return getSupportFragmentManager().getBackStackEntryCount() > 0;
-	}
-
-	/** Checks to see whether to enable the action bar back. */
-	private void checkHomeButtonBack() {
-		boolean canback = canBack();
-		getSupportActionBar().setDisplayHomeAsUpEnabled(canback);
-	}
-	
-	/** Loads a fragment either by adding or replacing and then adds it to
-	 * the #currFragTag.
-	 * @param fragment The fragment to add
-	 * @param tag The tag to give the fragment
-	 * @param backStack <code>true</code> to allow a backstack, 
-	 * <code>false</code> to clear it.
-	 */
-	private void loadFragment(Fragment fragment, String tag, 
-			boolean backStack){
-		FragmentManager fragManager = getSupportFragmentManager();
-		if (backStack && currFragTag != null){
-			fragManager.beginTransaction()
-				.addToBackStack(currFragTag)
-				.replace(R.id.container, fragment, tag)
-				.commit();
-		} else {
-			//clear backstack
-			fragManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-			fragManager.beginTransaction()
-					.replace(R.id.container, fragment, tag)
-					.commit();
-		}
-		checkHomeButtonBack();
-		currFragTag = tag; //if we intent multiple fragments, we could use a stack
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Implemented listeners
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	@Override
-	public void onBackStackChanged() {
-		checkHomeButtonBack(); //update the back button
-	}
-
 }

@@ -63,7 +63,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.6.1-20150526
+ * @version 0.7.0-20150526
  */
 public class MainFragment extends Fragment implements 
 	OnItemLongClickListener {
@@ -81,10 +81,6 @@ public class MainFragment extends Fragment implements
 	private static final int LOADER_EXCHANGE_RATES = 1;
 	
 	
-	
-	/** Bundle key. Boolean. The value of {@link #mCurrentlyUpdating} */
-	final static private String KEY_CURRENTLY_UPDATING = 
-			CLASS_NAME + ".KEY_CURRENTLY_UPDATED";
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End constants
@@ -104,8 +100,6 @@ public class MainFragment extends Fragment implements
 	/** The state of the view. */
 	private boolean mViewBuilt = false;
 	
-	/** Whether or not the app is updating. */
-	private boolean mCurrentlyUpdating = false;
 	
 	/** The source of conversion. Set by {@link #sourceItemSelectedListener} */
 	private String mStartingCurrency = "";
@@ -140,8 +134,7 @@ public class MainFragment extends Fragment implements
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {	
-		super.onSaveInstanceState(outState);		
-		outState.putBoolean(KEY_CURRENTLY_UPDATING, mCurrentlyUpdating);
+		super.onSaveInstanceState(outState);
 	}
 	
 	
@@ -149,15 +142,7 @@ public class MainFragment extends Fragment implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-
-		if (PreferenceUtils.isFirstRun(getActivity())) { //TODO move to activity
-			PreferenceUtils.resetToDefault(getActivity());
-		}
-		
-		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		
-		//set to the first one.
-		mStartingCurrency = getResources().getStringArray(R.array.currConv_rateOrder)[0];
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());		
 	}
 	
 
@@ -182,7 +167,7 @@ public class MainFragment extends Fragment implements
 		if (checkUpdateInterval()){
 			fetchNewExchangeRates();
 		};
-		updateOutput();
+		updateListOutput();
 		mViewBuilt = true; 
 		return rootView;
 	}
@@ -251,10 +236,6 @@ public class MainFragment extends Fragment implements
 		int destCurrSelect = 
 				mPrefs.getInt( getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
 							0);
-		
-		if (savedInstanceState != null){
-			mCurrentlyUpdating = savedInstanceState.getBoolean(KEY_CURRENTLY_UPDATING);
-		}
 
 		sp_sourceCurr.setSelection(sourceCurrSelect);
 		sp_destCurr.setSelection(destCurrSelect);
@@ -275,7 +256,7 @@ public class MainFragment extends Fragment implements
 		registerForContextMenu(outputListView);
 		
 		updateProgressSpin = rootView.findViewById(R.id.currConv_main_progressSpin);
-		checkProgressBar();
+		checkIfFetchingNewExchangeRates(false);
 		
 		tv_currSymbol = (TextView) rootView.findViewById(R.id.currConv_main_text_currSymbol);
 		tv_warning = (TextView) rootView.findViewById(R.id.currConv_main_text_warning);
@@ -358,7 +339,7 @@ public class MainFragment extends Fragment implements
 		}
 		
 		//whenever this changes, we change.
-		updateOutput();
+		updateListOutput();
 	}
 
 	
@@ -388,10 +369,6 @@ public class MainFragment extends Fragment implements
 		}
 	}
 	
-	/** Hides/Shows the progress bar based on the value of {@link #mCurrentlyUpdating}. */
-	private void checkProgressBar(){
-		updateProgressSpin.setVisibility(mCurrentlyUpdating ? View.VISIBLE : View.GONE );
-	}
 		
 
 	/** Compares the update interval and last update time. If enough time has elapsed,
@@ -439,15 +416,25 @@ public class MainFragment extends Fragment implements
 	/** Initializes updates via the loader. */
 	private void fetchNewExchangeRates(){
 		getLoaderManager().initLoader(LOADER_EXCHANGE_RATE_UPDATE, null, updateCallback);
-		mCurrentlyUpdating = true;
-		checkProgressBar();
 	}
 	
 	/**
 	 * Updates the output cursor.
 	 */
-	private void updateOutput() {
+	private void updateListOutput() {
 		getLoaderManager().restartLoader(LOADER_EXCHANGE_RATES, null, cursorLoaderCallback);
+	}
+	
+	/**
+	 * Checks to see if loader is loading. If so, we initiate a progress spinner,
+	 * otherwise we hide it.
+	 * @param force Force the spinner to show
+	 */
+	private void checkIfFetchingNewExchangeRates(boolean force) {
+		//if the loader exists, we are updating. Otherwise, we destroyed it in onLoadFinished.
+		boolean currentlyUpdating = force || 
+				getLoaderManager().getLoader(LOADER_EXCHANGE_RATE_UPDATE) != null;
+		updateProgressSpin.setVisibility(currentlyUpdating ? View.VISIBLE : View.GONE );
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,6 +485,7 @@ public class MainFragment extends Fragment implements
 			putIntPref(
 					R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX, 
 					position);
+			
 			updateSourceCurrency();
 			if (checkUpdateInterval()){
 				fetchNewExchangeRates();
@@ -527,7 +515,7 @@ public class MainFragment extends Fragment implements
 					R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX, 
 					position);
 			
-			updateOutput();
+			updateListOutput();
 		};
 		@Override
 		public void onNothingSelected(android.widget.AdapterView<?> parent) {
@@ -591,8 +579,7 @@ public class MainFragment extends Fragment implements
 	private LoaderManager.LoaderCallbacks<Void> updateCallback = new LoaderManager.LoaderCallbacks<Void>() {
 		@Override
 		public Loader<Void> onCreateLoader(int id, Bundle bundle) {
-			mCurrentlyUpdating = true;
-			checkProgressBar();
+			checkIfFetchingNewExchangeRates(true);
 			return new ExchangeRateUpdateLoader(
 					getActivity(), 
 					getResources().getStringArray(R.array.currConv_rateOrder));
@@ -603,9 +590,9 @@ public class MainFragment extends Fragment implements
 		
 		@Override
 		public void onLoadFinished(Loader<Void> loaders, Void theVoid) {
-			mCurrentlyUpdating = false;
+			getLoaderManager().destroyLoader(LOADER_EXCHANGE_RATE_UPDATE);
+			checkIfFetchingNewExchangeRates(false);
 			checkUpdateInterval();
-			checkProgressBar();
 		}
 	};
 	
