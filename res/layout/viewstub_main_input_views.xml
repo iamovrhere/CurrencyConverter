@@ -57,7 +57,7 @@
             android:scaleType="fitCenter"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:src="@drawable/ic_flag_error" 
+            android:src="@null" 
             android:contentDescription="@string/currConv_USD_name"
             
             />
@@ -86,7 +86,7 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/currConv_main_spinner_height"
             android:minWidth="@dimen/currConv_main_spinner_width"
-            android:layout_below="@+id/currConv_main_progressSpin"
+            android:layout_below="@+id/currConv_main_text_warning"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/currConv_main_destSpinner_topPadding" />
 
@@ -102,15 +102,16 @@
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/currconv_warningColor"
+            android:visibility="gone"
              />
         
-        <ProgressBar
+       <!--  <ProgressBar
             android:id="@+id/currConv_main_progressSpin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/currConv_main_text_warning"
             android:layout_centerHorizontal="true" 
             style="@android:style/Widget.ProgressBar.Small"
-            />
+            /> -->
        
 </RelativeLayout>

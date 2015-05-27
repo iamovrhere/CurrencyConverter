@@ -20,6 +20,9 @@
     <string name="app_name">Currency Converter</string>
     <!-- Settings label string -->
     <string name="action_settings">Settings</string>
+    
+    <!-- Refresh label string -->
+    <string name="action_refresh">Refresh</string>
 
     <!--
             The warning to give when the value supplied is using a cached value. 

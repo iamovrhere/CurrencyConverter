@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"    
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.ovrhere.android.currencyconverter.MainActivity" >
+
+    <item
+		android:id="@+id/action_refresh"
+		android:icon="@drawable/ic_action_refresh"
+		app:actionLayout="@layout/action_view_refresh"
+		app:showAsAction="always"
+		style="@style/ActionItem"
+		android:title="@string/action_refresh"/>
+
+</menu>

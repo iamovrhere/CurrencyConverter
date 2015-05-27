@@ -21,6 +21,7 @@ import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -28,6 +29,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -35,10 +37,14 @@ import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -63,11 +69,9 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.7.0-20150526
+ * @version 0.8.0-20150526
  */
-public class MainFragment extends Fragment implements 
-	OnItemLongClickListener {
-	
+public class MainFragment extends Fragment implements OnItemLongClickListener {	
 	/** The class name used for bundles. */
 	final static private String CLASS_NAME = MainFragment.class.getSimpleName();
 	/** The log tag for errors. */
@@ -80,6 +84,8 @@ public class MainFragment extends Fragment implements
 	/** The id for the cursor loader. */ 
 	private static final int LOADER_EXCHANGE_RATES = 1;
 	
+	/** Bundle key - Boolean. The key for saving the state of the message warning. */
+	private static final String KEY_SHOW_WARNING = CLASS_NAME + ".KEY_SHOW_WARNING";
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,8 +129,11 @@ public class MainFragment extends Fragment implements
 	private TextView tv_warning = null;
 	/** The currency input. */
 	private EditText et_currInput = null;
-	/** The View for the spinny-progress bar for updates. */
-	private View updateProgressSpin = null;
+	
+	/** The menu item of the refresh button to be animated with #mRotationAnim */
+	private MenuItem mRefreshItem = null;
+	/** The rotation animation to apply to {@link #mRefreshItem}. */
+	private Animation mRotationAnim = null;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
 	/// End members 
@@ -135,21 +144,32 @@ public class MainFragment extends Fragment implements
 	@Override
 	public void onSaveInstanceState(Bundle outState) {	
 		super.onSaveInstanceState(outState);
+		if (tv_warning != null) {
+			outState.putBoolean(KEY_SHOW_WARNING, tv_warning.getVisibility() == View.VISIBLE);
+		}
 	}
 	
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
+		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		
-		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());		
+		mRotationAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.clockwise_spin);
+		mRotationAnim.setRepeatCount(Animation.INFINITE);
 	}
 	
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		getLoaderManager().initLoader(LOADER_EXCHANGE_RATES, null, cursorLoaderCallback);
+		
 		super.onActivityCreated(savedInstanceState);
+		
+		if (needToUpdateExchangeRates()){
+			fetchNewExchangeRates();
+		}
 	}
 	
 	@Override
@@ -164,12 +184,16 @@ public class MainFragment extends Fragment implements
 		initKeyboardHide(rootView);
 		processSavedState(savedInstanceState);
 		
-		if (checkUpdateInterval()){
-			fetchNewExchangeRates();
-		};
 		updateListOutput();
 		mViewBuilt = true; 
 		return rootView;
+	}
+
+	
+	@Override
+	public void onResume() {	
+		super.onResume(); //our view is visible
+		checkIfFetchingNewExchangeRates(false);
 	}
 	
 	@Override
@@ -178,6 +202,35 @@ public class MainFragment extends Fragment implements
 		mViewBuilt = false;
 	}
 	
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main_frag, menu);
+        
+        final Menu fMenu = menu;
+        mRefreshItem = menu.findItem(R.id.action_refresh);
+        
+        MenuItemCompat.getActionView(mRefreshItem).setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {   
+              fMenu.performIdentifierAction(mRefreshItem.getItemId(), 0);
+           }
+        });
+        
+        initCheckRunningAtLayoutTime(MenuItemCompat.getActionView(mRefreshItem));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_refresh:
+                Log.d(LOGTAG, "Refreshing?");
+                fetchNewExchangeRates();
+                return true;
+                
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
@@ -223,6 +276,25 @@ public class MainFragment extends Fragment implements
 	/// Initializer helper methods
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	
+	/** Performs actions that need to done after layout time. 
+	 * @param view The view to listen on for layout */
+	private void initCheckRunningAtLayoutTime(final View view) {
+		final ViewTreeObserver vto = view.getViewTreeObserver();
+		
+		vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() { 
+		    @SuppressLint("NewApi")
+			@SuppressWarnings("deprecation")
+			@Override 
+		    public void onGlobalLayout() { 
+		    	checkIfFetchingNewExchangeRates(false);
+		    	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+		    		view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+		    	} else { //16 and up.
+		    		view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+		    	}
+		    } 
+		});
+	}
 	
 	/** Processes the saved state, preferences and updates views accordingly.
 	 * Assumes all views to be valid.
@@ -230,13 +302,19 @@ public class MainFragment extends Fragment implements
 	 * @see #initInputViews(View)
 	 * @see #initOutputViews(View) 	 */
 	private void processSavedState(Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			if (savedInstanceState.getBoolean(KEY_SHOW_WARNING, false)) {
+				checkUpdateIntervalAndWarn();
+			}			
+		}
+		
 		int sourceCurrSelect = 
 				mPrefs.getInt( getString(R.string.currConv_pref_KEY_SOURCE_CURRENCY_INDEX), 
 							0);
 		int destCurrSelect = 
 				mPrefs.getInt( getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
 							0);
-
+		
 		sp_sourceCurr.setSelection(sourceCurrSelect);
 		sp_destCurr.setSelection(destCurrSelect);
 		
@@ -254,10 +332,7 @@ public class MainFragment extends Fragment implements
 		outputListView.setAdapter(mOutputListAdapter);
 		outputListView.setOnItemLongClickListener(this);
 		registerForContextMenu(outputListView);
-		
-		updateProgressSpin = rootView.findViewById(R.id.currConv_main_progressSpin);
-		checkIfFetchingNewExchangeRates(false);
-		
+				
 		tv_currSymbol = (TextView) rootView.findViewById(R.id.currConv_main_text_currSymbol);
 		tv_warning = (TextView) rootView.findViewById(R.id.currConv_main_text_warning);
 
@@ -369,19 +444,26 @@ public class MainFragment extends Fragment implements
 		}
 	}
 	
-		
-
-	/** Compares the update interval and last update time. If enough time has elapsed,
-	 * it initiates the update and sets the warning. If not, it hides the warning.
-	 * @return <code>true</code> if an update is needed, <code>false</code> otherwise.
-	 * */
-	private boolean checkUpdateInterval() {
-		final long updateInterval = PreferenceUtils.getUpdateInterval(getActivity());
-		
+	/**
+	 * Checks to see if the time since the last update exceeds that of the interval.
+	 * @return <code>true</code> if time elapsed exceeds the update interval,
+	 * <code>false</code> if no action is necessary.
+	 */
+	private boolean needToUpdateExchangeRates() {
+		final long updateInterval = PreferenceUtils.getUpdateInterval(getActivity());		
 		final long lastUpdate = PreferenceUtils.getLastUpdateTime(getActivity());
 		final long interval =  System.currentTimeMillis() - lastUpdate;
 		
-		if (updateInterval < interval && lastUpdate > 1) {
+		return updateInterval < interval;
+	}
+
+	/** Compares the update interval and last update time. If enough time has elapsed,
+	 * it initiates the update and sets the warning. If not, it hides the warning.
+	 * */
+	private void checkUpdateIntervalAndWarn() {		
+		final long lastUpdate = PreferenceUtils.getLastUpdateTime(getActivity());
+		
+		if (needToUpdateExchangeRates()) {
 			String timestamp = DateFormatter.dateToRelativeDate(getActivity(), lastUpdate);
 			tv_warning.setText(
 					getString(R.string.currConv_cachedRate_warning, 
@@ -391,9 +473,7 @@ public class MainFragment extends Fragment implements
 		} else {
 			tv_warning.setVisibility(View.GONE);
 		}
-		return updateInterval < interval;
-	}
-	
+	}	
 	
 	
 	/** Parses input and sends it to adapter for calculation(s).
@@ -416,6 +496,7 @@ public class MainFragment extends Fragment implements
 	/** Initializes updates via the loader. */
 	private void fetchNewExchangeRates(){
 		getLoaderManager().initLoader(LOADER_EXCHANGE_RATE_UPDATE, null, updateCallback);
+		animateRefreshButton(true);
 	}
 	
 	/**
@@ -434,7 +515,36 @@ public class MainFragment extends Fragment implements
 		//if the loader exists, we are updating. Otherwise, we destroyed it in onLoadFinished.
 		boolean currentlyUpdating = force || 
 				getLoaderManager().getLoader(LOADER_EXCHANGE_RATE_UPDATE) != null;
-		updateProgressSpin.setVisibility(currentlyUpdating ? View.VISIBLE : View.GONE );
+		
+		//if updating, rotate. Otherwise, clear animation.
+		animateRefreshButton(currentlyUpdating);
+	}
+
+	/** Animates the refresh button. */
+	private void animateRefreshButton(boolean animate) {
+		if (mRotationAnim != null && mRefreshItem != null) {
+			final View refreshView  = MenuItemCompat.getActionView(mRefreshItem);
+		
+			if (refreshView == null) {
+				return; //if we cannot see it, we cannot touch it.
+			}
+			
+			if (animate) {
+				refreshView.post(new Runnable() {
+					@Override
+					public void run() {
+						refreshView.startAnimation(mRotationAnim);					
+					}
+				});
+			} else {
+				refreshView.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						refreshView.clearAnimation();					
+					}
+				}, 1500); //ensure it was seen
+			}
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -487,9 +597,6 @@ public class MainFragment extends Fragment implements
 					position);
 			
 			updateSourceCurrency();
-			if (checkUpdateInterval()){
-				fetchNewExchangeRates();
-			}
 		};
 		@Override
 		public void onNothingSelected(android.widget.AdapterView<?> parent) {
@@ -592,7 +699,7 @@ public class MainFragment extends Fragment implements
 		public void onLoadFinished(Loader<Void> loaders, Void theVoid) {
 			getLoaderManager().destroyLoader(LOADER_EXCHANGE_RATE_UPDATE);
 			checkIfFetchingNewExchangeRates(false);
-			checkUpdateInterval();
+			checkUpdateIntervalAndWarn();
 		}
 	};
 	

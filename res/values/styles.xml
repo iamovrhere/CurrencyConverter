@@ -33,28 +33,24 @@
     <!-- Main activity theme. -->
     <style name="PrimaryTheme" parent="AppTheme">
         <item name="actionBarStyle">@style/ActionBar.Solid.CurrConv</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
     <!-- main activity action bar styles -->
     <style name="ActionBar.Solid.CurrConv" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
-        <!-- <item name="displayOptions">useLogo|showHome</item>
-        <item name="logo">@mipmap/ic_launch</item> -->
         <item name="android:textColorPrimary">@color/currConv_white</item>
     </style>
+   
+	
     
-	<!-- <style name="CustomActionBarTheme"
-           parent="@style/Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:windowBackground">@color/currconv_background</item>
-        <item name="android:actionBarStyle" tools:targetApi="11">@style/MyActionBar</item>
-
-        <item name="android:textColorPrimary">@color/currConv_black</item>		
-        <item name="android:textColorSecondary">@color/currConv_darkgrey</item>
+    <style name="ActionItem" >
+    	<item name="android:paddingLeft">12dip</item>
+        <item name="android:paddingRight">12dip</item>
+        <item name="android:minWidth">56dip</item>
         
-        
-        <item name="actionBarStyle">@style/MyActionBar</item>
-    </style> -->
-
-    
-    
+        <!-- Not supported on some API 10 devices: -->
+        <!-- <item name="android:background">?android:attr/actionBarItemBackground</item> -->
+        <!-- <item name="android:minHeight">?android:attr/actionBarSize</item> -->
+	</style>
 
 </resources>
