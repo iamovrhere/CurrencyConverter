@@ -57,6 +57,7 @@ import android.widget.TextView;
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.model.CurrencyResourceMap;
 import com.ovrhere.android.currencyconverter.model.ExchangeRateUpdateLoader;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.DisplayOrderEntry;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.ui.adapters.CurrencyCursorAdapter;
@@ -69,7 +70,7 @@ import com.ovrhere.android.currencyconverter.utils.KeyboardUtil;
 /**
  * The main fragment where values are inputed and results shown.
  * @author Jason J.
- * @version 0.8.0-20150526
+ * @version 0.9.0-20150527
  */
 public class MainFragment extends Fragment implements OnItemLongClickListener {	
 	/** The class name used for bundles. */
@@ -157,15 +158,17 @@ public class MainFragment extends Fragment implements OnItemLongClickListener {
 		mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		
 		mRotationAnim = AnimationUtils.loadAnimation(getActivity(), R.anim.clockwise_spin);
-		mRotationAnim.setRepeatCount(Animation.INFINITE);
+		mRotationAnim.setRepeatCount(Animation.INFINITE);	
+		
+		mStartingCurrency = getResources().getStringArray(R.array.currConv_rateOrder)[0]; //grab the first element.  
 	}
 	
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-		getLoaderManager().initLoader(LOADER_EXCHANGE_RATES, null, cursorLoaderCallback);
-		
 		super.onActivityCreated(savedInstanceState);
+		
+		getLoaderManager().initLoader(LOADER_EXCHANGE_RATES, null, cursorLoaderCallback);
 		
 		if (needToUpdateExchangeRates()){
 			fetchNewExchangeRates();
@@ -313,7 +316,7 @@ public class MainFragment extends Fragment implements OnItemLongClickListener {
 							0);
 		int destCurrSelect = 
 				mPrefs.getInt( getString(R.string.currConv_pref_KEY_DEST_CURRENCY_INDEX), 
-							0);
+							0);		
 		
 		sp_sourceCurr.setSelection(sourceCurrSelect);
 		sp_destCurr.setSelection(destCurrSelect);
@@ -649,16 +652,21 @@ public class MainFragment extends Fragment implements OnItemLongClickListener {
 	private LoaderManager.LoaderCallbacks<Cursor> cursorLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
 		@Override
 		public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-			
+			final boolean viewAll = mTargetCurrency.isEmpty();
+					
 			Uri request = null;
-			if (mTargetCurrency.isEmpty()) {
+			String sortBy = null;
+			
+			if (viewAll) {
 				request = ExchangeRateEntry.buildExchangeRateWithSourceCurrency(mStartingCurrency);
+				sortBy = DisplayOrderEntry.COLUMN_DEF_DISPLAY_ORDER +" ASC "; 
 			} else {
 				request = ExchangeRateEntry.buildExchangeRateFromSourceToDest(mStartingCurrency, mTargetCurrency);
+				sortBy = null;
 			}
 			
 
-			//Log.d(LOGTAG, "Uri: " + request.toString());
+			//Log.d(LOGTAG, "Uri: " + request.toString() + ", Sort: " + sortBy);
 			
 			return new CursorLoader(
 					getActivity(), 
@@ -666,7 +674,7 @@ public class MainFragment extends Fragment implements OnItemLongClickListener {
 					CurrencyCursorAdapter.CURRENCY_LIST_COLUMNS, 
 					null, 
 					null, 
-					null);
+					sortBy);
 		}
 		
 		@Override
@@ -687,9 +695,7 @@ public class MainFragment extends Fragment implements OnItemLongClickListener {
 		@Override
 		public Loader<Void> onCreateLoader(int id, Bundle bundle) {
 			checkIfFetchingNewExchangeRates(true);
-			return new ExchangeRateUpdateLoader(
-					getActivity(), 
-					getResources().getStringArray(R.array.currConv_rateOrder));
+			return new ExchangeRateUpdateLoader(getActivity());
 		}
 		
 		@Override
