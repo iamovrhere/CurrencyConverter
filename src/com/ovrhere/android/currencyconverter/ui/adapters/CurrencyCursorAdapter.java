@@ -30,6 +30,7 @@ import android.widget.TextView;
 
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.model.CurrencyResourceMap;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.DisplayOrderEntry;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
 import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
 
@@ -39,7 +40,7 @@ import com.ovrhere.android.currencyconverter.utils.CurrencyCalculator;
  * Remember to use {@link #CURRENCY_LIST_COLUMNS} order.
  * 
  * @author Jason J.
- * @version 0.1.2-20150526
+ * @version 0.2.0-20150527
  */
 public class CurrencyCursorAdapter extends CursorAdapter {
 	/* Class name for debugging purposes. */
@@ -47,14 +48,15 @@ public class CurrencyCursorAdapter extends CursorAdapter {
 	
 	/** The expected column order; anything else will throw an exception. */
 	public static final String[] CURRENCY_LIST_COLUMNS = new String[]{
-		ExchangeRateEntry._ID,
-		ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE,
+		ExchangeRateEntry.TABLE_NAME+"."+ExchangeRateEntry._ID,
+		DisplayOrderEntry.COLUMN_DEF_DISPLAY_ORDER,
+		//ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE,
 		ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE,
 		ExchangeRateEntry.COLUMN_EXCHANGE_RATE
 	};
 	
 	public static final int COL_ID = 0;
-	public static final int COL_SOURCE_CODE = 1;	
+	public static final int COL_DISPLAY_ORDER = 1;	
 	public static final int COL_DESTINATION_CODE = 2;
 	public static final int COL_EXCHANGE_RATE = 3;
 	

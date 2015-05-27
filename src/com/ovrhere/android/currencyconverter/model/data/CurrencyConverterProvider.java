@@ -17,6 +17,7 @@ package com.ovrhere.android.currencyconverter.model.data;
 
 import android.annotation.TargetApi;
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
@@ -38,7 +39,7 @@ import android.net.Uri;
  * is NOT compact (requires both A -> B and B -> A). 
  *
  * @author Jason J.
- * @version 0.1.1-20150525
+ * @version 0.2.0-20150527
  */
 public class CurrencyConverterProvider extends ContentProvider {
 
@@ -46,6 +47,7 @@ public class CurrencyConverterProvider extends ContentProvider {
     final public static int EXCHANGE_RATES_WITH_SOURCE = 101;
     final public static int EXCHANGE_RATE_FROM_SOURCE_TO_DEST = 102;
     
+    final public static int DISPLAY_ORDER = 200;
     
     //TODO enforce uppercase
     //TODO allow for compact contents of the database, while having verbose responses
@@ -63,9 +65,14 @@ public class CurrencyConverterProvider extends ContentProvider {
     static {
         //If we were to JOIN, we could do it here.
     	RATE_BY_SOURCE_BUILDER.setTables(
-                CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME
+                CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME + " INNER JOIN " +
+                		CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME +
+                		" ON " + CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME +
+                		"." + CurrencyConverterContract.ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE +
+                		" = " + CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME +
+                		"." + CurrencyConverterContract.DisplayOrderEntry.COLUMN_CURRENCY_CODE
         );
-
+    	
     }
     
 
@@ -92,7 +99,7 @@ public class CurrencyConverterProvider extends ContentProvider {
     }
 
     @Override
-    public String getType(Uri uri) {
+    public String getType(Uri uri) { 
         switch (URI_MATCHER.match(uri)) {
 	        case EXCHANGE_RATE_FROM_SOURCE_TO_DEST:
 	            return CurrencyConverterContract.ExchangeRateEntry.CONTENT_ITEM_TYPE;
@@ -102,6 +109,9 @@ public class CurrencyConverterProvider extends ContentProvider {
                 
             case EXCHANGE_RATES:
                 return CurrencyConverterContract.ExchangeRateEntry.CONTENT_TYPE;
+                
+            case DISPLAY_ORDER:
+            	return CurrencyConverterContract.DisplayOrderEntry.CONTENT_TYPE;
                             	
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -125,7 +135,12 @@ public class CurrencyConverterProvider extends ContentProvider {
                 result = queryTableByArgs(CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME,
                         projection, selection, selectionArgs, sortOrder);
                 break;
-            
+                
+            case DISPLAY_ORDER:
+            	 result = queryTableByArgs(CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME,
+                         projection, selection, selectionArgs, sortOrder);
+                 break;
+                 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -140,7 +155,7 @@ public class CurrencyConverterProvider extends ContentProvider {
         Uri resultUri  = null;
 
         switch (URI_MATCHER.match(uri)) {
-            case EXCHANGE_RATES:
+            case EXCHANGE_RATES: {
                 final String table = CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME;
                 
                 long id = wDb.insert(table, null, values);
@@ -150,7 +165,20 @@ public class CurrencyConverterProvider extends ContentProvider {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
                 break;
+            }
             
+            case DISPLAY_ORDER: {
+                final String table = CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME;
+                
+                long id = wDb.insert(table, null, values);
+                if ( id >= 0 ) {
+                    resultUri = CurrencyConverterContract.DisplayOrderEntry.buildDisplayOrderUri(id);
+                } else {
+                    throw new SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            }
+                
             case EXCHANGE_RATE_FROM_SOURCE_TO_DEST:
             case EXCHANGE_RATES_WITH_SOURCE:
                 //not supported
@@ -165,21 +193,22 @@ public class CurrencyConverterProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        final SQLiteDatabase wDb = mDbHelper.getWritableDatabase();
         int updateCount = 0;
 
         switch (URI_MATCHER.match(uri)) {
-            case EXCHANGE_RATES:
-            	wDb.beginTransaction();
-                try {
-                	updateCount = wDb.update(CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME,
-                                    values, selection, selectionArgs);
-                	 wDb.setTransactionSuccessful();
-		        } finally {
-		            wDb.endTransaction();
-		        }
+            case EXCHANGE_RATES: {
+            	updateCount = updateTransaction(
+            			CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME, 
+            			values, selection, selectionArgs);
                 break;
-
+            }
+                
+            case DISPLAY_ORDER: 
+            	updateCount = updateTransaction(
+            			CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME, 
+            			values, selection, selectionArgs);
+                break;	
+            
             case EXCHANGE_RATE_FROM_SOURCE_TO_DEST:
             case EXCHANGE_RATES_WITH_SOURCE:
                 //unsupported updates
@@ -194,6 +223,7 @@ public class CurrencyConverterProvider extends ContentProvider {
         return updateCount;
     }
 
+	
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase wDb = mDbHelper.getWritableDatabase();
@@ -204,11 +234,16 @@ public class CurrencyConverterProvider extends ContentProvider {
         }
         
         switch (URI_MATCHER.match(uri)) {
-        case EXCHANGE_RATES:
+        	case EXCHANGE_RATES:
                 deleteCount = wDb.delete(CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME,
                                 selection, selectionArgs);
                 break;
-
+                
+        	case DISPLAY_ORDER:
+        		deleteCount = wDb.delete(CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME,
+                        selection, selectionArgs);
+        		break;
+        		
             case EXCHANGE_RATE_FROM_SOURCE_TO_DEST:
             case EXCHANGE_RATES_WITH_SOURCE:
                 //unsupported deletes
@@ -227,36 +262,26 @@ public class CurrencyConverterProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-        final SQLiteDatabase wDb = mDbHelper.getWritableDatabase();
         final int match = URI_MATCHER.match(uri);
-
+        
         switch (match) {
         	case EXCHANGE_RATES:
+        		return bulkTransactionInsert(
+        				CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME, uri, values);
         		
-        		wDb.beginTransaction();
-                int insertCount = 0;
-                try {
-                        for (ContentValues value : values) {
-                        	long id = wDb.insert(
-	                        		CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME, 
-	                        		null, value);
-	                        
-	                        if (id != -1) {
-	                            insertCount++;
-	                        }
-	                    }
-	                    wDb.setTransactionSuccessful();
-                } finally {
-                    wDb.endTransaction();
-                }
-                getContext().getContentResolver().notifyChange(uri, null);
-                
-                return insertCount;
-                
+        	case DISPLAY_ORDER:
+        		return bulkTransactionInsert(
+        				CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME, uri, values);
+             
+        	case EXCHANGE_RATE_FROM_SOURCE_TO_DEST:
+            case EXCHANGE_RATES_WITH_SOURCE:
+                //unsupported bulk inserts
             default:
                 return super.bulkInsert(uri, values);
         }
     }
+
+	
 
     /*  Used for in testing framework to run smoothly. See:
      * http://developer.android.com/reference/android/content/ContentProvider.html#shutdown() */
@@ -271,6 +296,56 @@ public class CurrencyConverterProvider extends ContentProvider {
     //// Helper methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Bulk inserts given values in a transaction block and notifies the 
+     * {@link ContentResolver} via the uri, that the work is complete. 
+     * @param table
+     * @param uri
+     * @param values
+     * @return The count of records inserted.
+     */
+    private int bulkTransactionInsert(String table, Uri uri, ContentValues[] values) {
+		final SQLiteDatabase wDb = mDbHelper.getWritableDatabase();
+		wDb.beginTransaction();
+		int insertCount = 0;
+		try {
+		        for (ContentValues value : values) {
+		        	long id = wDb.insert(table, null, value);
+		            
+		            if (id != -1) {
+		                insertCount++;
+		            }
+		        }
+		        wDb.setTransactionSuccessful();
+		} finally {
+		    wDb.endTransaction();
+		}
+		getContext().getContentResolver().notifyChange(uri, null);
+		return insertCount;
+	}
+    
+    /**
+     * Updates database in a transaction block, using the given values.
+     * @param table
+     * @param values
+     * @param selection
+     * @param selectionArgs
+     * @return The number of records updated.
+     */
+    private int updateTransaction(final String table, ContentValues values,
+			String selection, String[] selectionArgs) {
+		int updateCount = 0;
+		final SQLiteDatabase wDb = mDbHelper.getWritableDatabase();
+		wDb.beginTransaction();
+		try {
+			updateCount = wDb.update(table, values, selection, selectionArgs);
+			 wDb.setTransactionSuccessful();
+		} finally {
+		    wDb.endTransaction();
+		}
+		return updateCount;
+	}
+    
     /**
      * Get the currency Cursor based on source codes.
      * @param uri 
@@ -366,6 +441,12 @@ public class CurrencyConverterProvider extends ContentProvider {
         		CurrencyConverterContract.CONTENT_AUTHORITY,
                 CurrencyConverterContract.ExchangeRateEntry.TABLE_NAME + "/*/*",
                 EXCHANGE_RATE_FROM_SOURCE_TO_DEST);
+        
+        //display_order/
+        uriMatcher.addURI(
+        		CurrencyConverterContract.CONTENT_AUTHORITY,
+                CurrencyConverterContract.DisplayOrderEntry.TABLE_NAME,  
+                DISPLAY_ORDER);
         
         return uriMatcher;
     }

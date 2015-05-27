@@ -7,50 +7,51 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.test.ProviderTestCase2;
+
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterProvider;
 import com.ovrhere.android.currencyconverter.test.UtilityTestContentObserver;
 import com.ovrhere.android.currencyconverter.test.UtilityTestMethods;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.test.AndroidTestCase;
+public class TestYahooApiExchangeRatesUpdate extends ProviderTestCase2<CurrencyConverterProvider> {
 
-public class TestYahooApiExchangeRatesUpdate extends AndroidTestCase {
+	//Source: http://query.yahooapis.com/v1/public/yql/?q=select * from yahoo.finance.xchange where pair in ("USDCAD", "USDJPY", "CADJPY")&env=store://datatables.org/alltableswithkeys&format=json
+	//Retrieved: 2015-05-25
 
-		//Source: http://query.yahooapis.com/v1/public/yql/?q=select * from yahoo.finance.xchange where pair in ("USDCAD", "USDJPY", "CADJPY")&env=store://datatables.org/alltableswithkeys&format=json
-		//Retrieved: 2015-05-25
+	private static final String TEST_JSON_RATES = "{\"query\":{\"count\":3,\"created\":\"2015-05-25T14:04:56Z\",\"lang\":\"en-US\",\"results\":{\"rate\":[{\"id\":\"USDCAD\",\"Name\":\"USD/CAD\",\"Rate\":\"1.2315\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"1.2316\",\"Bid\":\"1.2315\"},{\"id\":\"USDJPY\",\"Name\":\"USD/JPY\",\"Rate\":\"121.5050\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"121.5200\",\"Bid\":\"121.5050\"},{\"id\":\"CADJPY\",\"Name\":\"CAD/JPY\",\"Rate\":\"98.6602\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"98.6844\",\"Bid\":\"98.6360\"}]}}}";
 
-		private static final String TEST_JSON_RATES = "{\"query\":{\"count\":3,\"created\":\"2015-05-25T14:04:56Z\",\"lang\":\"en-US\",\"results\":{\"rate\":[{\"id\":\"USDCAD\",\"Name\":\"USD/CAD\",\"Rate\":\"1.2315\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"1.2316\",\"Bid\":\"1.2315\"},{\"id\":\"USDJPY\",\"Name\":\"USD/JPY\",\"Rate\":\"121.5050\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"121.5200\",\"Bid\":\"121.5050\"},{\"id\":\"CADJPY\",\"Name\":\"CAD/JPY\",\"Rate\":\"98.6602\",\"Date\":\"5/25/2015\",\"Time\":\"3:04pm\",\"Ask\":\"98.6844\",\"Bid\":\"98.6360\"}]}}}";
+	/*
+			...
+        {
+          "id": "USDCAD",
+          "Rate": "1.2315",
+			...
+        },
+        {
+          "id": "USDJPY",
+          "Rate": "121.5050",
+			...
+        },
+        {
+          "id": "CADJPY",
+          "Rate": "98.6602",
+			...
+        }
 
-		/*
-				...
-	        {
-	          "id": "USDCAD",
-	          "Rate": "1.2315",
-				...
-	        },
-	        {
-	          "id": "USDJPY",
-	          "Rate": "121.5050",
-				...
-	        },
-	        {
-	          "id": "CADJPY",
-	          "Rate": "98.6602",
-				...
-	        }
-
-			Src	Dst	Rate
-			USD	CAD	1.2315
-			USD	JPY	121.505
-			CAD	JPY	98.6602
-					
-			CAD	USD	0.812018
-			JPY	USD	0.008230
-			JPY	CAD	0.010136
+		Src	Dst	Rate
+		USD	CAD	1.2315
+		USD	JPY	121.505
+		CAD	JPY	98.6602
+				
+		CAD	USD	0.812018
+		JPY	USD	0.008230
+		JPY	CAD	0.010136
 
 
-		*/
+	*/
 		
 	private static final ContentValues[] TEST_EXPECTED_RATES = new ContentValues[] {
 		new CodeRatePair("CADJPY",	98.6602d).toContentValues(),
@@ -64,26 +65,24 @@ public class TestYahooApiExchangeRatesUpdate extends AndroidTestCase {
 	};
 	
 	private static final String[] TEST_CURRENCIES = new String[]{"USD", "CAD", "JPY"};
-		
+	
+
+	public TestYahooApiExchangeRatesUpdate() {
+		super(	CurrencyConverterProvider.class, 
+				CurrencyConverterProvider.class.getPackage().toString());
+	}
+
 	
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		mContext.getContentResolver().delete(
-                ExchangeRateEntry.CONTENT_URI,
-                null,
-                null
-        );
+		UtilityTestMethods.deleteDatabaseByContentResolver(mContext);
 	}
 	
 	@After
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		mContext.getContentResolver().delete(
-                ExchangeRateEntry.CONTENT_URI,
-                null,
-                null
-        );
+		UtilityTestMethods.deleteDatabaseByContentResolver(mContext);
 	}
 
 	@Test

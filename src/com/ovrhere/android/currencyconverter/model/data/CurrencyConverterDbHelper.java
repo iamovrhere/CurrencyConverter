@@ -19,13 +19,14 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.DisplayOrderEntry;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
 
 
 /**
  * Creates the database for holding exchange rates between currencies.
  * @author Jason J.
- * @version 0.1.0-20150521
+ * @version 1.0.0-20150527
  */
 public class CurrencyConverterDbHelper extends SQLiteOpenHelper {
 	
@@ -33,15 +34,16 @@ public class CurrencyConverterDbHelper extends SQLiteOpenHelper {
 	private static class OLD_DATABASE {
 		/** The database name. This should be unique to the application. */
 		final static public String DATABASE_NAME = "Ovrhere_Currency_Converter";
-		/** The PUBLIC database version and schema version. 
+		
+		/* The PUBLIC database version and schema version. 
 		 * Increment this when a public release needs to change the database. */
-		final static public int DATABASE_VERSION = 1;
-		/** The table name. */
-		final static public String CURRENCY_LIST_TABLE_NAME = 
-				"currency_list";
-		/** The table name. */
-		final static public String CURRENCY_EXCHANGE_RATES_TABLE_NAME = 
-				"currency_exchange_rates";
+		//final static public int DATABASE_VERSION = 1;
+		/* The table name. */
+		//final static public String CURRENCY_LIST_TABLE_NAME = 
+		//		"currency_list";
+		/* The table name. */
+		//final static public String CURRENCY_EXCHANGE_RATES_TABLE_NAME = 
+		//		"currency_exchange_rates";
 	}
 	
 
@@ -62,6 +64,7 @@ public class CurrencyConverterDbHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase sqLiteDb) {
 		createExchangeRatesDB(sqLiteDb);
+		createCurrencyOrderDB(sqLiteDb);
 		mContext.deleteDatabase(OLD_DATABASE.DATABASE_NAME);		
 	}
 
@@ -70,6 +73,7 @@ public class CurrencyConverterDbHelper extends SQLiteOpenHelper {
         // Database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over. 
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ExchangeRateEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + DisplayOrderEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 
@@ -77,22 +81,40 @@ public class CurrencyConverterDbHelper extends SQLiteOpenHelper {
     //// helper methods
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** Creates the {@link ExchangeRateEntry} database. */
+    /** Creates the {@link DisplayOrderEntry} database table. */
+    private void createCurrencyOrderDB(SQLiteDatabase sqLiteDatabase) {
+        final String SQL_CREATE_ORDER_TABLE = "CREATE TABLE " + DisplayOrderEntry.TABLE_NAME + " (" +
+        		DisplayOrderEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+
+				DisplayOrderEntry.COLUMN_CURRENCY_CODE + " TEXT NOT NULL, " +
+				DisplayOrderEntry.COLUMN_DEF_DISPLAY_ORDER + " INTEGER NOT NULL, " +
+                
+				" UNIQUE (" +
+					DisplayOrderEntry.COLUMN_CURRENCY_CODE +  
+				") ON CONFLICT REPLACE );"; 
+
+        sqLiteDatabase.execSQL(SQL_CREATE_ORDER_TABLE);
+    }
+    
+    /** Creates the {@link ExchangeRateEntry} database table. */
     private void createExchangeRatesDB(SQLiteDatabase sqLiteDatabase) {
-        final String SQL_CREATE_WEATHER_TABLE = "CREATE TABLE " + ExchangeRateEntry.TABLE_NAME + " (" +
+        final String SQL_CREATE_EXCHANGE_TABLE = "CREATE TABLE " + ExchangeRateEntry.TABLE_NAME + " (" +
 				ExchangeRateEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 
                 ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + " TEXT NOT NULL, " +
                 ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE + " TEXT NOT NULL, " +
-                
 				ExchangeRateEntry.COLUMN_EXCHANGE_RATE + " REAL NOT NULL, " +
+                
+				//we enforce that each destination has an order. 
+				" FOREIGN KEY (" + ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE + ") REFERENCES " +
+				DisplayOrderEntry.TABLE_NAME + " (" + DisplayOrderEntry.COLUMN_CURRENCY_CODE + "), " +
 				
 				" UNIQUE (" +
 					ExchangeRateEntry.COLUMN_SOURCE_CURRENCY_CODE + ", " +
 					ExchangeRateEntry.COLUMN_DEST_CURRENCY_CODE + 
 				") ON CONFLICT REPLACE);"; //we don't need old records
 
-        sqLiteDatabase.execSQL(SQL_CREATE_WEATHER_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_EXCHANGE_TABLE);
     }
 
 }

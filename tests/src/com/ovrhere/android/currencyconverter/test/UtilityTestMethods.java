@@ -2,12 +2,38 @@ package com.ovrhere.android.currencyconverter.test;
 
 import java.util.Map.Entry;
 
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.DisplayOrderEntry;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
+
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.test.AndroidTestCase;
 
+/**
+ * 
+ * @version 0.2.0-20150527
+ *
+ */
 public class UtilityTestMethods extends AndroidTestCase {
 	
+	
+	/**
+	 * Clears the database tables via the resolver.
+	 * @param context
+	 */
+	public static void deleteDatabaseByContentResolver(Context context) {
+		context.getContentResolver().delete(
+                DisplayOrderEntry.CONTENT_URI,
+                null,
+                null
+        );
+		context.getContentResolver().delete(
+                ExchangeRateEntry.CONTENT_URI,
+                null,
+                null
+        );
+	}
 
 	/**
 	 * Validates the content values against the expected values 
@@ -79,8 +105,8 @@ public class UtilityTestMethods extends AndroidTestCase {
             assertFalse("Column '" + colName + "' not found. " + message, idx == -1);
             
             String expectedValue = entry.getValue().toString();
-            assertEquals("Cursor value does not match expected value: " + message, 
-            			expectedValue, actual.getString(idx));
+            assertEquals("Cursor value at '" + colName +"' does not match expected value: " + 
+            			message, expectedValue, actual.getString(idx));
         }
 	}
 	

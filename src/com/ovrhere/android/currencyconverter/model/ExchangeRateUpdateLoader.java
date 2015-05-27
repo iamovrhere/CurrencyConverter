@@ -15,6 +15,7 @@ import android.util.Log;
 import com.ovrhere.android.currencyconverter.R;
 import com.ovrhere.android.currencyconverter.model.currencyrequest.YahooApiExchangeRatesUpdate;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract;
+import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.DisplayOrderEntry;
 import com.ovrhere.android.currencyconverter.model.data.CurrencyConverterContract.ExchangeRateEntry;
 import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 import com.ovrhere.android.currencyconverter.utils.Timestamp;
@@ -23,7 +24,7 @@ import com.ovrhere.android.currencyconverter.utils.Timestamp;
  * Simple loader to provide abstraction from the back end.
  * 
  * @author Jason J. 
- * @version 0.2.0-20150526
+ * @version 0.3.0-20150527
  */
 public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 	/** Class name for debugging purposes. */
@@ -31,6 +32,15 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 			.getSimpleName();
 	
 	private final YahooApiExchangeRatesUpdate mUpdate;
+	
+	public ExchangeRateUpdateLoader(Context context) {
+		super(context);
+		String[] currencyList = context.getResources().getStringArray(R.array.currConv_rateOrder);
+		boolean json = PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+				context.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
+				true);
+		mUpdate = new YahooApiExchangeRatesUpdate(context.getContentResolver(), currencyList, json);
+	}
 	
 	public ExchangeRateUpdateLoader(Context context, String[] currencyList) {
 		super(context);
@@ -89,6 +99,8 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 		
 		List<ContentValues> returnValues = new ArrayList<ContentValues>();
 		
+		buildDisplayOrder(currencyList);
+		
 		final int SIZE = currencyList.length;
 		for (int index = 0; index < SIZE; index++) {
 			String code = currencyList[index];
@@ -99,6 +111,7 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 			createCurrencyData(code, currencyList, res.obtainTypedArray(id), returnValues);
 			array.recycle();
 		}
+		
 		arrayIdList.recycle();		
 		
 		ContentValues[] input = new ContentValues[returnValues.size()];
@@ -115,6 +128,22 @@ public class ExchangeRateUpdateLoader extends AsyncTaskLoader<Void> {
 		PreferenceUtils.setLastUpdateTime(getContext(), time);
 	}
 
+	/** Populates the display order table. 
+	 * @param currencyCodeOrder An ordered set of currencies.
+	 */
+	private void buildDisplayOrder(String[] currencyCodeOrder){
+		final int SIZE = currencyCodeOrder.length;
+		ContentValues[] input = new ContentValues[SIZE];
+		
+		for (int index = 0; index < SIZE; index++) {
+			input[index] = new ContentValues();
+			input[index].put(DisplayOrderEntry.COLUMN_CURRENCY_CODE, currencyCodeOrder[index]);
+			input[index].put(DisplayOrderEntry.COLUMN_DEF_DISPLAY_ORDER, index);
+		}
+		
+		getContext().getContentResolver()
+					.bulkInsert(DisplayOrderEntry.CONTENT_URI, input); 
+	}
 	
 	/**
 	 * 

@@ -25,7 +25,7 @@ import android.provider.BaseColumns;
 /**
  * The currency data contract for the currency database.
  * @author Jason J.
- * @version 0.1.0-20150521
+ * @version 1.0.0-20150527
  */
 public class CurrencyConverterContract {
 	
@@ -36,10 +36,51 @@ public class CurrencyConverterContract {
 
     /** Uri path for exchange rates. */
     final static public String PATH_EXCHANGE = "exchange_rate";
+    /** Uri path for display orders. */
+    final static public String PATH_ORDER = "display_order";
+	
+    /** Table for list of supported currencies and their display order.
+     * @version 1.0.0-20150527 */
+	static public class DisplayOrderEntry implements BaseColumns  {
+		/** Defines content uri base for map entries. */
+        final static public Uri CONTENT_URI =
+        		BASE_CONTENT_URI.buildUpon().appendPath(PATH_ORDER).build();
+        
+        /** Defines map type for [dir]. */
+        final static public String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ORDER;
+        /** Defines map type for [item]. */
+        final static public String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_ORDER;
+        
+        /** The table name of map entries. */
+        final public static String TABLE_NAME = "display_order";
+        //note: BaseColumns supplies the _ID column.
+		
+		/** String. Unique key. The currency code in ISO 4217 form; 3 letters. */
+		final static public String COLUMN_CURRENCY_CODE = "currency_code";
+		/** Int. The optional order in which to list currencies.
+		 * Values that are -1 are to be ignored.   */
+		final static public String COLUMN_DEF_DISPLAY_ORDER = "def_display_order";
+		
+		/////////////////////////////////////////////////////////////////////////////////////////////////
+		/// Utility methods
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		/**
+         * Builds Uri for a specific currency order entry.
+         * @param id The db id.
+         * @return The structured Uri for a given currency order entry.
+         */
+        public static Uri buildDisplayOrderUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }        
+	}
     
 	
-	
-	/** Table for list of currency exchanges: SOURCE -> DEST.  */
+	/** Table for list of currency exchanges: SOURCE -> DEST.  
+	 * @version 1.0.0-20150521
+	 * */
 	static public class ExchangeRateEntry implements BaseColumns {	
 		/** Defines content uri base for map entries. */
         final static public Uri CONTENT_URI =
@@ -55,11 +96,10 @@ public class CurrencyConverterContract {
         final public static String TABLE_NAME = "exchange_rate";
         //note: BaseColumns supplies the _ID column.
 		
-		/** String. The source currency code in ISO 4217 form; 3 letters. 
-		 *  */
+		/** String. The source currency code in ISO 4217 form; 3 letters.  */
 		final static public String COLUMN_SOURCE_CURRENCY_CODE = "source_code";
-		/** String. The destination currency code in ISO 4217 form; 3 letters. 
-		 * */
+		/** String. Foreign key ({@link DisplayOrderEntry#COL_CURRENCY_CODE}).  
+		 * The destination currency code in ISO 4217 form; 3 letters.  */
 		final static public String COLUMN_DEST_CURRENCY_CODE = "dest_code";
 		/**  Double. The rate from SOURCE to the DEST currency in question. */
 		final static public String COLUMN_EXCHANGE_RATE = "exchange_rate";
@@ -80,6 +120,7 @@ public class CurrencyConverterContract {
         
         /**
          * Builds Uri for exchange rates from a particular source currency.
+         * Expects join with {@link DisplayOrderEntry}.
          * @param sourceCurrency The starting currency.
          * @return The structured Uri for a group of entries.
          */
