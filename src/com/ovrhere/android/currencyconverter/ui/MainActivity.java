@@ -28,18 +28,17 @@ import com.ovrhere.android.currencyconverter.prefs.PreferenceUtils;
 
 /** The main activity.
  * @author Jason J.
- * @version 0.2.0-20150526
+ * @version 0.2.1-20150528
  */
 public class MainActivity extends ActionBarActivity  {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//Do before view is built so that spinners display correctly.
+		PreferenceUtils.initPreferences(this);
+		
 		setContentView(R.layout.activity_main);
-
-		if (PreferenceUtils.isFirstRun(this)) { //TODO move to activity
-			PreferenceUtils.resetToDefault(this);
-		}
 		
 		if (getSupportActionBar() != null){ //make actionbar flat
 			getSupportActionBar().setElevation(0.0f);

@@ -68,7 +68,7 @@
     
 	<!-- Old string keys which may/may not be removed in the future -->
 	<eat-comment />
-	 <!-- The string used as the preference file name. -->
+	 <!-- @Deprecated. The string used as the preference file name. -->
     <string name="preferenceutil_OLDPREFERENCE_FILE_KEY" >
         com_ovrhere_currConv_PREFERENCE_FILE_KEY
     </string> 

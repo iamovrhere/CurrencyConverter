@@ -27,35 +27,53 @@ import com.ovrhere.android.currencyconverter.R;
  * Has ability to set defaults. Requires <code>preference_info.xml</code> and
  * <code>preference_defaults.xml</code>.
  * @author Jason J.
- * @version 0.6.0-2010525
+ * @version 0.7.0-2010528
  */
 public class PreferenceUtils {
 	/* The class name. */
 	//final static private String CLASS_NAME = PreferenceUtils.class.getSimpleName();	
 	/** The key for the first run/preferences set pref. */
+	@Deprecated
 	final static protected String KEY_PREFERENCES_SET = "com.ovrhere.currConv.KEY_FIRST_RUN";
 	/** The pref value for the first run/preferences set . 
 	 * @see {@link #KEY_PREFERENCES_SET} */
+	@Deprecated
 	final static protected boolean VALUE_PREFERENCES_SET	 = true;
 	
-	/** Used to determine if {@link #resetToDefault(Context)} has been called before.
+	/**
+	 * Used to initialise preferences on the first run. Call in your MainActivity
+	 * @param context The activity context.
+	 */
+	static public void initPreferences(Context context){
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		//if empty, this must be the first run.
+		boolean isFirstRun = prefs.getAll().isEmpty();
+		
+		if (isFirstRun) { //if indeed first run, set to defaults and transfer any settings
+			resetToDefault(context); 
+			checkAndTransferOldToNew(context, prefs);
+		}
+	}
+	
+	/** Used to determine if {@link #resetToDefault(Context)} or {@link #initPreferences(Context)}
+	 * has been called before.
 	 * @param context The current context.
 	 * @return <code>true</code> only on the first run, <code>false</code> otherwise.
 	 */
 	static public boolean isFirstRun(Context context){
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-		
-		//set any missing preferences if not set, ignores the rest
-		boolean isFirstRun = (prefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) 
-				== !VALUE_PREFERENCES_SET);
-		
-		if (isFirstRun == false) {
-			SharedPreferences oldPrefs = getOldPreferences(context);
-			checkAndTransferOldToNew(oldPrefs, prefs, context);
-		}
-				
-		//if the default value not set, then true.
-		return isFirstRun;
+		return prefs.getAll().isEmpty();
+	}
+
+	
+	/** <b>Clears</b> and resets application's preferences to the default values. 
+	 * @param context The current context to be used. 
+	 * @see res/values/preferences_info.xml */
+	static public void resetToDefault(Context context){
+		SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(context)
+											.edit();
+		edit.clear().commit();		
+		PreferenceManager.setDefaultValues(context, R.xml.preference_defaults, true);
 	}
 	
 	/** 
@@ -69,18 +87,6 @@ public class PreferenceUtils {
 		return context.getSharedPreferences(
 				context.getResources().getString(R.string.preferenceutil_OLDPREFERENCE_FILE_KEY), 
 				Context.MODE_PRIVATE); 
-	}
-	
-	/** <b>Clears</b> and resets application's preferences to the default values. 
-	 * @param context The current context to be used. 
-	 * @see res/values/preferences_info.xml */
-	static public void resetToDefault(Context context){
-		SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(context)
-											.edit();
-		edit.clear().commit();		
-		PreferenceManager.setDefaultValues(context, R.xml.preference_defaults, true);	
-		
-		edit.putBoolean(KEY_PREFERENCES_SET, VALUE_PREFERENCES_SET).commit();
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,17 +156,20 @@ public class PreferenceUtils {
 	
 	/**
 	 * Checks if old preferences exists and migrates them to the new one, if they do.
-	 * @param oldPrefs
-	 * @param newPrefs
 	 * @param context
+	 * @param newPrefs
+	 * @return <code>true</code> if old preferences were transfered, <code>false</code>
+	 * if they were not (i.e. no previous runs).
 	 */
-	private static void checkAndTransferOldToNew(SharedPreferences oldPrefs, 
-			SharedPreferences newPrefs, Context context) {
-		boolean oldPrefsExist = (oldPrefs.getBoolean(KEY_PREFERENCES_SET, !VALUE_PREFERENCES_SET) == VALUE_PREFERENCES_SET);
-		
-		if (!oldPrefsExist) {
-			return; //if the older preferences do not exist, exit.
+	private static boolean checkAndTransferOldToNew(Context context, SharedPreferences newPrefs) {
+		final SharedPreferences oldPrefs = getOldPreferences(context);
+		boolean oldPrefsNotSet = oldPrefs.getAll().isEmpty();
+				
+		//Toast.makeText(context, "oldPrefsNotSet: " + oldPrefsNotSet, Toast.LENGTH_LONG).show();
+		if (oldPrefsNotSet) {			
+			return false; //if the older preferences do not exist, exit.
 		} //otherwise, transfer them.
+		
 		
 		Resources res = context.getResources();
 		SharedPreferences.Editor prefs = newPrefs.edit();
@@ -179,8 +188,15 @@ public class PreferenceUtils {
 				""+oldPrefs.getInt(res.getString(R.string.currConv_pref_OLDKEY_UPDATE_CURRENCY_INTERVAL), 0)
 		);
 		
-		oldPrefs.edit().clear().commit();		
+		prefs.putBoolean(
+				res.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST),
+				oldPrefs.getBoolean(res.getString(R.string.currConv_pref_KEY_USE_JSON_REQUEST), true)
+		);
+		
 		prefs.commit();
+		oldPrefs.edit().clear().commit();
+		
+		return true;
 	}
 
 }
